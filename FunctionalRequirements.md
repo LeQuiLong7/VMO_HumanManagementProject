@@ -11,18 +11,19 @@
 
 1. The application should allow employees to reset their password
 2. The application should send a link to employee’s email to reset their password
-3. If a password is reset successfully, use should be able to login using the new password
 
 ### Log In
 
-1. Normal employees are only able to view, change their basic info, view projects info
-2. The application should allow employees to login using their account
-3. After 5 failed login attempts, the account should be locked for 15 minutes
+1. The application should allow employees to login using their account
 
 ### Profile
 
 1. The application should allow employees to update the basic info while logged in
 2. The application should allow users to update their password while logged 
+
+### Attendance and Leave
+1. The application should keep track of employees attendance
+2. The application should allow employees to make leave request
 
 ## Projects Management
 
@@ -39,18 +40,17 @@
 ### New Project
 
 1. The application allows admin to create new projects 
-2. The application allows admin to assign employees to projects
-
+2. The application allows admin, project managers to assign employees to projects
 
 
 ## Access Control
 
 ### Role Control
 
-1. Two roles: EMPLOYEE and ADMIN
-2. EMPLOYEE role have restricted access on resources
-3. ADMIN role have full access on resources 
-4. Only ADMIN can assign EMPLOYEE to projects
+1. 3 roles: EMPLOYEE, PM and ADMIN
+2. EMPLOYEE can log in, view basic info, change basic info, make leave requests, make salary raise request
+3. PM manages multiple EMPLOYEES: manage their attendance, accept or reject their leave request, accept or reject their salary raise request, assign them to projects  
+4. ADMIN can create new projects, assign PM or EMPLOYEES to projects
 
 ## Audit Trail
 
