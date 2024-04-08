@@ -1,25 +1,26 @@
 package com.lql.humanresourcedemo.controller;
 
 
+import com.lql.humanresourcedemo.dto.model.EmployeeDTO;
+import com.lql.humanresourcedemo.dto.request.LoginRequest;
+import com.lql.humanresourcedemo.dto.response.LoginResponse;
 import com.lql.humanresourcedemo.service.EmployeeService;
 import com.lql.humanresourcedemo.service.JWTAuthenticationService;
+import com.lql.humanresourcedemo.service.LoginService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/login")
 @RequiredArgsConstructor
 public class LoginController {
 
-    private final JWTAuthenticationService jwtAuthenticationService;
-    private final EmployeeService employeeService;
+    private final LoginService loginService;
 
-
-    @GetMapping
-    public String getToken() {
-
-        return jwtAuthenticationService.generateToken(employeeService.findById(1L).get());
+    @PostMapping
+    public LoginResponse login(@RequestBody LoginRequest loginRequest) {
+        return loginService.login(loginRequest);
     }
+
+
 }

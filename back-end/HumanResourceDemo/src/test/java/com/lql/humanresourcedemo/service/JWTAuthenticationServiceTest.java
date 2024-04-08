@@ -1,11 +1,9 @@
 package com.lql.humanresourcedemo.service;
 
+import com.lql.humanresourcedemo.dto.model.EmployeeDTO;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.model.employee.Employee;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,23 +34,24 @@ class JWTAuthenticationServiceTest {
         jwtAuthenticationService = new JWTAuthenticationService(jwtBuilder, jwtParser);
     }
 
-
     @Test
-    public void extractTest() {
-        Employee employee = Employee.builder()
-                .id(12L)
-                .role(Role.ADMIN)
-                .build();
+    public void generateTokenTest() {
+        EmployeeDTO employee = new EmployeeDTO(1L, "", Role.ADMIN);
 
-        String s = jwtAuthenticationService.generateToken(employee);
+        String token = jwtAuthenticationService.generateToken(employee);
+        System.out.println(token);
+
+        Long id = jwtAuthenticationService.extractEmployeeId(token);
+        Role role = jwtAuthenticationService.extractRole(token);
 
 
-        assertDoesNotThrow(() -> {
-            Role role = jwtAuthenticationService.extractRole(s);
+        assertThrows(JwtException.class, () -> jwtAuthenticationService.isTokenExpired(token+"a"));
 
-            assertThat(role).isNotNull();
-            System.out.println(role);
+        assertAll(() -> {
+            assertEquals(employee.id(), id);
+            assertEquals(employee.role(), role);
         });
 
     }
+
 }

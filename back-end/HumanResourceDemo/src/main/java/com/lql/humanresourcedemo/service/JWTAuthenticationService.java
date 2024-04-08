@@ -1,9 +1,9 @@
 package com.lql.humanresourcedemo.service;
 
 
-import com.lql.humanresourcedemo.constant.JWTConstants;
+import com.lql.humanresourcedemo.dto.model.EmployeeDTO;
 import com.lql.humanresourcedemo.enumeration.Role;
-import com.lql.humanresourcedemo.model.authentication.MyAuthentication;
+import com.lql.humanresourcedemo.security.MyAuthentication;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -24,23 +25,25 @@ public class JWTAuthenticationService {
     private final JwtBuilder jwtBuilder;
     private final JwtParser jwtParser;
 
-    public Authentication convertToAuthentication(String token) {
-        Claims claims = extractAllClaims(token);
-        return new MyAuthentication(
-                Long.parseLong(claims.getSubject()),
-                Role.valueOf(claims.get(ROLE).toString())
-        );
-    }
-
     public Long extractEmployeeId(String token) {
-        return  Long.parseLong(extractClaims(token, Claims::getSubject));
+        return  Long.parseLong(extractClaim(token, Claims::getSubject));
+    }
+    public Long extractEmployeeId(Claims claims) {
+        return  Long.parseLong(extractClaim(claims, Claims::getSubject));
     }
     public Role extractRole(String token) {
-        return Role.valueOf(extractClaims(token, claims -> claims.get(ROLE).toString()));
+        return Role.valueOf(extractClaim(token, claims -> claims.get(ROLE).toString()));
+    }
+    public Role extractRole(Claims claims) {
+        return Role.valueOf(extractClaim(claims, claim -> claims.get(ROLE).toString()));
     }
 
-    public <T> T extractClaims(String token, Function<Claims, T> claimsResolver) {
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         return claimsResolver.apply(extractAllClaims(token));
+    }
+
+    public   <T> T extractClaim(Claims claims, Function<Claims, T> claimsResolver) {
+        return claimsResolver.apply(claims);
     }
     public Claims extractAllClaims(String token) {
         return  jwtParser
@@ -48,19 +51,26 @@ public class JWTAuthenticationService {
                 .getBody();
     }
 
+    public String generateToken( EmployeeDTO e) {
 
-    public String generateToken( Employee e) {
         return  jwtBuilder
-                .setSubject(String.valueOf(e.getId()))
-                .setClaims(Map.of(ROLE, e.getRole()))
+                .setClaims(buildClaims(e))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + (10 * 60
                         * 1000)))
                 .compact();
     }
 
+    private  Map<String, String>  buildClaims(EmployeeDTO e) {
+        Map<String, String> claims = new HashMap<>();
+
+        claims.put("sub", String.valueOf(e.id()));
+        claims.put("role", e.role().toString());
+        return claims;
+    }
+
     public boolean isTokenExpired(String token) {
-        return extractClaims(token, Claims::getExpiration).before(new Date(System.currentTimeMillis()));
+        return extractClaim(token, Claims::getExpiration).before(new Date(System.currentTimeMillis()));
     }
 }
 
@@ -68,10 +78,28 @@ public class JWTAuthenticationService {
 
 
 
+//    public Authentication convertToAuthentication(String token, String ipAddress) {
+//        Claims claims = extractAllClaims(token);
+//        return new MyAuthentication(
+//                extractEmployeeId(claims),
+//                extractRole(claims),
+//                ipAddress
+//        );
+//    }
 
 
 
 
+//
+//    public String generateToken( Employee e) {
+//        return  jwtBuilder
+//                .setSubject(String.valueOf(e.getId()))
+//                .setClaims(Map.of(ROLE, e.getRole()))
+//                .setIssuedAt(new Date(System.currentTimeMillis()))
+//                .setExpiration(new Date(System.currentTimeMillis() + (10 * 60
+//                        * 1000)))
+//                .compact();
+//    }
 
 
 

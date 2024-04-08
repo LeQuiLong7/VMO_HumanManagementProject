@@ -16,5 +16,11 @@ public class EmployeeService {
     public Optional<Employee> findById(Long id) {
         return employeeRepository.findById(id);
     }
+    public Optional<Employee> findByEmail(String email) {
+        return employeeRepository.findByEmail(email);
+    }
 
+    public <T> Optional<T> findByEmail(String email, Class<T> clazz) {
+        return employeeRepository.findByEmail(email, clazz);
+    }
 }

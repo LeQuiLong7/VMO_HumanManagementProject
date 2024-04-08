@@ -1,9 +1,8 @@
 package com.lql.humanresourcedemo.filter;
 
-import com.lql.humanresourcedemo.model.authentication.MyAuthentication;
-import com.lql.humanresourcedemo.model.employee.Employee;
-import com.lql.humanresourcedemo.service.EmployeeService;
+import com.lql.humanresourcedemo.security.MyAuthentication;
 import com.lql.humanresourcedemo.service.JWTAuthenticationService;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -29,8 +28,13 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
-        if(requestURI.equals(LOGIN_URI)) {
 
+        MyAuthentication authentication = new MyAuthentication();
+        authentication.setIpAddress(request.getRemoteAddr());
+
+
+        if(requestURI.equals(LOGIN_URI)) {
+                SecurityContextHolder.getContext().setAuthentication(authentication);
                 filterChain.doFilter(request, response);
         } else {
 
@@ -49,13 +53,15 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                     return;
                 }
             } catch (JwtException e) {
-                filterChain.doFilter(request, response);
                 response.setStatus(403);
                 response.getWriter().print("token is not valid");
                 return;
             }
+            Claims claims = jwtAuthenticationService.extractAllClaims(token);
 
-            Authentication authentication = jwtAuthenticationService.convertToAuthentication(token);
+            authentication.setEmployeeId(jwtAuthenticationService.extractEmployeeId(claims));
+            authentication.setRole(jwtAuthenticationService.extractRole(claims));
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
             filterChain.doFilter(request, response);
         }

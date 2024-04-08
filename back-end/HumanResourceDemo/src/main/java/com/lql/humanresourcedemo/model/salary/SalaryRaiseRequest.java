@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -28,24 +29,11 @@ public class SalaryRaiseRequest extends Auditable {
     private String description;
     @Enumerated(EnumType.STRING)
     private SalaryRaiseRequestStatus status;
+    private Double newSalary;
+    private LocalDateTime approvedAt;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    @OneToOne
+    @JoinColumn(name = "approvedBy")
+    private Employee approvedBy;
 
-        SalaryRaiseRequest that = (SalaryRaiseRequest) o;
-        return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (employee != null ? employee.hashCode() : 0);
-        result = 31 * result + (currentSalary != null ? currentSalary.hashCode() : 0);
-        result = 31 * result + (expectedSalary != null ? expectedSalary.hashCode() : 0);
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (status != null ? status.hashCode() : 0);
-        return result;
-    }
 }
