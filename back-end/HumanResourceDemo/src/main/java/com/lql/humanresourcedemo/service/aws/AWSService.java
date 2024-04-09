@@ -25,12 +25,17 @@ import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
 public class AWSService {
     private final S3Client s3Client;
 
+    public String getUrlForObject(String bucketName, String region, String objectKey) {
+        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, objectKey);
+    }
+
     public Resource downloadFile( String bucketName, String key) throws IOException {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
                 .build();
         ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
+
 //        s3Client.get
         return new ByteArrayResource(object.readAllBytes());
     }
@@ -44,4 +49,6 @@ public class AWSService {
 
         return key;
     }
+
+
 }

@@ -8,10 +8,14 @@ import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.security.MyAuthentication;
 import com.lql.humanresourcedemo.service.employee.EmployeeService;
+import com.lql.humanresourcedemo.utility.ContextUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import static com.lql.humanresourcedemo.utility.ContextUtility.*;
 
 @RestController
 @RequestMapping("/profile")
@@ -23,12 +27,12 @@ public class ProfileController {
 
     @GetMapping
     public GetProfileResponse getProfile() {
-        return employeeService.findById(((MyAuthentication) SecurityContextHolder.getContext().getAuthentication()).getEmployeeId(), GetProfileResponse.class);
+        return employeeService.findById(getCurrentEmployeeId(), GetProfileResponse.class);
     }
 
     @GetMapping("/tech")
     public TechStackResponse getTechStack() {
-        return employeeService.getTechStack(((MyAuthentication) SecurityContextHolder.getContext().getAuthentication()).getEmployeeId());
+        return employeeService.getTechStack(getCurrentEmployeeId());
     }
 
     @PutMapping
@@ -37,7 +41,12 @@ public class ProfileController {
     }
 
     @PutMapping("/password")
-    public ResponseEntity<ChangePasswordResponse> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+    public ChangePasswordResponse changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
         return employeeService.changePassword(changePasswordRequest);
+    }
+
+    @PutMapping("/avatar")
+    public String uploadAvatar(MultipartFile file) {
+        return employeeService.uploadAvatar(file, getCurrentEmployeeId());
     }
 }

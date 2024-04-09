@@ -10,6 +10,9 @@ public class FileUtility {
         }
         return "";
     }
+    public static boolean supportAvatarExtension(String fileExtension) {
+        return supportImageExtension.stream().anyMatch(s -> s.equalsIgnoreCase(fileExtension));
+    }
     public static List<String> supportImageExtension = List.of("jpg", "jpeg", "png");
 
 }

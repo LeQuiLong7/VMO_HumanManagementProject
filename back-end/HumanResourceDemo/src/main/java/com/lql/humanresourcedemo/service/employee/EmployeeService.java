@@ -5,17 +5,19 @@ import com.lql.humanresourcedemo.dto.request.UpdateProfileRequest;
 import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
-import com.lql.humanresourcedemo.exception.model.FileNotSupportException;
+import com.lql.humanresourcedemo.exception.model.file.FileNotSupportException;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeNotFoundException;
+import com.lql.humanresourcedemo.exception.model.password.PasswordAndConfirmationDoNotMatchException;
+import com.lql.humanresourcedemo.exception.model.password.WrongOldPasswordException;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.repository.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.EmployeeTechRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
 import com.lql.humanresourcedemo.utility.FileUtility;
-import com.lql.humanresourcedemo.utility.Mapping;
+import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,10 +36,13 @@ public class EmployeeService {
     private final PasswordEncoder passwordEncoder;
     private final AWSService awsService;
 
+    @Value("${spring.cloud.aws.region.static}")
+    private String region;
+
 
     public <T> T findById(Long id, Class<T> clazz) {
-        // TODO: create a meaningful error message
-        return employeeRepository.findById(id, clazz).orElseThrow(() -> new EmployeeNotFoundException(""));
+        return employeeRepository.findById(id, clazz)
+                .orElseThrow(() -> new EmployeeNotFoundException(id));
     }
 
     public <T> Optional<T> findByEmail(String email, Class<T> clazz) {
@@ -45,42 +50,43 @@ public class EmployeeService {
     }
 
     public TechStackResponse getTechStack(Long id) {
-        return new TechStackResponse(employeeTechRepository.findTechInfoByEmployeeId(id).stream().map(employeeTechDTO -> new TechStackResponse.TechInfo(employeeTechDTO.getTechId(), employeeTechDTO.getTechName(), employeeTechDTO.getYearOfExperience()))
-                .toList());
-    }
-
-
-    public GetProfileResponse updateInfo(UpdateProfileRequest request) {
-        // TODO: create a meaningful error message
-        Employee updated = employeeRepository.findById(request.id())
-                .map(employee -> newInfo(employee, request))
-                .orElseThrow(() -> new EmployeeNotFoundException(""));
-
-        employeeRepository.save(updated);
-        return Mapping.employeeToProfileResponse(updated);
+        return new TechStackResponse(
+                employeeTechRepository.findTechInfoByEmployeeId(id)
+                        .stream()
+                        .map(MappingUtility::employeeTechDTOtoTechInfo)
+                        .toList()
+        );
     }
 
 
     @Transactional
-    public ResponseEntity<ChangePasswordResponse> changePassword(ChangePasswordRequest request) {
+    public GetProfileResponse updateInfo(UpdateProfileRequest request) {
+
+        Employee updated = employeeRepository.findById(request.id())
+                .map(employee -> newInfo(employee, request))
+                .orElseThrow(() -> new EmployeeNotFoundException(request.id()));
+
+        return MappingUtility.employeeToProfileResponse(employeeRepository.save(updated));
+    }
+
+
+    @Transactional
+    public ChangePasswordResponse changePassword(ChangePasswordRequest request) {
 
         if(!request.oldPassword().equals(request.confirmPassword())) {
-            return ResponseEntity.status(400).body(new ChangePasswordResponse("password and confirmation password do not match"));
+            throw new PasswordAndConfirmationDoNotMatchException(request.id());
         }
 
-        // TODO: create a meaningful error message
         Employee employee = employeeRepository.findById(request.id())
-                .orElseThrow(() -> new EmployeeNotFoundException(""));
-
+                .orElseThrow(() -> new EmployeeNotFoundException(request.id()));
 
         if(!passwordEncoder.matches(request.oldPassword(), employee.getPassword())) {
-            return ResponseEntity.status(400).body(new ChangePasswordResponse("old password is not correct"));
+            throw new WrongOldPasswordException(request.id());
         }
 
         employee.setPassword(passwordEncoder.encode(request.newPassword()));
-
         employeeRepository.save(employee);
-        return ResponseEntity.ok().body(new ChangePasswordResponse("changed password successfully"));
+        return new ChangePasswordResponse("changed password successfully");
 
     }
 
@@ -89,22 +95,20 @@ public class EmployeeService {
 
         String fileExtension = FileUtility.getFileExtension(file.getOriginalFilename()).toLowerCase();
 
-
-        if(FileUtility.supportImageExtension.stream().noneMatch(supportType -> supportType.equals(fileExtension))) {
+        if(!FileUtility.supportAvatarExtension(fileExtension)) {
             throw new FileNotSupportException(fileExtension);
         }
-
-
-
 
         String objectKey = String.format("image/%s.%s", employeeId, fileExtension);
         try {
             awsService.uploadFile(file, BUCKET_NAME, objectKey);
-            Employee e = employeeRepository.getReferenceById(employeeId);
-            e.setAvatarUrl(objectKey);
+            Employee e = employeeRepository.findById(employeeId)
+                    .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
+            String avatarUrl = awsService.getUrlForObject(BUCKET_NAME, region, objectKey);
+            e.setAvatarUrl(avatarUrl);
             employeeRepository.save(e);
+            return avatarUrl;
 
-            return objectKey;
         } catch (IOException e) {
             // TODO: handle exception
             throw new RuntimeException(e);

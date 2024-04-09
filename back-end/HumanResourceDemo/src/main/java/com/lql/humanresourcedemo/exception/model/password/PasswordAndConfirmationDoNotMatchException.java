@@ -1,7 +1,7 @@
 package com.lql.humanresourcedemo.exception.model.password;
 
 public class PasswordAndConfirmationDoNotMatchException extends PasswordException{
-    public PasswordAndConfirmationDoNotMatchException(String message) {
-        super(message);
+    public PasswordAndConfirmationDoNotMatchException(Long accountId) {
+        super("Password and confirmation password do not match - AccountId: " + accountId);
     }
 }
