@@ -16,7 +16,7 @@ public class Tech {
     private Long id;
     private String name;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "techGroupId")
     private TechGroup techGroup;
 }

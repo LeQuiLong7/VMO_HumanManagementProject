@@ -24,7 +24,7 @@ public class PasswordResetRequest {
     @Getter
     @Setter
     public static class PasswordResetRequestId implements Serializable {
-        @OneToOne
+        @ManyToOne
         @JoinColumn(name = "employeeId")
         private Employee employee;
         private String token;

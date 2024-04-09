@@ -1,0 +1,18 @@
+
+spring:
+  config:
+    import: file:.env[.properties]
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT}/${POSTGRES_DB_NAME}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate.format_sql: true
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+

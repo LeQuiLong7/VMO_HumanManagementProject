@@ -22,7 +22,7 @@ public class LeaveRequest extends Auditable {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "leave_request_id_seq")
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "employeeId")
     private Employee employee;
     private LocalDate date;

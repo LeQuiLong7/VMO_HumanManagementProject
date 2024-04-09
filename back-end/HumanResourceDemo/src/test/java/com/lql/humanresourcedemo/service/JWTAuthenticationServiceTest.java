@@ -2,13 +2,12 @@ package com.lql.humanresourcedemo.service;
 
 import com.lql.humanresourcedemo.dto.model.EmployeeDTO;
 import com.lql.humanresourcedemo.enumeration.Role;
-import com.lql.humanresourcedemo.model.employee.Employee;
+import com.lql.humanresourcedemo.service.jwt.JWTService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.SecretKey;
 
@@ -25,13 +24,13 @@ class JWTAuthenticationServiceTest {
         return Keys.hmacShaKeyFor(bytes);
     }
 
-    private JWTAuthenticationService jwtAuthenticationService;
+    private JWTService jwtAuthenticationService;
 
     @BeforeEach
     void setUp() {
         jwtBuilder = Jwts.builder().signWith(getSecretKey(), SignatureAlgorithm.HS256);
         jwtParser = Jwts.parserBuilder().setSigningKey(getSecretKey()).build();
-        jwtAuthenticationService = new JWTAuthenticationService(jwtBuilder, jwtParser);
+        jwtAuthenticationService = new JWTService(jwtBuilder, jwtParser);
     }
 
     @Test

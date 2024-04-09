@@ -1,7 +1,9 @@
 package com.lql.humanresourcedemo.exception.handler;
 
 
-import com.lql.humanresourcedemo.exception.model.LoginException;
+import com.lql.humanresourcedemo.exception.model.FileNotSupportException;
+import com.lql.humanresourcedemo.exception.model.login.LoginException;
+import com.lql.humanresourcedemo.utility.FileUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,18 @@ public class GlobalExceptionHandler {
         log.warn("Login error: {}", ex.getMessage());
         Map<String, String> detail = new HashMap<>();
         detail.put("error", "Wrong email or password");
+        detail.put("time_stamp", LocalDateTime.now().toString());
+
+        return new ResponseEntity<>(detail, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(FileNotSupportException.class)
+    public ResponseEntity<Object> fileNotSupportExceptionHandler(FileNotSupportException ex) {
+        log.warn("File upload error: {}", ex.getMessage());
+        Map<String, String> detail = new HashMap<>();
+
+
+        detail.put("error", ex.getMessage() + " - support types: " + FileUtility.supportImageExtension.toString());
         detail.put("time_stamp", LocalDateTime.now().toString());
 
         return new ResponseEntity<>(detail, HttpStatus.BAD_REQUEST);

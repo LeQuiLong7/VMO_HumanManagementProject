@@ -42,7 +42,7 @@ public class Employee extends Auditable {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manageBy")
     private Employee managedBy;
 

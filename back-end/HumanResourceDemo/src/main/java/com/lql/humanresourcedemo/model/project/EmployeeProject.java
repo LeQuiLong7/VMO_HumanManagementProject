@@ -24,10 +24,10 @@ public class EmployeeProject extends Auditable {
     @Getter
     @Setter
     public static class EmployeeProjectId implements Serializable {
-        @OneToOne
+        @ManyToOne
         @JoinColumn(name = "employeeId")
         private Employee employee;
-        @OneToOne
+        @ManyToOne
         @JoinColumn(name = "projectId")
         private Project project;
 

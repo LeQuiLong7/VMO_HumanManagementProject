@@ -1,6 +1,8 @@
 spring:
+  config:
+    import: file:.env[.properties]
   application:
-    name: HumanResourceDemo
+    name: ${APPLICATION_NAME}
   jpa:
     hibernate:
       ddl-auto: update
@@ -11,4 +13,14 @@ spring:
   flyway:
     enabled: false
   jwt:
-    secret-key: N53ZENIJOWDgPbtvesRkV39ug8HeJljb5qYcPRx9F9A=
+    secret-key: ${JWT_SECRET_KEY}
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+  cloud:
+    aws:
+      region:
+        static: ${AWS_REGION}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}

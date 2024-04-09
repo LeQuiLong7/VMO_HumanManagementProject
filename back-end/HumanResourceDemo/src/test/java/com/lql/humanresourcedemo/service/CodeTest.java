@@ -11,7 +11,7 @@ public class CodeTest {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 
-        System.out.println(passwordEncoder.matches("admfin", "$2a$10$e2cgzLiUBBkuRiQwsgV4JuNUEmaEmu5/l1KW1NqGvM6Xa5UTWdqrO"));
+        System.out.println(passwordEncoder.matches("admin", "$2a$10$e2cgzLiUBBkuRiQwsgV4JuNUEmaEmu5/l1KW1NqGvM6Xa5UTWdqrO"));
 //        System.out.println(passwordEncoder.encode("pm"));
 //        System.out.println(passwordEncoder.encode("employee"));
     }

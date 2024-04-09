@@ -1,11 +1,13 @@
 package com.lql.humanresourcedemo.model.tech;
 
+import com.lql.humanresourcedemo.dto.model.EmployeeTechDTO;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -14,6 +16,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class EmployeeTech {
 
     @EmbeddedId
@@ -27,10 +30,10 @@ public class EmployeeTech {
     public static class EmployeeTechId implements Serializable {
 
 
-        @OneToOne
+        @ManyToOne
         @JoinColumn(name = "employeeId")
         private Employee employee;
-        @OneToOne
+        @ManyToOne
         @JoinColumn(name = "techId")
         private Tech tech;
 

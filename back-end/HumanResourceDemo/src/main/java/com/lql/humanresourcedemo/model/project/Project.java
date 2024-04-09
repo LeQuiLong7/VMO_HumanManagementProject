@@ -27,7 +27,7 @@ public class Project extends Auditable {
     private LocalDate startDate;
     private LocalDate finishDate;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "clientId")
     private Client client;
 }
