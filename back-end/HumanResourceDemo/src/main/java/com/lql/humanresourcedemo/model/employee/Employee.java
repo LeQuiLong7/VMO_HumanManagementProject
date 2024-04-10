@@ -1,5 +1,8 @@
 package com.lql.humanresourcedemo.model.employee;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.model.Auditable;
 import jakarta.persistence.*;
@@ -17,6 +20,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIdentityReference(alwaysAsId = true)
 public class Employee extends Auditable {
     @Id
     @SequenceGenerator(name = "employee_id_seq", sequenceName = "employee_id_seq", allocationSize = 1)

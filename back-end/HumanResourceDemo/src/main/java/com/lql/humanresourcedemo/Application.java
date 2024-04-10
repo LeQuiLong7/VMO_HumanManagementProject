@@ -3,9 +3,10 @@ package com.lql.humanresourcedemo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
-//@Profile(value = "dev")
+@EnableAsync
 public class Application {
 
 	public static void main(String[] args) {

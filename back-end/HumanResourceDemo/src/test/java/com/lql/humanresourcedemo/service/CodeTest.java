@@ -15,4 +15,9 @@ public class CodeTest {
 //        System.out.println(passwordEncoder.encode("pm"));
 //        System.out.println(passwordEncoder.encode("employee"));
     }
+
+    @Test
+    public void test2() {
+        System.out.println(String.format("%s  %s", "abc", null));
+    }
 }

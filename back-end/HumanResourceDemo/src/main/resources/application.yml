@@ -24,3 +24,6 @@ spring:
       credentials:
         access-key: ${AWS_ACCESS_KEY}
         secret-key: ${AWS_SECRET_KEY}
+mail:
+  username: ${MAIL_USERNAME}
+  password: ${MAIL_PASSWORD}

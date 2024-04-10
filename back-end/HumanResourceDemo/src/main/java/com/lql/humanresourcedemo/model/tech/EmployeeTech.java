@@ -4,16 +4,14 @@ import com.lql.humanresourcedemo.dto.model.EmployeeTechDTO;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -25,15 +23,16 @@ public class EmployeeTech {
 
     @Embeddable
     @NoArgsConstructor
+    @AllArgsConstructor
     @Getter
     @Setter
     public static class EmployeeTechId implements Serializable {
 
 
-        @ManyToOne
+        @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "employeeId")
         private Employee employee;
-        @ManyToOne
+        @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "techId")
         private Tech tech;
 

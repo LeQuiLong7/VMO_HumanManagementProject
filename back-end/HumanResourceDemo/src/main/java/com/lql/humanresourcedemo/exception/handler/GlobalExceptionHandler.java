@@ -4,6 +4,7 @@ package com.lql.humanresourcedemo.exception.handler;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeNotFoundException;
 import com.lql.humanresourcedemo.exception.model.file.FileNotSupportException;
 import com.lql.humanresourcedemo.exception.model.login.LoginException;
+import com.lql.humanresourcedemo.exception.model.newaccount.NewAccountException;
 import com.lql.humanresourcedemo.exception.model.password.PasswordException;
 import com.lql.humanresourcedemo.utility.ContextUtility;
 import com.lql.humanresourcedemo.utility.FileUtility;
@@ -46,6 +47,11 @@ public class GlobalExceptionHandler {
         return createResponseDetail(ex.getMessage().substring(0, ex.getMessage().indexOf("-")), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(NewAccountException.class)
+    public ResponseEntity<Object> newAccountExceptionHandler(NewAccountException ex) {
+        log.warn(buildLogMessage("New account", ex.getMessage()));
+        return createResponseDetail(ex.getMessage().substring(0, ex.getMessage().indexOf("-")), HttpStatus.BAD_REQUEST);
+    }
 
     private ResponseEntity<Object> createResponseDetail(String message, HttpStatus status) {
         Map<String, String> detail = new HashMap<>();

@@ -2,6 +2,7 @@ package com.lql.humanresourcedemo.filter;
 
 import com.lql.humanresourcedemo.security.MyAuthentication;
 import com.lql.humanresourcedemo.service.jwt.JWTService;
+import com.lql.humanresourcedemo.utility.ContextUtility;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -9,6 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -21,6 +23,7 @@ import static org.springframework.http.HttpHeaders.*;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
     private final JWTService jwtAuthenticationService;
@@ -32,26 +35,26 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         authentication.setIpAddress(request.getRemoteAddr());
 
 
-        if(requestURI.equals(LOGIN_URI)) {
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                filterChain.doFilter(request, response);
-        } else {
+        if (!requestURI.equals(LOGIN_URI)) {
 
             final String bearerToken = request.getHeader(AUTHORIZATION);
 
             if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+                log.warn("Access denied: Someone trying to access {} Method: {} without a bearer token - IP address: {} ",  request.getRequestURI(), request.getMethod(), request.getRemoteAddr());
                 response.setStatus(403);
                 response.getWriter().print("No bearer token");
                 return;
             }
             String token = bearerToken.substring(7);
             try {
-                if(jwtAuthenticationService.isTokenExpired(token)) {
+                if (jwtAuthenticationService.isTokenExpired(token)) {
+                    log.warn("Access denied: Account id: {} trying to access {} Method: {} without a expired token - IP address: {} ", jwtAuthenticationService.extractEmployeeId(token), request.getRequestURI(), request.getMethod(), request.getRemoteAddr());
                     response.setStatus(403);
                     response.getWriter().print("token expired");
                     return;
                 }
             } catch (JwtException e) {
+                log.warn("Access denied: Someone trying to access {} Method: {} without a invalid token : {} - IP address: {} ", request.getRequestURI(), request.getMethod(),token, request.getRemoteAddr());
                 response.setStatus(403);
                 response.getWriter().print("token is not valid");
                 return;
@@ -61,8 +64,8 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             authentication.setEmployeeId(jwtAuthenticationService.extractEmployeeId(claims));
             authentication.setRole(jwtAuthenticationService.extractRole(claims));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            filterChain.doFilter(request, response);
         }
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        filterChain.doFilter(request, response);
     }
 }
