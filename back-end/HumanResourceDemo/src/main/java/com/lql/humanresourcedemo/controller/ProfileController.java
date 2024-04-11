@@ -1,17 +1,13 @@
 package com.lql.humanresourcedemo.controller;
 
 
-import com.lql.humanresourcedemo.dto.request.ChangePasswordRequest;
-import com.lql.humanresourcedemo.dto.request.UpdateProfileRequest;
+import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
+import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
 import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
-import com.lql.humanresourcedemo.security.MyAuthentication;
 import com.lql.humanresourcedemo.service.employee.EmployeeService;
-import com.lql.humanresourcedemo.utility.ContextUtility;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 

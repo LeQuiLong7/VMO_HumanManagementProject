@@ -1,10 +1,7 @@
 package com.lql.humanresourcedemo.service.aws;
 
 
-import com.lql.humanresourcedemo.utility.AWSUtility;
-import com.lql.humanresourcedemo.utility.FileUtility;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -17,8 +14,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
-
-import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
 
 @Service
 @RequiredArgsConstructor

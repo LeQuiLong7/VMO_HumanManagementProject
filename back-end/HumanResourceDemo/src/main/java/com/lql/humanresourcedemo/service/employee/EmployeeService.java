@@ -1,9 +1,9 @@
 package com.lql.humanresourcedemo.service.employee;
 
-import com.lql.humanresourcedemo.dto.model.OnlySalary;
-import com.lql.humanresourcedemo.dto.request.ChangePasswordRequest;
-import com.lql.humanresourcedemo.dto.request.CreateSalaryRaiseRequest;
-import com.lql.humanresourcedemo.dto.request.UpdateProfileRequest;
+import com.lql.humanresourcedemo.dto.model.employee.OnlySalary;
+import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
+import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
+import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
 import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
@@ -148,18 +147,13 @@ public class EmployeeService {
 
 
 
+    public int updateLeaveDays() {
+        return employeeRepository.increaseLeaveDaysBy1();
+    }
 
-//    private Employee newInfo(Employee e, UpdateProfileRequest request) {
-//        e.setFirstName(request.firstName());
-//        e.setLastName(request.lastName());
-//        e.setBirthDate(request.birthDate());
-//        e.setPhoneNumber(request.phoneNumber());
-//        e.setPersonalEmail(request.personalEmail());
-//        e.setLastUpdatedAt(LocalDateTime.now());
-//        return e;
-//    }
-//
-//
+
+
+
 
 
 }

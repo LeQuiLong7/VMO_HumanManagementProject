@@ -1,7 +1,7 @@
 package com.lql.humanresourcedemo.controller;
 
 
-import com.lql.humanresourcedemo.dto.request.CreateSalaryRaiseRequest;
+import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.service.employee.EmployeeService;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +18,12 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-    @PreAuthorize("hasAnyAuthority({'EMPLOYEE, PM'})")
+
+    @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
     @PostMapping
     public SalaryRaiseResponse createSalaryRaiseRequest(@RequestBody CreateSalaryRaiseRequest createSalaryRaiseRequest) {
         return employeeService.createSalaryRaiseRequest(createSalaryRaiseRequest);
     }
+
+
 }

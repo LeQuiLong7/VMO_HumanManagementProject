@@ -1,7 +1,7 @@
 package com.lql.humanresourcedemo.service.login;
 
-import com.lql.humanresourcedemo.dto.model.EmployeeDTO;
-import com.lql.humanresourcedemo.dto.request.LoginRequest;
+import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPasswordAndRole;
+import com.lql.humanresourcedemo.dto.request.employee.LoginRequest;
 import com.lql.humanresourcedemo.dto.response.LoginResponse;
 import com.lql.humanresourcedemo.exception.model.login.EmailNotFoundException;
 import com.lql.humanresourcedemo.exception.model.login.WrongPasswordException;
@@ -22,7 +22,7 @@ public class LoginService {
 
     public LoginResponse login(LoginRequest loginRequest) {
 
-        EmployeeDTO employee = employeeService.findByEmail(loginRequest.email(), EmployeeDTO.class)
+        OnlyIdPasswordAndRole employee = employeeService.findByEmail(loginRequest.email(), OnlyIdPasswordAndRole.class)
                 .orElseThrow(() -> new EmailNotFoundException(loginRequest.email()));
 
         if(!passwordEncoder.matches(loginRequest.password(), employee.password())) {

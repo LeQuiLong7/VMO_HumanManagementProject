@@ -2,9 +2,11 @@ package com.lql.humanresourcedemo.controller;
 
 
 import com.lql.humanresourcedemo.dto.request.admin.CreateNewEmployeeRequest;
+import com.lql.humanresourcedemo.dto.request.admin.CreateNewProjectRequest;
 import com.lql.humanresourcedemo.dto.request.admin.HandleSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.request.admin.UpdateEmployeeTechStackRequest;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.ProjectResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.service.admin.AdminService;
@@ -20,20 +22,11 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    @GetMapping
-    public String demo() {
-        return "Hello World";
-    }
-
     @PostMapping
     public GetProfileResponse createNewEmployee(@RequestBody CreateNewEmployeeRequest createNewEmployeeRequest) {
         return adminService.createNewEmployee(createNewEmployeeRequest);
     }
 
-    @PutMapping
-    public GetProfileResponse updateEmployeeTechStack(@RequestBody CreateNewEmployeeRequest createNewEmployeeRequest) {
-        return adminService.createNewEmployee(createNewEmployeeRequest);
-    }
     @PutMapping("/techStack")
     public TechStackResponse updateTechStackForEmployee(@RequestBody UpdateEmployeeTechStackRequest request) {
         return adminService.updateEmployeeTechStack(request);
@@ -43,5 +36,10 @@ public class AdminController {
     @PutMapping("/salary")
     public SalaryRaiseResponse handleSalaryRaise(@RequestBody HandleSalaryRaiseRequest handleSalaryRaiseRequest) {
         return adminService.handleSalaryRaiseRequest(handleSalaryRaiseRequest);
+    }
+
+    @PostMapping("/project")
+    public ProjectResponse createNewProject(@RequestBody CreateNewProjectRequest createNewProjectRequest) {
+        return adminService.createNewProject(createNewProjectRequest);
     }
 }

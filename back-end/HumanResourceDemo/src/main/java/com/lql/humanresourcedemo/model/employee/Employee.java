@@ -44,6 +44,11 @@ public class Employee extends Auditable {
     private Double currentSalary;
     private LocalDateTime lastUpdatedAt;
 
+    @PreUpdate
+    private void preUpdate() {
+        this.lastUpdatedAt = LocalDateTime.now();
+    }
+
     @Enumerated(EnumType.STRING)
     private Role role;
 

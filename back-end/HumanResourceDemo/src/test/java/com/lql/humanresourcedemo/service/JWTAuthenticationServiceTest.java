@@ -1,6 +1,6 @@
 package com.lql.humanresourcedemo.service;
 
-import com.lql.humanresourcedemo.dto.model.EmployeeDTO;
+import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPasswordAndRole;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.service.jwt.JWTService;
 import io.jsonwebtoken.*;
@@ -35,7 +35,7 @@ class JWTAuthenticationServiceTest {
 
     @Test
     public void generateTokenTest() {
-        EmployeeDTO employee = new EmployeeDTO(1L, "", Role.ADMIN);
+        OnlyIdPasswordAndRole employee = new OnlyIdPasswordAndRole(1L, "", Role.ADMIN);
 
         String token = jwtAuthenticationService.generateToken(employee);
         System.out.println(token);

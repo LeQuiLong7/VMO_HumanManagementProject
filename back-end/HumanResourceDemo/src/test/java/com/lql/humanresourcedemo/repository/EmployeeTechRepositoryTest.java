@@ -1,6 +1,6 @@
 package com.lql.humanresourcedemo.repository;
 
-import com.lql.humanresourcedemo.dto.model.EmployeeTechDTO;
+import com.lql.humanresourcedemo.dto.model.tech.EmployeeTechDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;

@@ -35,7 +35,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         authentication.setIpAddress(request.getRemoteAddr());
 
 
-        if (!requestURI.equals(LOGIN_URI)) {
+        if (!PUBLIC_URI.contains(requestURI)) {
 
             final String bearerToken = request.getHeader(AUTHORIZATION);
 
@@ -48,13 +48,13 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             String token = bearerToken.substring(7);
             try {
                 if (jwtAuthenticationService.isTokenExpired(token)) {
-                    log.warn("Access denied: Account id: {} trying to access {} Method: {} without a expired token - IP address: {} ", jwtAuthenticationService.extractEmployeeId(token), request.getRequestURI(), request.getMethod(), request.getRemoteAddr());
+                    log.warn("Access denied: Someone trying to access {} Method: {} with a expired token - IP address: {} ", request.getRequestURI(), request.getMethod(), request.getRemoteAddr());
                     response.setStatus(403);
                     response.getWriter().print("token expired");
                     return;
                 }
             } catch (JwtException e) {
-                log.warn("Access denied: Someone trying to access {} Method: {} without a invalid token : {} - IP address: {} ", request.getRequestURI(), request.getMethod(),token, request.getRemoteAddr());
+                log.warn("Access denied: Someone trying to access {} Method: {} with a invalid token : {} - IP address: {} ", request.getRequestURI(), request.getMethod(),token, request.getRemoteAddr());
                 response.setStatus(403);
                 response.getWriter().print("token is not valid");
                 return;

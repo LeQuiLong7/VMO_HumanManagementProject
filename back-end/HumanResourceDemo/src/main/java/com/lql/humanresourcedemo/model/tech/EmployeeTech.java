@@ -1,13 +1,10 @@
 package com.lql.humanresourcedemo.model.tech;
 
-import com.lql.humanresourcedemo.dto.model.EmployeeTechDTO;
 import com.lql.humanresourcedemo.model.employee.Employee;
-import com.lql.humanresourcedemo.model.tech.Tech;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 @Entity
 @NoArgsConstructor

@@ -1,6 +1,6 @@
 package com.lql.humanresourcedemo.dto.request.admin;
 
-import com.lql.humanresourcedemo.dto.model.TechStack;
+import com.lql.humanresourcedemo.dto.model.tech.TechStack;
 
 import java.util.List;
 

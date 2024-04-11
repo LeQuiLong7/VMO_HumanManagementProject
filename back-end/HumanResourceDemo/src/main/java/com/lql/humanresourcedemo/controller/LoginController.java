@@ -1,7 +1,7 @@
 package com.lql.humanresourcedemo.controller;
 
 
-import com.lql.humanresourcedemo.dto.request.LoginRequest;
+import com.lql.humanresourcedemo.dto.request.employee.LoginRequest;
 import com.lql.humanresourcedemo.dto.response.LoginResponse;
 import com.lql.humanresourcedemo.service.login.LoginService;
 import lombok.RequiredArgsConstructor;

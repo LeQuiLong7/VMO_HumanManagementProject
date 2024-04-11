@@ -1,12 +1,12 @@
 package com.lql.humanresourcedemo.utility;
 
-import com.lql.humanresourcedemo.dto.model.EmployeeTechDTO;
-import com.lql.humanresourcedemo.dto.request.UpdateProfileRequest;
+import com.lql.humanresourcedemo.dto.model.tech.EmployeeTechDTO;
+import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
 import com.lql.humanresourcedemo.dto.request.admin.CreateNewEmployeeRequest;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
-import com.lql.humanresourcedemo.dto.response.TechStackResponse;
+import com.lql.humanresourcedemo.dto.response.*;
+import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.employee.Employee;
+import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 
 import java.time.LocalDateTime;
@@ -57,6 +57,8 @@ public class MappingUtility {
                 .personalEmail(request.personalEmail())
                 .currentSalary(request.currentSalary())
                 .role(request.role())
+                .leaveDays((byte) 0)
+                .quit(false)
                 .lastUpdatedAt(LocalDateTime.now())
                 .build();
     }
@@ -71,5 +73,19 @@ public class MappingUtility {
                 request.getCreatedBy(),
                 request.getNewSalary(),
                 request.getApprovedBy() != null ? request.getApprovedBy().getId() : null);
+    }
+
+    public static LeaveResponse leaveRequestToResponse(LeaveRequest request) {
+        return new LeaveResponse(request.getId(),
+                request.getEmployee().getId(),
+                request.getDate(),
+                request.getReason(),
+                request.getStatus(),
+                request.getApprovedBy() == null ? null : request.getApprovedBy().getId());
+    }
+
+
+    public static ProjectResponse projectToProjectResponse(Project p) {
+        return new ProjectResponse(p.getId(), p.getName(), p.getDescription(), p.getState(), p.getExpectedStartDate(), p.getExpectedFinishDate(), p.getActualStartDate(), p.getActualFinishDate(), p.getClient().getId());
     }
 }

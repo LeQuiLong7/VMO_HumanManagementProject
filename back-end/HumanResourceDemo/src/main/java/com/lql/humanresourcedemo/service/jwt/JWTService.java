@@ -1,7 +1,7 @@
 package com.lql.humanresourcedemo.service.jwt;
 
 
-import com.lql.humanresourcedemo.dto.model.EmployeeDTO;
+import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPasswordAndRole;
 import com.lql.humanresourcedemo.enumeration.Role;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +46,7 @@ public class JWTService {
                 .getBody();
     }
 
-    public String generateToken( EmployeeDTO e) {
+    public String generateToken( OnlyIdPasswordAndRole e) {
 
         return  jwtBuilder
                 .setClaims(buildClaims(e))
@@ -56,7 +56,7 @@ public class JWTService {
                 .compact();
     }
 
-    private  Map<String, String>  buildClaims(EmployeeDTO e) {
+    private  Map<String, String>  buildClaims(OnlyIdPasswordAndRole e) {
         Map<String, String> claims = new HashMap<>();
 
         claims.put("sub", String.valueOf(e.id()));

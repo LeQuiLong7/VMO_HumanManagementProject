@@ -34,9 +34,6 @@ class EmployeeRepositoryTest {
     @ServiceConnection
     static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:16.2");
 
-//    @MockBean
-//    private SecurityContextHolder securityContextHolder;
-
     @BeforeEach
     public void setup() {
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();

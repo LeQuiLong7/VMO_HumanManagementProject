@@ -1,34 +1,31 @@
 package com.lql.humanresourcedemo.service.admin;
 
 
-import com.lql.humanresourcedemo.dto.model.TechStack;
 import com.lql.humanresourcedemo.dto.request.admin.CreateNewEmployeeRequest;
+import com.lql.humanresourcedemo.dto.request.admin.CreateNewProjectRequest;
 import com.lql.humanresourcedemo.dto.request.admin.HandleSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.request.admin.UpdateEmployeeTechStackRequest;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.ProjectResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
-import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
-import com.lql.humanresourcedemo.exception.model.employee.EmployeeNotFoundException;
+import com.lql.humanresourcedemo.enumeration.ProjectState;
 import com.lql.humanresourcedemo.exception.model.newaccount.PersonalEmailAlreadyExistsException;
+import com.lql.humanresourcedemo.exception.model.salaryraise.RaiseRequestNotFoundException;
 import com.lql.humanresourcedemo.model.employee.Employee;
+import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.EmployeeTechRepository;
-import com.lql.humanresourcedemo.repository.SalaryRaiseRequestRepository;
-import com.lql.humanresourcedemo.repository.TechRepository;
+import com.lql.humanresourcedemo.repository.*;
 import com.lql.humanresourcedemo.service.mail.MailService;
-import com.lql.humanresourcedemo.utility.ContextUtility;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
+import static com.lql.humanresourcedemo.utility.ContextUtility.*;
 import static com.lql.humanresourcedemo.utility.HelperUtility.*;
 import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 
@@ -41,6 +38,8 @@ public class AdminService {
     private final SalaryRaiseRequestRepository salaryRepository;
     private final EmployeeTechRepository employeeTechRepository;
     private final TechRepository techRepository;
+    private final ClientRepository clientRepository;
+    private final ProjectRepository projectRepository;
 
 
     public GetProfileResponse createNewEmployee(CreateNewEmployeeRequest request) {
@@ -57,12 +56,10 @@ public class AdminService {
 
         }
         e.setEmail(email);
-
         String password = UUID.randomUUID().toString();
-
         e.setPassword(passwordEncoder.encode(password));
-
         employeeRepository.save(e);
+
 
         mailService.sendEmail(e.getPersonalEmail(), "", buildWelcomeMailMessage(e.getFirstName() + " " + e.getLastName(), e.getEmail(), password));
 
@@ -73,8 +70,9 @@ public class AdminService {
 
 
     public SalaryRaiseResponse handleSalaryRaiseRequest(HandleSalaryRaiseRequest handleRequest) {
-        // TODO: handle exception
-        SalaryRaiseRequest raiseRequest = salaryRepository.findById(handleRequest.requestId()).orElseThrow(RuntimeException::new);
+
+        SalaryRaiseRequest raiseRequest = salaryRepository.findById(handleRequest.requestId())
+                .orElseThrow(() -> new RaiseRequestNotFoundException("Raise request %s doesn't exists - Account id: %s".formatted(handleRequest.requestId(), getCurrentEmployeeId())));
 
         Double newSalary = switch (handleRequest.status()) {
             case REJECTED, PROCESSING -> raiseRequest.getCurrentSalary();
@@ -84,38 +82,32 @@ public class AdminService {
 
         raiseRequest.setStatus(handleRequest.status());
         raiseRequest.setNewSalary(newSalary);
-        raiseRequest.setApprovedBy(employeeRepository.getReferenceById(ContextUtility.getCurrentEmployeeId()));
+        raiseRequest.setApprovedBy(employeeRepository.getReferenceById(getCurrentEmployeeId()));
         salaryRepository.save(raiseRequest);
 
+        employeeRepository.updateSalaryById(raiseRequest.getEmployee().getId(), newSalary);
 
-        Employee e = raiseRequest.getEmployee();
-        e.setCurrentSalary(newSalary);
-        employeeRepository.save(e);
-
-        return MappingUtility.salaryRaiseRequestToResponse(raiseRequest);
+        return salaryRaiseRequestToResponse(raiseRequest);
     }
 
-
-    // TODO: update employee tech stack
     public TechStackResponse updateEmployeeTechStack(UpdateEmployeeTechStackRequest request) {
-
-        List<EmployeeTech> stack = employeeTechRepository.findByIdEmployeeId(request.employeeId());
-
 
         for (var s : request.techStacks()) {
 
-            stack.stream().filter(i -> i.getId().getTech().getId().equals(s.techId()))
-                    .findFirst()
-                    .ifPresentOrElse(employeeTech -> {
-                        employeeTech.setYearOfExperience(s.yearOfExperience());
-                        employeeTechRepository.save(employeeTech);
-                    }, () -> {
-                        employeeTechRepository.save(new EmployeeTech(new EmployeeTech.EmployeeTechId(employeeRepository.getReferenceById(request.employeeId()), techRepository.getReferenceById(s.techId())), s.yearOfExperience()));
-                    });
+            if(employeeTechRepository.existsByIdEmployeeIdAndIdTechId(request.employeeId(), s.techId())) {
+                employeeTechRepository.updateYearOfExperienceByEmployeeIdAndTechId(request.employeeId(), s.techId(), s.yearOfExperience());
+            } else {
+
+                employeeTechRepository.save(
+                        new EmployeeTech(
+                                new EmployeeTech.EmployeeTechId(
+                                        employeeRepository.getReferenceById(request.employeeId()),
+                                        techRepository.getReferenceById(s.techId())),
+                                        s.yearOfExperience())
+                );
+            }
 
         }
-
-
         return new TechStackResponse(
                 request.employeeId(),
                 employeeTechRepository.findTechInfoByEmployeeId(request.employeeId())
@@ -125,10 +117,24 @@ public class AdminService {
         );
     }
 
+    public ProjectResponse createNewProject(CreateNewProjectRequest request) {
+
+
+        Project project = Project.builder()
+                .name(request.name())
+                .description(request.description())
+                .expectedStartDate(request.expectedStartDate())
+                .expectedFinishDate(request.expectedFinishDate())
+                .state(ProjectState.INITIATION)
+                .client(clientRepository.getReferenceById(request.clientId())).build();
+
+        return projectToProjectResponse(projectRepository.save(project));
+    }
+
 
     private void validateCreateNewEmployeeRequest(CreateNewEmployeeRequest request) {
         if (employeeRepository.existsByPersonalEmail(request.personalEmail())) {
-            throw new PersonalEmailAlreadyExistsException(request.personalEmail(), ContextUtility.getCurrentEmployeeId());
+            throw new PersonalEmailAlreadyExistsException(request.personalEmail(), getCurrentEmployeeId());
         }
     }
 }

@@ -1,20 +1,22 @@
 package com.lql.humanresourcedemo.model.attendance;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.lql.humanresourcedemo.enumeration.LeaveStatus;
 import com.lql.humanresourcedemo.enumeration.LeaveType;
 import com.lql.humanresourcedemo.model.Auditable;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 @Setter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class LeaveRequest extends Auditable {
 
     @Id
@@ -22,7 +24,7 @@ public class LeaveRequest extends Auditable {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "leave_request_id_seq")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employeeId")
     private Employee employee;
     private LocalDate date;
@@ -30,10 +32,12 @@ public class LeaveRequest extends Auditable {
     @Enumerated(EnumType.STRING)
     private LeaveType type;
 
+    private String reason;
+
     @Enumerated(EnumType.STRING)
     private LeaveStatus status;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approvedBy")
     private Employee approvedBy;
 
