@@ -1,5 +1,6 @@
 package com.lql.humanresourcedemo.service.employee;
 
+import com.lql.humanresourcedemo.dto.model.employee.OnlyPassword;
 import com.lql.humanresourcedemo.dto.model.employee.OnlySalary;
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
@@ -9,10 +10,9 @@ import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
-import com.lql.humanresourcedemo.exception.model.file.FileNotSupportException;
-import com.lql.humanresourcedemo.exception.model.employee.EmployeeNotFoundException;
-import com.lql.humanresourcedemo.exception.model.password.PasswordAndConfirmationDoNotMatchException;
-import com.lql.humanresourcedemo.exception.model.password.WrongOldPasswordException;
+import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
+import com.lql.humanresourcedemo.exception.model.file.FileException;
+import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.repository.EmployeeRepository;
@@ -33,8 +33,6 @@ import java.util.Optional;
 
 import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
 import static com.lql.humanresourcedemo.utility.MappingUtility.*;
-import static com.lql.humanresourcedemo.utility.MappingUtility.newInfo;
-import static com.lql.humanresourcedemo.utility.MappingUtility.salaryRaiseRequestToResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +49,8 @@ public class EmployeeService {
 
     public <T> T findById(Long id, Class<T> clazz) {
         return employeeRepository.findById(id, clazz)
-                .orElseThrow(() -> new EmployeeNotFoundException(id));
+                .orElseThrow(() -> new EmployeeException(id) {
+                });
     }
 
     public <T> Optional<T> findByEmail(String email, Class<T> clazz) {
@@ -70,53 +69,53 @@ public class EmployeeService {
 
 
     @Transactional
-    public GetProfileResponse updateInfo(UpdateProfileRequest request) {
+    public GetProfileResponse updateInfo(Long employeeId, UpdateProfileRequest request) {
 
-        Employee updated = employeeRepository.findById(request.id())
+        Employee updated = employeeRepository.findById(employeeId)
                 .map(employee -> newInfo(employee, request))
-                .orElseThrow(() -> new EmployeeNotFoundException(request.id()));
+                .orElseThrow(() -> new EmployeeException(employeeId));
 
         return employeeToProfileResponse(employeeRepository.save(updated));
     }
 
 
     @Transactional
-    public ChangePasswordResponse changePassword(ChangePasswordRequest request) {
+    public ChangePasswordResponse changePassword(Long employeeId, ChangePasswordRequest request) {
 
-        if(!request.oldPassword().equals(request.confirmPassword())) {
-            throw new PasswordAndConfirmationDoNotMatchException(request.id());
+        if (!request.oldPassword().equals(request.confirmPassword())) {
+            throw new ChangePasswordException("Password and confirmation password do not match");
         }
 
-        Employee employee = employeeRepository.findById(request.id())
-                .orElseThrow(() -> new EmployeeNotFoundException(request.id()));
+        OnlyPassword p = employeeRepository.findById(employeeId, OnlyPassword.class)
+                .orElseThrow(() -> new EmployeeException(employeeId));
 
-        if(!passwordEncoder.matches(request.oldPassword(), employee.getPassword())) {
-            throw new WrongOldPasswordException(request.id());
+        if (!passwordEncoder.matches(request.oldPassword(), p.password())) {
+            throw new ChangePasswordException("Old password is not correct");
         }
 
-        employee.setPassword(passwordEncoder.encode(request.newPassword()));
-        employeeRepository.save(employee);
-        return new ChangePasswordResponse("changed password successfully");
+        employeeRepository.updatePasswordById(employeeId, passwordEncoder.encode(request.newPassword()));
+        return new ChangePasswordResponse("Changed password successfully");
 
     }
 
 
-    public String uploadAvatar(MultipartFile file, Long employeeId) {
+    public String uploadAvatar(Long employeeId, MultipartFile file) {
+        requireExists(employeeId);
 
         String fileExtension = FileUtility.getFileExtension(file.getOriginalFilename()).toLowerCase();
 
-        if(!FileUtility.supportAvatarExtension(fileExtension)) {
-            throw new FileNotSupportException(fileExtension);
+        if (!FileUtility.supportAvatarExtension(fileExtension)) {
+            throw new FileException("Not support " + fileExtension + " file for avatar");
         }
 
         String objectKey = String.format("image/%s.%s", employeeId, fileExtension);
         try {
             awsService.uploadFile(file, BUCKET_NAME, objectKey);
-            Employee e = employeeRepository.findById(employeeId)
-                    .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
+
             String avatarUrl = awsService.getUrlForObject(BUCKET_NAME, region, objectKey);
-            e.setAvatarUrl(avatarUrl);
-            employeeRepository.save(e);
+
+            employeeRepository.updateAvatarURLById(employeeId, avatarUrl);
+
             return avatarUrl;
 
         } catch (IOException e) {
@@ -126,16 +125,13 @@ public class EmployeeService {
     }
 
 
-    public SalaryRaiseResponse createSalaryRaiseRequest(CreateSalaryRaiseRequest request) {
-        if(!employeeRepository.existsById(request.employeeId())) {
-            throw new EmployeeNotFoundException(request.employeeId());
-        }
+    public SalaryRaiseResponse createSalaryRaiseRequest(Long employeeId, CreateSalaryRaiseRequest request) {
 
-        OnlySalary currentSalary = employeeRepository.findById(request.employeeId(), OnlySalary.class)
-                .orElseThrow(() -> new EmployeeNotFoundException(request.employeeId()));
+        OnlySalary currentSalary = employeeRepository.findById(employeeId, OnlySalary.class)
+                .orElseThrow(() -> new EmployeeException(employeeId));
 
         SalaryRaiseRequest salaryRaiseRequest = SalaryRaiseRequest.builder()
-                .employee(employeeRepository.getReferenceById(request.employeeId()))
+                .employee(employeeRepository.getReferenceById(employeeId))
                 .currentSalary(currentSalary.currentSalary())
                 .expectedSalary(request.expectedSalary())
                 .description(request.description())
@@ -145,15 +141,14 @@ public class EmployeeService {
         return salaryRaiseRequestToResponse(salaryRepository.save(salaryRaiseRequest));
     }
 
-
-
+    private void requireExists(Long employeeId) {
+        if (!employeeRepository.existsById(employeeId)) {
+            throw new EmployeeException(employeeId);
+        }
+    }
     public int updateLeaveDays() {
         return employeeRepository.increaseLeaveDaysBy1();
     }
-
-
-
-
 
 
 }

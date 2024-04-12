@@ -1,10 +1,7 @@
 package com.lql.humanresourcedemo.controller;
 
 
-import com.lql.humanresourcedemo.dto.request.admin.CreateNewEmployeeRequest;
-import com.lql.humanresourcedemo.dto.request.admin.CreateNewProjectRequest;
-import com.lql.humanresourcedemo.dto.request.admin.HandleSalaryRaiseRequest;
-import com.lql.humanresourcedemo.dto.request.admin.UpdateEmployeeTechStackRequest;
+import com.lql.humanresourcedemo.dto.request.admin.*;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.ProjectResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
@@ -32,7 +29,6 @@ public class AdminController {
         return adminService.updateEmployeeTechStack(request);
     }
 
-
     @PutMapping("/salary")
     public SalaryRaiseResponse handleSalaryRaise(@RequestBody HandleSalaryRaiseRequest handleSalaryRaiseRequest) {
         return adminService.handleSalaryRaiseRequest(handleSalaryRaiseRequest);
@@ -42,4 +38,14 @@ public class AdminController {
     public ProjectResponse createNewProject(@RequestBody CreateNewProjectRequest createNewProjectRequest) {
         return adminService.createNewProject(createNewProjectRequest);
     }
+    @PutMapping("/project")
+    public ProjectResponse updateProjectState(@RequestBody UpdateProjectStatusRequest updateProjectStatusRequest) {
+        return adminService.updateProject(updateProjectStatusRequest);
+    }
+
+    @PutMapping("/project/assign")
+    public AssignEmployeeToProjectRequest assignEmployeeToProject(@RequestBody AssignEmployeeToProjectRequest assignEmployeeToProjectRequest) {
+        return adminService.assignEmployeeToProject(assignEmployeeToProjectRequest);
+    }
+
 }

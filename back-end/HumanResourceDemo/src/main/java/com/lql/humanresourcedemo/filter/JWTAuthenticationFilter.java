@@ -31,9 +31,6 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
 
-        MyAuthentication authentication = new MyAuthentication();
-        authentication.setIpAddress(request.getRemoteAddr());
-
 
         if (!PUBLIC_URI.contains(requestURI)) {
 
@@ -59,13 +56,15 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 response.getWriter().print("token is not valid");
                 return;
             }
+            MyAuthentication authentication = new MyAuthentication();
+
             Claims claims = jwtAuthenticationService.extractAllClaims(token);
 
             authentication.setEmployeeId(jwtAuthenticationService.extractEmployeeId(claims));
             authentication.setRole(jwtAuthenticationService.extractRole(claims));
 
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        SecurityContextHolder.getContext().setAuthentication(authentication);
         filterChain.doFilter(request, response);
     }
 }

@@ -1,15 +1,19 @@
 package com.lql.humanresourcedemo.utility;
 
 import com.lql.humanresourcedemo.security.MyAuthentication;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class ContextUtility {
 
     public static Long getCurrentEmployeeId() {
-        return ((MyAuthentication) SecurityContextHolder.getContext().getAuthentication()).getEmployeeId();
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication instanceof AnonymousAuthenticationToken) {
+            return -1L;
+        }
+        return Long.parseLong(authentication.getName());
     }
 
-    public static String getCurrentRequestIPAddress() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
-    }
 }

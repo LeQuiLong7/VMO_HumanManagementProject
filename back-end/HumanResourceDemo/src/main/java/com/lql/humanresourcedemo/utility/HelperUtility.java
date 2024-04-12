@@ -1,6 +1,9 @@
 package com.lql.humanresourcedemo.utility;
 
 import com.lql.humanresourcedemo.constant.CompanyConstant;
+import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
+import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
+import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -10,6 +13,7 @@ import java.util.stream.Collectors;
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_DOMAIN;
 
 public class HelperUtility {
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss a");
 
 
     public static String buildEmail(String firstName, String lastName) {
@@ -41,8 +45,32 @@ public class HelperUtility {
                 Password: %s
                 """.formatted(recipientName, email, password);
     }
+    public static String buildSalaryProcessedMail(String recipientName, SalaryRaiseRequest raiseRequest) {
+        return """
+                    Dear %s,
+                    Your salary raise request:  id: %s,
+                                          created at: %s
+                                          previous salary: %s, 
+                                          expected salary: %s,
+                                          description: %s
+                     has been %s,
+                     Your new salary now is: %s
+                """.formatted(recipientName, raiseRequest.getId(), raiseRequest.getCreatedAt().format(formatter), raiseRequest.getCurrentSalary(), raiseRequest.getExpectedSalary(), raiseRequest.getDescription(), raiseRequest.getStatus(), raiseRequest.getNewSalary());
+    }
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss a");
+
+    public static String buildLeaveRequestProcessedMail(String recipientName, LeaveRequest leaveRequest) {
+        return """
+                    Dear %s,
+                    
+                    Your leave request:   id: %s,
+                                          leave date: %s
+                                          leave type: %s                           
+                                          reason: %s,
+                     has been %s,
+                """.formatted(recipientName, leaveRequest.getId(), leaveRequest.getDate(), leaveRequest.getType(), leaveRequest.getReason(), leaveRequest.getStatus());
+    }
+
     public static String buildResetMailMessage(String recipientName, String email, String token, LocalDateTime validUntil) {
 
         return """

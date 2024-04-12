@@ -18,6 +18,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static com.lql.humanresourcedemo.constant.SecurityConstants.*;
+import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
 
 @Configuration
 @EnableWebSecurity
@@ -41,7 +42,7 @@ public class SecurityConfig {
 
     private AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
-            log.warn("Access denied: Account id {} trying to access {} Method: {} - IP address: {} ", ContextUtility.getCurrentEmployeeId(), request.getRequestURI(), request.getMethod(), request.getRemoteAddr());
+            log.warn("Access denied: Account id {} trying to access {} Method: {} - IP address: {} ", getCurrentEmployeeId(), request.getRequestURI(), request.getMethod(), request.getRemoteAddr());
             response.setStatus(403);
             response.getWriter().print("Access denied. You don't have permission to access this resource.");
         };

@@ -3,9 +3,8 @@ package com.lql.humanresourcedemo.service.password;
 
 import com.lql.humanresourcedemo.dto.request.employee.ResetPasswordRequest;
 import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
-import com.lql.humanresourcedemo.exception.model.employee.EmployeeNotFoundException;
-import com.lql.humanresourcedemo.exception.model.resetpassword.InvalidTokenException;
-import com.lql.humanresourcedemo.exception.model.resetpassword.NewPasswordNotMatchException;
+import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
+import com.lql.humanresourcedemo.exception.model.resetpassword.ResetPasswordException;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.password.PasswordResetRequest;
 import com.lql.humanresourcedemo.repository.EmployeeRepository;
@@ -35,7 +34,7 @@ public class ResetPasswordService {
 
     public ChangePasswordResponse createPasswordResetRequest(String email) {
         Employee e = employeeRepository.findByEmail(email)
-                .orElseThrow(() -> new EmployeeNotFoundException(email));
+                .orElseThrow(() -> new EmployeeException("Could not find employee " + email));
 
         String token = UUID.randomUUID().toString();
         LocalDateTime validUntil = LocalDateTime.now().plus(VALID_UNTIL_TIME_AMOUNT, VALID_UNTIL_TEMPORAL_UNIT);
@@ -53,14 +52,14 @@ public class ResetPasswordService {
     @Transactional
     public ChangePasswordResponse resetPassword(ResetPasswordRequest request) {
         PasswordResetRequest passwordResetRequest = passwordResetRepository.findByToken(request.token())
-                .orElseThrow(() -> new InvalidTokenException("token is not valid"));
+                .orElseThrow(() -> new ResetPasswordException("token is not valid"));
 
         if(!request.newPassword().equals(request.confirmPassword())) {
-            throw new NewPasswordNotMatchException("Password and confirmation password do not match");
+            throw new ResetPasswordException("Password and confirmation password do not match");
         }
 
         if(passwordResetRequest.getValidUntil().isBefore(LocalDateTime.now())) {
-            throw new InvalidTokenException("token expired");
+            throw new ResetPasswordException("token expired");
         }
 
 

@@ -31,14 +31,23 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Modifying
     @Transactional
     @Query("update Employee  e set e.leaveDays = e.leaveDays - 1 where e.id = :employeeId")
-    int decreaseLeaveDaysBy1(Long employeeId);
+    void decreaseLeaveDaysBy1(Long employeeId);
 
 
     @Modifying
     @Transactional
     @Query("update Employee  e set e.currentSalary = :newSalary where e.id = :employeeId")
-    int updateSalaryById(Long employeeId, Double newSalary);
+    void updateSalaryById(Long employeeId, Double newSalary);
+
+    @Modifying
+    @Transactional
+    @Query("update Employee e set e.avatarUrl = :avatarUrl where e.id = :employeeId")
+    void updateAvatarURLById(Long employeeId, String avatarUrl);
 
 
+    @Modifying
+    @Transactional
+    @Query("update Employee e set e.password = :newPassword where e.id = :employeeId")
+    void updatePasswordById(Long employeeId, String newPassword);
     int countByEmailLike(String email);
 }

@@ -18,10 +18,8 @@ import java.util.List;
 @Setter
 public class MyAuthentication implements Authentication {
 
-    @Getter
     private Long employeeId;
     private Role role;
-    private String ipAddress;
 
 
     @Override
@@ -55,7 +53,7 @@ public class MyAuthentication implements Authentication {
     }
     @Override
     public String getName() {
-        return ipAddress;
+        return String.valueOf(employeeId);
     }
 
 

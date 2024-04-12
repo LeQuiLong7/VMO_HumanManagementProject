@@ -38,8 +38,9 @@ public class Employee extends Auditable {
     private String phoneNumber;
     private String avatarUrl;
     private String personalEmail;
-
+    @Column(columnDefinition = "BOOLEAN DEFAULT false")
     private Boolean quit;
+    @Column(columnDefinition = "SMALLINT DEFAULT 0")
     private Byte leaveDays;
     private Double currentSalary;
     private LocalDateTime lastUpdatedAt;

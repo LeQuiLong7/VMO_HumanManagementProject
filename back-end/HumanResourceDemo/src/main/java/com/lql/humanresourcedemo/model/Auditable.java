@@ -1,6 +1,7 @@
 package com.lql.humanresourcedemo.model;
 
 import com.lql.humanresourcedemo.security.MyAuthentication;
+import com.lql.humanresourcedemo.utility.ContextUtility;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
@@ -10,6 +11,8 @@ import lombok.Setter;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
+
+import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
 
 
 @NoArgsConstructor
@@ -26,7 +29,6 @@ public class Auditable {
     @PrePersist
     public void setup() {
         this.createdAt = LocalDateTime.now();
-        // TODO: get the id from the authenticated user in security context
-        this.createdBy = ((MyAuthentication) SecurityContextHolder.getContext().getAuthentication()).getEmployeeId();
+        this.createdBy = getCurrentEmployeeId();
     }
 }

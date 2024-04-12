@@ -3,6 +3,7 @@ package com.lql.humanresourcedemo.model.project;
 import com.lql.humanresourcedemo.model.Auditable;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.util.Objects;
 
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 public class EmployeeProject extends Auditable {
@@ -21,13 +23,14 @@ public class EmployeeProject extends Auditable {
 
     @Embeddable
     @NoArgsConstructor
+    @AllArgsConstructor
     @Getter
     @Setter
     public static class EmployeeProjectId implements Serializable {
-        @ManyToOne
+        @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "employeeId")
         private Employee employee;
-        @ManyToOne
+        @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "projectId")
         private Project project;
 
