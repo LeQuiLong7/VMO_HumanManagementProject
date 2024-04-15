@@ -2,7 +2,7 @@ package com.lql.humanresourcedemo.service;
 
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPasswordAndRole;
 import com.lql.humanresourcedemo.enumeration.Role;
-import com.lql.humanresourcedemo.service.jwt.JWTService;
+import com.lql.humanresourcedemo.service.jwt.JWTServiceImpl;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -24,13 +24,13 @@ class JWTAuthenticationServiceTest {
         return Keys.hmacShaKeyFor(bytes);
     }
 
-    private JWTService jwtAuthenticationService;
+    private JWTServiceImpl jwtAuthenticationService;
 
     @BeforeEach
     void setUp() {
         jwtBuilder = Jwts.builder().signWith(getSecretKey(), SignatureAlgorithm.HS256);
         jwtParser = Jwts.parserBuilder().setSigningKey(getSecretKey()).build();
-        jwtAuthenticationService = new JWTService(jwtBuilder, jwtParser);
+        jwtAuthenticationService = new JWTServiceImpl(jwtBuilder, jwtParser);
     }
 
     @Test

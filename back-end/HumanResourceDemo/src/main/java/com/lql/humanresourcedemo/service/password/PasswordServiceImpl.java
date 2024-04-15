@@ -10,6 +10,7 @@ import com.lql.humanresourcedemo.model.password.PasswordResetRequest;
 import com.lql.humanresourcedemo.repository.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.PasswordResetRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
+import com.lql.humanresourcedemo.service.mail.MailServiceImpl;
 import com.lql.humanresourcedemo.utility.HelperUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ import static com.lql.humanresourcedemo.constant.PasswordResetConstants.*;
 
 @Service
 @RequiredArgsConstructor
-public class ResetPasswordService {
+public class PasswordServiceImpl implements PasswordService{
 
     private final PasswordResetRepository passwordResetRepository;
     private final EmployeeRepository employeeRepository;
@@ -32,6 +33,8 @@ public class ResetPasswordService {
 
 
 
+    @Override
+    @Transactional
     public ChangePasswordResponse createPasswordResetRequest(String email) {
         Employee e = employeeRepository.findByEmail(email)
                 .orElseThrow(() -> new EmployeeException("Could not find employee " + email));
@@ -49,6 +52,7 @@ public class ResetPasswordService {
     }
 
 
+    @Override
     @Transactional
     public ChangePasswordResponse resetPassword(ResetPasswordRequest request) {
         PasswordResetRequest passwordResetRequest = passwordResetRepository.findByToken(request.token())

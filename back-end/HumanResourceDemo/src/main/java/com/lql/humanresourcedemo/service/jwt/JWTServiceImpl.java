@@ -16,36 +16,27 @@ import static com.lql.humanresourcedemo.constant.JWTConstants.*;
 
 @Service
 @RequiredArgsConstructor
-public class JWTService {
+public class JWTServiceImpl implements JwtService {
     private final JwtBuilder jwtBuilder;
     private final JwtParser jwtParser;
 
-    public Long extractEmployeeId(String token) {
-        return  Long.parseLong(extractClaim(token, Claims::getSubject));
-    }
-    public Long extractEmployeeId(Claims claims) {
-        return  Long.parseLong(extractClaim(claims, Claims::getSubject));
-    }
-    public Role extractRole(String token) {
-        return Role.valueOf(extractClaim(token, claims -> claims.get(ROLE).toString()));
-    }
-    public Role extractRole(Claims claims) {
-        return Role.valueOf(extractClaim(claims, claim -> claims.get(ROLE).toString()));
-    }
-
+    @Override
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         return claimsResolver.apply(extractAllClaims(token));
     }
 
+    @Override
     public   <T> T extractClaim(Claims claims, Function<Claims, T> claimsResolver) {
         return claimsResolver.apply(claims);
     }
+    @Override
     public Claims extractAllClaims(String token) {
         return  jwtParser
                 .parseClaimsJws(token)
                 .getBody();
     }
 
+    @Override
     public String generateToken( OnlyIdPasswordAndRole e) {
 
         return  jwtBuilder
@@ -64,6 +55,7 @@ public class JWTService {
         return claims;
     }
 
+    @Override
     public boolean isTokenExpired(String token) {
         try {
             return extractClaim(token, Claims::getExpiration).before(new Date(System.currentTimeMillis()));

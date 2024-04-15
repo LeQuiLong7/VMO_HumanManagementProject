@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.lql.humanresourcedemo.utility.ContextUtility.*;
+import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
 
 @RestController
 @RequestMapping("/profile")
@@ -24,7 +24,7 @@ public class ProfileController {
 
     @GetMapping
     public GetProfileResponse getProfile() {
-        return employeeService.findById(getCurrentEmployeeId(), GetProfileResponse.class);
+        return employeeService.getProfile(getCurrentEmployeeId());
     }
 
     @GetMapping("/tech")

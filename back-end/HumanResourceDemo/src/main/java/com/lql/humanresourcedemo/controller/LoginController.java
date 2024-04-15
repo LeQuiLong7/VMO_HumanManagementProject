@@ -24,7 +24,7 @@ public class LoginController {
 
     @GetMapping
     public String test() {
-        scheduleService.employeeWeeklyReports();
+        scheduleService.createEmployeeWeeklyReports();
         return "Hello";
     }
 
