@@ -1,5 +1,6 @@
 package com.lql.humanresourcedemo.repository;
 
+import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.security.MyAuthentication;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,15 +39,17 @@ class EmployeeRepositoryTest {
     public void setup() {
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
-        securityContext.setAuthentication(new MyAuthentication(1L, null, null));
+        securityContext.setAuthentication(new MyAuthentication(1L, Role.ADMIN));
 
         try (MockedStatic<SecurityContextHolder> utilities = Mockito.mockStatic(SecurityContextHolder.class)) {
             utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             Employee e1 = Employee.builder()
                     .email("longlq@company.com")
+                    .quit(false)
                     .build();
             Employee e2 = Employee.builder()
                     .email("longlq1@company.com")
+                    .quit(false)
                     .build();
 
             employeeRepository.save(e1);
@@ -62,4 +65,11 @@ class EmployeeRepositoryTest {
         assertEquals(2, employeeRepository.countByEmailLike("longlq%@company.com"));
     }
 
+    @Test
+    void getAllIdByQuitIsFalse() {
+
+        assertEquals(2, employeeRepository.findByQuitIsFalse().size());
+
+
+    }
 }

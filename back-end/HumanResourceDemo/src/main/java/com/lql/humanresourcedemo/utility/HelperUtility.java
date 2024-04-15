@@ -1,13 +1,14 @@
 package com.lql.humanresourcedemo.utility;
 
-import com.lql.humanresourcedemo.constant.CompanyConstant;
-import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
+import com.lql.humanresourcedemo.enumeration.LeaveViolationCode;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_DOMAIN;
@@ -79,5 +80,25 @@ public class HelperUtility {
                 Use this token to reset your password: %s
                 The token will remain valid until: %s
                 """.formatted(recipientName, email, token, validUntil.format(formatter));
+    }
+
+
+    public static String buildLeaveWarningMessage(String recipientName, LocalDate date, LeaveViolationCode violationCode) {
+
+        return """
+                Dear %s,
+                You have a time keeping record dated: %s that needs an explanation.
+                Violation code: %s
+                """.formatted(recipientName, date, violationCode);
+    }
+    public static String buildEmployeeWeeklyReport(String recipientName, LocalDate startDate, LocalDate endDate, Map<LeaveViolationCode, Integer> detail, String reportUrl) {
+
+        return """
+                Dear %s,
+                This is your weekly report from %s to %s
+                 %s
+                Click here to view more detail: %s
+                """.formatted(recipientName, startDate, endDate, detail.toString().replaceAll("[{}]", ""), reportUrl);
+
     }
 }

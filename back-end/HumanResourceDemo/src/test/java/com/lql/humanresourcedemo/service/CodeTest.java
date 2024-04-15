@@ -1,5 +1,6 @@
 package com.lql.humanresourcedemo.service;
 
+import com.lql.humanresourcedemo.enumeration.LeaveViolationCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -7,6 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CodeTest {
 
@@ -42,6 +45,18 @@ public class CodeTest {
         String time = "12:21:09";
 
         System.out.println(LocalTime.parse(time));
+//        System.out.println(LocalTime.now());
+    }
+
+
+    @Test
+    public void test5() {
+
+        Map<LeaveViolationCode, Integer> detail = new HashMap<>();
+
+        detail.put(LeaveViolationCode.ON_TIME, 5);
+        detail.put(LeaveViolationCode.ABSENCE, 1);
+        System.out.println(detail.toString().replaceAll("[{}]", ""));
 //        System.out.println(LocalTime.now());
     }
 

@@ -8,5 +8,6 @@ import java.time.LocalDate;
 
 public interface LeaveRepository extends JpaRepository<LeaveRequest, Long> {
 
-    boolean existsByEmployeeAndDate(Employee e, LocalDate date);
+    boolean existsByEmployeeIdAndDate(Long employeeId, LocalDate date);
+    LeaveRequest findByEmployeeIdAndDate(Long employeeId, LocalDate date);
 }

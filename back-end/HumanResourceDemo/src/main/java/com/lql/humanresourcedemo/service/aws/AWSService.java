@@ -13,7 +13,9 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +43,16 @@ public class AWSService {
                 .key(key)
                 .build();
         s3Client.putObject(build, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+
+        return key;
+    }
+
+    public String uploadFile(File file, String bucketName, String key) throws IOException {
+        PutObjectRequest build = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+        s3Client.putObject(build, RequestBody.fromFile(file));
 
         return key;
     }

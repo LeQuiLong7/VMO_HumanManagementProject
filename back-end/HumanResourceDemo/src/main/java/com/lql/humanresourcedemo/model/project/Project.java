@@ -33,6 +33,7 @@ public class Project extends Auditable {
     private LocalDate actualStartDate;
     private LocalDate actualFinishDate;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clientId")
     private Client client;

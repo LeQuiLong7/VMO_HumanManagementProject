@@ -1,5 +1,6 @@
 package com.lql.humanresourcedemo.repository;
 
+import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,6 +19,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     <T> Optional<T> findByEmail(String email, Class<T> clazz);
 
     Optional<Employee> findByEmail(String email);
+
+
+//    @Query("select e.id from Employee  e  where e.quit = false")
+    List<OnlyIdPersonalEmailAndFirstName> findByQuitIsFalse();
 
     boolean existsByEmail(String email);
 
