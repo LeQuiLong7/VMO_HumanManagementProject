@@ -8,13 +8,21 @@ import com.lql.humanresourcedemo.enumeration.LeaveType;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
+import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.repository.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.LeaveRepository;
+import com.lql.humanresourcedemo.service.validate.ValidateService;
+import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 //import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
+import java.util.List;
+
+import static com.lql.humanresourcedemo.utility.HelperUtility.buildPageRequest;
 import static com.lql.humanresourcedemo.utility.MappingUtility.leaveRequestToResponse;
 
 @Service
@@ -22,6 +30,7 @@ import static com.lql.humanresourcedemo.utility.MappingUtility.leaveRequestToRes
 public class LeaveServiceImpl implements LeaveService{
     private final EmployeeRepository employeeRepository;
     private final LeaveRepository leaveRepository;
+    private final ValidateService validateService;
 
 
     @Override
@@ -48,5 +57,13 @@ public class LeaveServiceImpl implements LeaveService{
         return leaveRequestToResponse(leaveRepository.save(leaveRequest));
 
 
+    }
+
+    @Override
+    public Page<LeaveResponse> getAllLeaveRequest(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
+        validateService.validatePageRequest(page, pageSize, properties, orders, LeaveRequest.class);
+
+        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, LeaveRequest.class);
+        return leaveRepository.findAllByEmployeeId(employeeId, pageRequest).map(MappingUtility::leaveRequestToResponse);
     }
 }

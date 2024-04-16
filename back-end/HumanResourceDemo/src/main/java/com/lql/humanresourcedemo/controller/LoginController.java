@@ -18,27 +18,10 @@ import java.util.List;
 public class LoginController {
 
     private final LoginService loginService;
-    private final ScheduleService scheduleService;
 
     @PostMapping
     public LoginResponse login(@RequestBody @Valid LoginRequest loginRequest) {
         return loginService.login(loginRequest);
     }
-
-    @GetMapping
-    public String test() {
-        scheduleService.createEmployeeWeeklyReports();
-        return "Hello";
-    }
-
-
-    @GetMapping("/employees")
-    public Object getAllEmployee(@RequestParam(required = false, defaultValue = "0") Integer page,
-                                 @RequestParam(required = false, defaultValue = "10") Integer size,
-                                 @RequestParam(required = false) List<String> property,
-                                 @RequestParam(required = false) List<Sort.Direction> order) {
-        return "";
-    }
-
 
 }

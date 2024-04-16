@@ -3,6 +3,8 @@ package com.lql.humanresourcedemo.repository;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,8 +22,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     Optional<Employee> findByEmail(String email);
 
+    Page<Employee> findAllByManagedById(Long manageBy, Pageable pageable);
 
-//    @Query("select e.id from Employee  e  where e.quit = false")
     List<OnlyIdPersonalEmailAndFirstName> findByQuitIsFalse();
 
     boolean existsByEmail(String email);

@@ -20,19 +20,24 @@ import com.lql.humanresourcedemo.repository.EmployeeTechRepository;
 import com.lql.humanresourcedemo.repository.SalaryRaiseRequestRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
 import com.lql.humanresourcedemo.service.aws.AWSServiceImpl;
+import com.lql.humanresourcedemo.service.validate.ValidateService;
 import com.lql.humanresourcedemo.utility.FileUtility;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
+import static com.lql.humanresourcedemo.utility.HelperUtility.buildPageRequest;
 import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 
 @Service
@@ -43,6 +48,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final SalaryRaiseRequestRepository salaryRepository;
     private final PasswordEncoder passwordEncoder;
     private final AWSService awsService;
+    private final ValidateService validateService;
 
     @Value("${spring.cloud.aws.region.static}")
     private String region;
@@ -135,6 +141,15 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .build();
 
         return salaryRaiseRequestToResponse(salaryRepository.save(salaryRaiseRequest));
+    }
+
+    @Override
+    public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
+        validateService.validatePageRequest(page, pageSize, properties, orders, SalaryRaiseRequest.class);
+
+        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, SalaryRaiseRequest.class);
+
+        return salaryRepository.findAllByEmployeeId(employeeId, pageRequest).map(MappingUtility::salaryRaiseRequestToResponse);
     }
 
     private void requireExists(Long employeeId) {

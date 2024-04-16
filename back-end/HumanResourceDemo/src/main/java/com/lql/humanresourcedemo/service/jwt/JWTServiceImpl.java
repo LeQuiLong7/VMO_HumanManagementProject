@@ -42,7 +42,7 @@ public class JWTServiceImpl implements JwtService {
         return  jwtBuilder
                 .setClaims(buildClaims(e))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + (10 * 60
+                .setExpiration(new Date(System.currentTimeMillis() + (1000 * 60
                         * 1000)))
                 .compact();
     }

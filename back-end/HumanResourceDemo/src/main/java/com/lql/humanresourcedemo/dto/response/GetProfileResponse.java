@@ -1,8 +1,10 @@
 package com.lql.humanresourcedemo.dto.response;
 
 import com.lql.humanresourcedemo.enumeration.Role;
+import com.lql.humanresourcedemo.model.employee.Employee;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record GetProfileResponse(
         Long id,
@@ -15,6 +17,9 @@ public record GetProfileResponse(
         String personalEmail,
         Byte leaveDays,
         Double currentSalary,
+        LocalDateTime createdAt,
+        Long createdBy,
+        Employee managedBy,
         Role role
 ) {
 }

@@ -25,6 +25,9 @@ public class MappingUtility {
                 e.getPersonalEmail(),
                 e.getLeaveDays(),
                 e.getCurrentSalary(),
+                e.getCreatedAt(),
+                e.getCreatedBy(),
+                e.getManagedBy(),
                 e.getRole()
         );
     }

@@ -1,0 +1,272 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  height: 100%;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .login-form {
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    width: 300px;
+  }
+  
+  .login-form h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+  
+  .login-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+  }
+  
+  .login-form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .login-form button:hover {
+    background-color: #0056b3;
+  }
+  
+  .logged-in-message {
+    text-align: center;
+  }
+  
+  .red {
+    color: red;
+  }
+
+.main {
+  width: 100vw;
+  display: flex;
+  height: 100vh;
+}
+.sidebar {
+  position: fixed;
+  top: 60px;
+  width: 20vw;
+  border: 1px solid black;
+  height: 100vh;
+
+}
+.content {
+  margin-left: 20vw;
+  margin-top: 60px;
+  border: 1px solid black;
+  width: 80vw;
+  height: 200vh;
+
+}
+.top-bar{
+  height: 60px;
+  background-color: black;
+  width: 100vw;
+  position: fixed;
+}
+
+.left-sidebar {
+
+  height: 100%;
+  width: 100%;
+  background-color: #0c171f;
+  color: #fff;
+  padding-top: 10%;
+  font-size: large;
+  text-align: center;
+
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.nav-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-menu ul li {
+  margin-bottom: 10px;
+  padding: 20px;
+}
+
+.nav-menu ul li:hover {
+  background-color: #081216;
+}
+
+.nav-menu ul li a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.nav-menu ul li a:hover {
+  text-decoration: underline;
+}
+
+.search-input {
+  position: fixed;
+  right: 150px;
+  margin-top: 10px;
+  width: 300px;
+  border: none;
+  outline: none;
+  padding: 10px;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.current-user {
+  color: white;
+  display: flex;
+  top: 10px;
+  position: fixed;
+  right: 20px;
+
+}
+.current-user h5{
+  margin: auto;
+
+  
+}
+.current-user img{
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 100%;
+  color: white;
+  
+}
+
+
+.employee-container {
+  letter-spacing: 1.2px;
+  padding: 20px;
+  margin: 20px;
+  }
+  .employee {
+  margin-bottom: 15px;
+  }
+  .employee h2 {
+  margin-bottom: 10px;
+  }
+  .employee p {
+  margin: 5px 0;
+  }
+  .employee img {
+  margin-top: 10px;
+  }
+
+  .padding-10 {
+    padding: 10px;
+  }
+
+
+
+
+.employee-container .avt {
+  width: 100px;
+  height: 100px;
+  border-radius: 100%;
+}
+
+.employee-container .left {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.employee-container .left div {
+  margin-left: 50px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+.employee-container .right {
+  margin-right: 50px;
+  margin-top: auto;
+  width: 100%;
+  margin-bottom: auto;
+}
+.employee-container .right td {
+  margin: 20px;
+  padding: 10px;
+}
+.employee-container .right tr {
+  margin: 30px;
+  padding: 10px;
+}
+
+.employee-container .update-bt {
+  
+  margin-left: 40%;
+  padding: 8px;
+  border-radius: 10px;
+  background-color: orange;
+  color: white;
+  font-size: 20px;
+  vertical-align: middle;
+
+}
+.update-bt:hover {
+  cursor: pointer;
+  background-color: rgb(129, 93, 26);
+}
+
+
+
+.employee-container h2 {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.general-info {
+  justify-content: space-between;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 20px;
+  display: flex;
+  width: 100%;
+}
+
+.detail-info {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 20px;
+  width: 100%;
+}
+
+.detail-info input {
+  padding: 5px;
+  border-radius: 5px;
+  width: 200px;
+}
+.none {
+  display: none;
+}
+.avt:hover{
+  cursor: pointer;
+}
