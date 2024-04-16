@@ -6,6 +6,7 @@ import com.lql.humanresourcedemo.exception.model.file.FileException;
 import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.exception.model.login.LoginException;
 import com.lql.humanresourcedemo.exception.model.newaccount.NewAccountException;
+import com.lql.humanresourcedemo.exception.model.paging.PagingException;
 import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
 import com.lql.humanresourcedemo.exception.model.project.ProjectException;
 import com.lql.humanresourcedemo.exception.model.resetpassword.ResetPasswordException;
@@ -97,6 +98,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ProjectException.class)
     public ResponseEntity<Object> projectExceptionHandler(ProjectException ex, HttpServletRequest request) {
         log.warn(buildLogMessage("Project", ex.getMessage(), request));
+        return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(PagingException.class)
+    public ResponseEntity<Object> PagingExceptionHandler(PagingException ex, HttpServletRequest request) {
+        log.warn(buildLogMessage("Paging ", ex.getMessage(), request));
         return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

@@ -1,5 +1,6 @@
 package com.lql.humanresourcedemo.service.login;
 
+import com.lql.humanresourcedemo.constant.JWTConstants;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPasswordAndRole;
 import com.lql.humanresourcedemo.dto.request.employee.LoginRequest;
 import com.lql.humanresourcedemo.dto.response.LoginResponse;
@@ -31,9 +32,8 @@ public class LoginServiceImpl implements LoginService {
             throw new LoginException("password %s is not correct for %s".formatted(loginRequest.password(), loginRequest.email()));
         }
 
-        return new LoginResponse(jwtService.generateToken(employee));
+        String token = jwtService.generateToken(employee);
 
+        return new LoginResponse(JWTConstants.TOKEN_TYPE, token, employee.role());
     }
-
-    ;
 }

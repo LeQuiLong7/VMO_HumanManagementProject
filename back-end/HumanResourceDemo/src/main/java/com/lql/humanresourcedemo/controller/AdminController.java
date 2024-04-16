@@ -8,8 +8,12 @@ import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.service.admin.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -18,6 +22,15 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AdminService adminService;
+
+
+    @GetMapping("/employees")
+    public Object getAllEmployee(@RequestParam(required = false, defaultValue = "0") String page,
+                                 @RequestParam(required = false, defaultValue = "10") String size,
+                                 @RequestParam(required = false) List<String> p,
+                                 @RequestParam(required = false) List<String> o) {
+        return adminService.getAllEmployee(page, size, p, o);
+    }
 
     @PostMapping
     public GetProfileResponse createNewEmployee(@RequestBody CreateNewEmployeeRequest createNewEmployeeRequest) {

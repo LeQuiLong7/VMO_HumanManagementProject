@@ -2,6 +2,7 @@ package com.lql.humanresourcedemo.service;
 
 import com.lql.humanresourcedemo.enumeration.LeaveViolationCode;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -60,4 +61,10 @@ public class CodeTest {
 //        System.out.println(LocalTime.now());
     }
 
+    @Test
+    public void test6() {
+
+        System.out.println(Sort.Direction.valueOf("asc"));
+//        System.out.println(LocalTime.now());
+    }
 }

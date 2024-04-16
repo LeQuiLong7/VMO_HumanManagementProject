@@ -1,4 +1,6 @@
 package com.lql.humanresourcedemo.dto.response;
 
-public record LoginResponse(String token) {
+import com.lql.humanresourcedemo.enumeration.Role;
+
+public record LoginResponse(String type, String token, Role role) {
 }

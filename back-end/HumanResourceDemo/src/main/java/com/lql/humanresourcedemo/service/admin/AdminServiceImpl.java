@@ -8,8 +8,8 @@ import com.lql.humanresourcedemo.dto.response.ProjectResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
-import com.lql.humanresourcedemo.exception.model.project.ProjectException;
 import com.lql.humanresourcedemo.exception.model.newaccount.NewAccountException;
+import com.lql.humanresourcedemo.exception.model.project.ProjectException;
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;
@@ -18,18 +18,25 @@ import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import com.lql.humanresourcedemo.repository.*;
 import com.lql.humanresourcedemo.service.mail.MailService;
-import com.lql.humanresourcedemo.service.mail.MailServiceImpl;
+import com.lql.humanresourcedemo.service.validate.ValidateService;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static com.lql.humanresourcedemo.enumeration.ProjectState.*;
-import static com.lql.humanresourcedemo.utility.ContextUtility.*;
+import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
 import static com.lql.humanresourcedemo.utility.HelperUtility.*;
 import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 
@@ -45,6 +52,39 @@ public class AdminServiceImpl implements AdminService {
     private final TechRepository techRepository;
     private final ClientRepository clientRepository;
     private final ProjectRepository projectRepository;
+    private final ValidateService validateService;
+    private final ApplicationContext applicationContext;
+
+    @Override
+    public Page<GetProfileResponse> getAllEmployee(String page, String pageSize, List<String> properties, List<String> orders) {
+        return getAll(Employee.class, EmployeeRepository.class, MappingUtility::employeeToProfileResponse, page, pageSize, properties, orders);
+    }
+
+    @Override
+    public Page<Project> getAllProject(String page, String pageSize, List<String> properties, List<String> orders) {
+
+        return getAll(Project.class, ProjectRepository.class, Function.identity(), page, pageSize, properties, orders);
+    }
+
+    private  <T, R extends PagingAndSortingRepository<T, ?>, V> Page<V> getAll(Class<T> clazz, Class<R> repoClass, Function<T, V> mappingFunction, String page, String pageSize, List<String> properties, List<String> orders) {
+        validateService.validatePageRequest(page, pageSize, properties, orders, clazz);
+
+        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, clazz);
+
+        try {
+            Method findAll = repoClass.getMethod("findAll", Pageable.class);
+
+            return ((Page<T>) findAll.invoke(applicationContext.getBean(repoClass), pageRequest)).map(mappingFunction);
+
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     @Override
     @Transactional
@@ -71,6 +111,7 @@ public class AdminServiceImpl implements AdminService {
 
         return employeeToProfileResponse(e);
     }
+
     @Override
     @Transactional
     public SalaryRaiseResponse handleSalaryRaiseRequest(HandleSalaryRaiseRequest handleRequest) {
@@ -98,6 +139,7 @@ public class AdminServiceImpl implements AdminService {
 
         return salaryRaiseRequestToResponse(raiseRequest);
     }
+
     @Override
     @Transactional
     public TechStackResponse updateEmployeeTechStack(UpdateEmployeeTechStackRequest request) {
@@ -126,6 +168,7 @@ public class AdminServiceImpl implements AdminService {
                         .toList()
         );
     }
+
     @Override
     @Transactional
     public ProjectResponse createNewProject(CreateNewProjectRequest request) {
@@ -139,6 +182,7 @@ public class AdminServiceImpl implements AdminService {
 
         return projectToProjectResponse(projectRepository.save(project));
     }
+
     @Override
     @Transactional
     public ProjectResponse updateProject(UpdateProjectStatusRequest request) {
@@ -183,6 +227,7 @@ public class AdminServiceImpl implements AdminService {
 
         return new AssignEmployeeToProjectRequest(request.projectId(), employeeProjectRepository.getAllEmployeesAssignedByProjectId(request.projectId()));
     }
+
     public void assignEmployeesToProject(Long projectId, List<Long> employeeIds) {
         employeeIds.forEach(employeeId -> employeeProjectRepository.save(new EmployeeProject(new EmployeeProject.EmployeeProjectId(employeeRepository.getReferenceById(employeeId), projectRepository.getReferenceById(projectId)))));
     }

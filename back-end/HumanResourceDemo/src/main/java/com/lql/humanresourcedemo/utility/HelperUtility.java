@@ -3,12 +3,15 @@ package com.lql.humanresourcedemo.utility;
 import com.lql.humanresourcedemo.enumeration.LeaveViolationCode;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_DOMAIN;
@@ -99,6 +102,34 @@ public class HelperUtility {
                  %s
                 Click here to view more detail: %s
                 """.formatted(recipientName, startDate, endDate, detail.toString().replaceAll("[{}]", ""), reportUrl);
+
+    }
+
+    public static Pageable buildPageRequest(int page, int pageSize, List<String> properties, List<String> order, Class<?> clazz) {
+        List<Sort.Order> sorts = new ArrayList<>();
+
+        if(properties == null) {
+
+            sorts.add(new Sort.Order(Sort.Direction.ASC, "id"));
+
+        } else {
+            List<String> list = Arrays.stream(clazz.getDeclaredFields()).map(Field::getName).toList();
+            List<String> collect = list.stream().map(String::toLowerCase).toList();
+
+
+            for (int i = 0; i < properties.size(); i++) {
+                String property = list.get(collect.indexOf(properties.get(i).toLowerCase()));
+                try {
+                    Sort.Direction direction = Sort.Direction.valueOf(order.get(i).toUpperCase());
+                    sorts.add(new Sort.Order(direction, property, true, Sort.NullHandling.NULLS_LAST));
+                } catch (IndexOutOfBoundsException | NullPointerException e) {
+
+                    sorts.add(new Sort.Order(Sort.Direction.ASC, property, true, Sort.NullHandling.NULLS_LAST));
+                }
+            }
+        }
+
+        return PageRequest.of(page, pageSize, Sort.by(sorts));
 
     }
 }

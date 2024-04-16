@@ -7,7 +7,10 @@ import com.lql.humanresourcedemo.service.login.LoginService;
 import com.lql.humanresourcedemo.service.schedule.ScheduleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/login")
@@ -26,6 +29,15 @@ public class LoginController {
     public String test() {
         scheduleService.createEmployeeWeeklyReports();
         return "Hello";
+    }
+
+
+    @GetMapping("/employees")
+    public Object getAllEmployee(@RequestParam(required = false, defaultValue = "0") Integer page,
+                                 @RequestParam(required = false, defaultValue = "10") Integer size,
+                                 @RequestParam(required = false) List<String> property,
+                                 @RequestParam(required = false) List<Sort.Direction> order) {
+        return "";
     }
 
 

@@ -61,7 +61,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
             Claims claims = jwtService.extractAllClaims(token);
 
-            authentication.setEmployeeId(jwtService.extractClaim(claims, claim ->  Long.parseLong(claim.getSubject())));
+            authentication.setEmployeeId(Long.parseLong(jwtService.extractClaim(claims, Claims::getSubject)));
             authentication.setRole(Role.valueOf(jwtService.extractClaim(claims, claim -> claim.get(ROLE).toString())));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
