@@ -6,13 +6,11 @@ import com.lql.humanresourcedemo.security.MyAuthentication;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +19,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 
 @DataJpaTest
@@ -57,10 +54,11 @@ class EmployeeRepositoryTest {
                     .build();
 
             Employee e3 = Employee.builder()
-                    .id(2L)
+                    .id(3L)
                     .leaveDays((byte) 1)
                     .email("admin@company.com")
                     .role(Role.ADMIN)
+                    .managedBy(e1)
                     .build();
 
             employeeRepository.save(e1);
@@ -102,4 +100,9 @@ class EmployeeRepositoryTest {
         assertEquals(0, (int) employeeRepository.findById(1L).get().getLeaveDays());
     }
 
+    @Test
+    void getManagedIdById() {
+
+        System.out.println(employeeRepository.findAllIdByManagedById(1L));
+    }
 }

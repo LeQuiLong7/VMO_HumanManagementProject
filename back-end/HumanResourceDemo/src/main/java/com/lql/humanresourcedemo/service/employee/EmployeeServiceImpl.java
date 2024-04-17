@@ -62,6 +62,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public TechStackResponse getTechStack(Long id) {
+        requireExists(id);
         return new TechStackResponse(
                 id,
                 employeeTechRepository.findTechInfoByEmployeeId(id)

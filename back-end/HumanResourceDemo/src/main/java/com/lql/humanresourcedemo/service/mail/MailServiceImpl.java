@@ -14,7 +14,7 @@ public class MailServiceImpl implements MailService {
     private final JavaMailSender mailSender;
 
     @Async
-    public void sendEmail(String to, String subject, String massage) {
+    public void sendEmail(String to, String subject, String msg) {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper messageHelper;
 
@@ -22,7 +22,7 @@ public class MailServiceImpl implements MailService {
             messageHelper = new MimeMessageHelper(message, "utf-8");
             messageHelper.setTo(to);
             messageHelper.setSubject(subject);
-            messageHelper.setText(massage);
+            messageHelper.setText(msg);
             mailSender.send(message);
 
         } catch (Exception exception) {

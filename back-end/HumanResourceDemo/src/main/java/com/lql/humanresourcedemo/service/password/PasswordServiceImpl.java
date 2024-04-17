@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static com.lql.humanresourcedemo.constant.PasswordResetConstants.*;
+import static com.lql.humanresourcedemo.utility.HelperUtility.buildResetMailMessage;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +47,7 @@ public class PasswordServiceImpl implements PasswordService{
 
         passwordResetRepository.save(passwordResetRequest);
 
-        mailService.sendEmail(e.getPersonalEmail(), "[COMPANY] - RESET PASSWORD REQUEST", HelperUtility.buildResetMailMessage(e.getFirstName(), email, token, validUntil));
+        mailService.sendEmail(e.getPersonalEmail(), "[COMPANY] - RESET PASSWORD REQUEST", buildResetMailMessage(e.getFirstName(), email, token, validUntil));
 
         return new ChangePasswordResponse("Success! Check your email for the token");
     }
@@ -55,12 +56,14 @@ public class PasswordServiceImpl implements PasswordService{
     @Override
     @Transactional
     public ChangePasswordResponse resetPassword(ResetPasswordRequest request) {
-        PasswordResetRequest passwordResetRequest = passwordResetRepository.findByToken(request.token())
-                .orElseThrow(() -> new ResetPasswordException("token is not valid"));
 
         if(!request.newPassword().equals(request.confirmPassword())) {
             throw new ResetPasswordException("Password and confirmation password do not match");
         }
+
+        PasswordResetRequest passwordResetRequest = passwordResetRepository.findByToken(request.token())
+                .orElseThrow(() -> new ResetPasswordException("token is not found"));
+
 
         if(passwordResetRequest.getValidUntil().isBefore(LocalDateTime.now())) {
             throw new ResetPasswordException("token expired");

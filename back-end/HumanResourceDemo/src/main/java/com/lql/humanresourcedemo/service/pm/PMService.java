@@ -10,9 +10,9 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface PMService {
-    List<Attendance> checkAttendance(CheckAttendanceRequest request);
+    List<Attendance> checkAttendance(Long pmId, CheckAttendanceRequest request);
 
-    LeaveResponse handleLeaveRequest(HandleLeaveRequest request);
+    LeaveResponse handleLeaveRequest(Long pmId, HandleLeaveRequest request);
 
-    Page<GetProfileResponse> getAllEmployee(String page, String pageSize, List<String> properties, List<String> orders);
+    Page<GetProfileResponse> getAllEmployee(Long pmId, String page, String pageSize, List<String> properties, List<String> orders);
 }

@@ -26,15 +26,6 @@ public class AWSServiceImpl implements AWSService {
         return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, objectKey);
     }
 
-    public Resource downloadFile( String bucketName, String key) throws IOException {
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .build();
-        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
-
-        return new ByteArrayResource(object.readAllBytes());
-    }
 
     @Override
     public String uploadFile(MultipartFile file, String bucketName, String key) {
@@ -65,3 +56,15 @@ public class AWSServiceImpl implements AWSService {
 
 
 }
+
+
+//
+//    public Resource downloadFile( String bucketName, String key) throws IOException {
+//        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+//                .bucket(bucketName)
+//                .key(key)
+//                .build();
+//        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
+//
+//        return new ByteArrayResource(object.readAllBytes());
+//    }

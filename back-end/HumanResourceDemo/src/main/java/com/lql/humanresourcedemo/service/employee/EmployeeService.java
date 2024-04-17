@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface EmployeeService {
+
     GetProfileResponse getProfile(Long employeeId);
     GetProfileResponse updateInfo(Long employeeId, UpdateProfileRequest request);
 

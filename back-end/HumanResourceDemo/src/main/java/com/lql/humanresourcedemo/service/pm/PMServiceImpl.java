@@ -8,6 +8,7 @@ import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.LeaveResponse;
 import com.lql.humanresourcedemo.enumeration.LeaveStatus;
 import com.lql.humanresourcedemo.enumeration.LeaveType;
+import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
@@ -16,7 +17,6 @@ import com.lql.humanresourcedemo.repository.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.LeaveRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
-import com.lql.humanresourcedemo.service.mail.MailServiceImpl;
 import com.lql.humanresourcedemo.service.validate.ValidateService;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
@@ -28,10 +28,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
 import static com.lql.humanresourcedemo.utility.HelperUtility.buildLeaveRequestProcessedMail;
 import static com.lql.humanresourcedemo.utility.HelperUtility.buildPageRequest;
-import static com.lql.humanresourcedemo.utility.MappingUtility.employeeToProfileResponse;
 import static com.lql.humanresourcedemo.utility.MappingUtility.leaveRequestToResponse;
 
 @Service
@@ -47,34 +45,49 @@ public class PMServiceImpl implements PMService {
 
     @Override
     @Transactional
-    public List<Attendance> checkAttendance(CheckAttendanceRequest request) {
+    public List<Attendance> checkAttendance(Long pmId, CheckAttendanceRequest request) {
+
+        List<Long> empIdsInManage = employeeRepository.findAllIdByManagedById(pmId);
+
+        request.attendanceDetails().stream()
+                .map(CheckAttendanceRequest.AttendanceDetail::employeeId)
+                .forEach(empId -> {
+                    if(!employeeRepository.existsById(empId)) {
+                        throw new EmployeeException(empId);
+                    }
+                    if(!empIdsInManage.contains(empId)) {
+                        throw new EmployeeException("You cannot give attendance to people who are not in your manage");
+                    }
+                });
+
         return request.attendanceDetails()
                 .stream()
-                .map(attendanceDetail -> attendanceRepository.save(Attendance.builder()
-                        .employee(employeeRepository.getReferenceById(attendanceDetail.employeeId()))
-                        .date(LocalDate.now())
-                        .timeIn(attendanceDetail.timeIn())
-                        .timeOut(attendanceDetail.timeOut())
-                        .build()))
+                .map(attendanceDetail -> attendanceRepository.save(
+                        Attendance.builder()
+                                .employee(employeeRepository.getReferenceById(attendanceDetail.employeeId()))
+                                .date(LocalDate.now())
+                                .timeIn(attendanceDetail.timeIn())
+                                .timeOut(attendanceDetail.timeOut())
+                                .build()))
                 .toList();
     }
 
     @Transactional
     @Override
-    public LeaveResponse handleLeaveRequest(HandleLeaveRequest request) {
+    public LeaveResponse handleLeaveRequest(Long pmId,HandleLeaveRequest request) {
 
         LeaveRequest l = leaveRepository.findById(request.requestId())
                 .orElseThrow(() -> new LeaveRequestException("Leave request %s can not be found".formatted(request.requestId())));
 
-        if(request.status().equals(LeaveStatus.PROCESSING)) {
+        if (request.status().equals(LeaveStatus.PROCESSING)) {
             throw new LeaveRequestException("Status " + request.status() + " is not valid for leave request %s".formatted(request.requestId()));
         }
 
         l.setStatus(request.status());
-        l.setApprovedBy(employeeRepository.getReferenceById(getCurrentEmployeeId()));
+        l.setApprovedBy(employeeRepository.getReferenceById(pmId));
         leaveRepository.save(l);
 
-        if(request.status().equals(LeaveStatus.ACCEPTED) && l.getType().equals(LeaveType.PAID))
+        if (request.status().equals(LeaveStatus.ACCEPTED) && l.getType().equals(LeaveType.PAID))
             employeeRepository.decreaseLeaveDaysBy1(l.getEmployee().getId());
 
         OnlyPersonalEmailAndFirstName personalEmailAndFirstName = employeeRepository.findById(l.getEmployee().getId(), OnlyPersonalEmailAndFirstName.class).get();
@@ -87,11 +100,11 @@ public class PMServiceImpl implements PMService {
     }
 
     @Override
-    public Page<GetProfileResponse> getAllEmployee(String page, String pageSize, List<String> properties, List<String> orders) {
+    public Page<GetProfileResponse> getAllEmployee(Long pmId, String page, String pageSize, List<String> properties, List<String> orders) {
         validateService.validatePageRequest(page, pageSize, properties, orders, Employee.class);
 
         Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Employee.class);
 
-        return employeeRepository.findAllByManagedById(getCurrentEmployeeId(), pageRequest).map(MappingUtility::employeeToProfileResponse);
+        return employeeRepository.findAllIdByManagedById(pmId, pageRequest).map(MappingUtility::employeeToProfileResponse);
     }
 }

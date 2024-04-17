@@ -5,6 +5,7 @@ import com.lql.humanresourcedemo.dto.request.pm.HandleLeaveRequest;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.LeaveResponse;
 import com.lql.humanresourcedemo.service.pm.PMService;
+import com.lql.humanresourcedemo.utility.ContextUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,17 +25,17 @@ public class PMController {
                                                    @RequestParam(required = false, defaultValue = "10") String size,
                                                    @RequestParam(required = false) List<String> p,
                                                    @RequestParam(required = false) List<String> o) {
-        return pmService.getAllEmployee(page, size, p, o);
+        return pmService.getAllEmployee(ContextUtility.getCurrentEmployeeId(), page, size, p, o);
     }
 
 
 
     @PostMapping("/attendance")
     public Object checkAttendance(@RequestBody CheckAttendanceRequest request) {
-        return pmService.checkAttendance(request);
+        return pmService.checkAttendance(ContextUtility.getCurrentEmployeeId(), request);
     }
     @PostMapping("/leave")
     public LeaveResponse handleLeaveRequest(@RequestBody HandleLeaveRequest request) {
-        return pmService.handleLeaveRequest(request);
+        return pmService.handleLeaveRequest(ContextUtility.getCurrentEmployeeId(), request);
     }
 }

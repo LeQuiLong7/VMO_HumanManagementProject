@@ -21,7 +21,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     Optional<Employee> findByEmail(String email);
 
-    Page<Employee> findAllByManagedById(Long manageBy, Pageable pageable);
+    Page<Employee> findAllIdByManagedById(Long managedBy, Pageable pageable);
+    @Query("select e.id from Employee e where e.managedBy.id = :managedBy")
+    List<Long> findAllIdByManagedById(Long managedBy);
 
     <T> List<T> findByQuitIsFalse(Class<T> clazz);
 

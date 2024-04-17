@@ -28,15 +28,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-
 class LeaveServiceTest {
     @Mock
-    private  EmployeeRepository employeeRepository;
+    private EmployeeRepository employeeRepository;
     @Mock
-    private  LeaveRepository leaveRepository;
+    private LeaveRepository leaveRepository;
     @Mock
-    private  ValidateService validateService;
-    private  LeaveService leaveService;
+    private ValidateService validateService;
+    private LeaveService leaveService;
 
     @BeforeEach
     void setUp() {
@@ -50,9 +49,12 @@ class LeaveServiceTest {
         when(employeeRepository.findById(any(Long.class), eq(OnLyLeaveDays.class)))
                 .thenReturn(Optional.empty());
 
-        EmployeeException exception = assertThrows(EmployeeException.class, () -> leaveService.createLeaveRequest(employeeId, leaveRequestt));
+        assertThrows(
+                EmployeeException.class,
+                () -> leaveService.createLeaveRequest(employeeId, leaveRequestt),
+                "Could not find employee " + employeeId);
 
-        assertEquals("Could not find employee " + employeeId, exception.getMessage());
+
     }
 
     @Test
@@ -61,12 +63,14 @@ class LeaveServiceTest {
 
         LeaveRequestt leaveRequestt = new LeaveRequestt(null, null, LeaveType.PAID);
         OnLyLeaveDays leaveDays = new OnLyLeaveDays(((byte) 0));
-        when(employeeRepository.findById(any(Long.class),  eq(OnLyLeaveDays.class)))
+        when(employeeRepository.findById(any(Long.class), eq(OnLyLeaveDays.class)))
                 .thenReturn(Optional.of(leaveDays));
 
-        LeaveRequestException exception = assertThrows(LeaveRequestException.class, () -> leaveService.createLeaveRequest(employeeId, leaveRequestt));
+        assertThrows(
+                LeaveRequestException.class,
+                () -> leaveService.createLeaveRequest(employeeId, leaveRequestt),
+                "Requesting a paid leave day but not enough leave day left");
 
-        assertEquals("Requesting a paid leave day but not enough leave day left", exception.getMessage());
     }
 
     @Test
@@ -80,7 +84,6 @@ class LeaveServiceTest {
         LeaveRequestt leaveRequestt = new LeaveRequestt(null, null, LeaveType.PAID);
 
 
-
         when(employeeRepository.findById(any(Long.class), eq(OnLyLeaveDays.class)))
                 .thenReturn(Optional.of(leaveDays));
         when(employeeRepository.getReferenceById(any(Long.class)))
@@ -90,13 +93,12 @@ class LeaveServiceTest {
 
         LeaveResponse response = leaveService.createLeaveRequest(employeeId, leaveRequestt);
 
-        Assertions.assertNotNull(response);
-        assertAll(() -> {
-            assertEquals(leaveRequestt.leaveDate(), response.date());
-            assertEquals(employeeId, response.employeeId());
-            assertEquals(leaveRequestt.type(), response.type());
-            assertEquals(LeaveStatus.PROCESSING, response.status());
-        });
+        assertAll(
+                () -> assertEquals(leaveRequestt.leaveDate(), response.date()),
+                () -> assertEquals(employeeId, response.employeeId()),
+                () -> assertEquals(leaveRequestt.type(), response.type()),
+                () -> assertEquals(LeaveStatus.PROCESSING, response.status())
+        );
 
     }
 

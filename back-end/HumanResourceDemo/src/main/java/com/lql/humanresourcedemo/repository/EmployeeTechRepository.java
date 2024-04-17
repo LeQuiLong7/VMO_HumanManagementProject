@@ -23,10 +23,4 @@ public interface EmployeeTechRepository extends JpaRepository<EmployeeTech, Empl
     boolean existsByIdEmployeeIdAndIdTechId(Long employeeId, Long techId);
 
 
-
-
-
-
-//    List<EmployeeTech> findByIdEmployeeId(Long employeeId);
-
 }
