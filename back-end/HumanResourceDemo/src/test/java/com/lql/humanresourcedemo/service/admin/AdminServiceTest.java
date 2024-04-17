@@ -2,10 +2,12 @@ package com.lql.humanresourcedemo.service.admin;
 
 import com.lql.humanresourcedemo.dto.request.admin.CreateNewEmployeeRequest;
 import com.lql.humanresourcedemo.dto.request.admin.CreateNewProjectRequest;
+import com.lql.humanresourcedemo.dto.request.admin.UpdateProjectStatusRequest;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.ProjectResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.exception.model.newaccount.NewAccountException;
+import com.lql.humanresourcedemo.exception.model.project.ProjectException;
 import com.lql.humanresourcedemo.model.client.Client;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.project.Project;
@@ -22,8 +24,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Optional;
 
-import static com.lql.humanresourcedemo.enumeration.ProjectState.INITIATION;
+import static com.lql.humanresourcedemo.enumeration.ProjectState.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -31,28 +35,28 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AdminServiceTest {
     @Mock
-    private  EmployeeRepository employeeRepository;
+    private EmployeeRepository employeeRepository;
     @Mock
-    private  PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
     @Mock
-    private  MailService mailService;
+    private MailService mailService;
     @Mock
-    private  SalaryRaiseRequestRepository salaryRepository;
+    private SalaryRaiseRequestRepository salaryRepository;
     @Mock
-    private  EmployeeTechRepository employeeTechRepository;
+    private EmployeeTechRepository employeeTechRepository;
     @Mock
-    private  EmployeeProjectRepository employeeProjectRepository;
+    private EmployeeProjectRepository employeeProjectRepository;
     @Mock
-    private  TechRepository techRepository;
+    private TechRepository techRepository;
     @Mock
-    private  ClientRepository clientRepository;
+    private ClientRepository clientRepository;
     @Mock
-    private  ProjectRepository projectRepository;
+    private ProjectRepository projectRepository;
     @Mock
-    private  ValidateService validateService;
+    private ValidateService validateService;
     @Mock
-    private  ApplicationContext applicationContext;
-    private  AdminService adminService;
+    private ApplicationContext applicationContext;
+    private AdminService adminService;
 
     @BeforeEach
     void setUp() {
@@ -87,7 +91,7 @@ class AdminServiceTest {
 
         verify(employeeRepository, times(1)).save(ArgumentMatchers.any(Employee.class));
         verify(mailService, times(1)).sendEmail(anyString(), anyString(), anyString());
-        verify(passwordEncoder, times(1)).encode( anyString());
+        verify(passwordEncoder, times(1)).encode(anyString());
     }
 
     @Test
@@ -107,8 +111,104 @@ class AdminServiceTest {
     }
 
     @Test
-    void updateProject() {
+    void updateProject_ProjectNotFound() {
+
+        UpdateProjectStatusRequest request = new UpdateProjectStatusRequest(1L, INITIATION, null, null);
+
+        when(projectRepository.findById(request.id())).thenReturn(Optional.empty());
+
+
+        assertThrows(
+                ProjectException.class,
+                () -> adminService.updateProject(request),
+                "Could not find project " + request.id()
+        );
     }
+
+    @Test
+    void updateProject_ProjectAlreadyFinish() {
+
+        UpdateProjectStatusRequest request = new UpdateProjectStatusRequest(1L, INITIATION, null, null);
+        Project p = Project.builder()
+                .state(FINISHED)
+                .build();
+        when(projectRepository.findById(request.id())).thenReturn(Optional.of(p));
+
+
+        assertThrows(
+                ProjectException.class,
+                () -> adminService.updateProject(request),
+                "Could not update project, project already finished "
+        );
+    }
+
+    @Test
+    void updateProject_NewStateEqualToOldState() {
+
+        UpdateProjectStatusRequest request = new UpdateProjectStatusRequest(1L, ON_GOING, null, null);
+        Project p = Project.builder()
+                .state(ON_GOING)
+                .build();
+        when(projectRepository.findById(request.id())).thenReturn(Optional.of(p));
+
+        assertThrows(
+                ProjectException.class,
+                () -> adminService.updateProject(request),
+                "New state is not valid, project already in that state "
+        );
+    }
+
+
+    @Test
+    void updateProject_ActualStartDateIsRequired() {
+
+        UpdateProjectStatusRequest request = new UpdateProjectStatusRequest(1L, ON_GOING, null, null);
+        Project p = Project.builder()
+                .state(INITIATION)
+                .build();
+        when(projectRepository.findById(request.id())).thenReturn(Optional.of(p));
+
+        assertThrows(
+                ProjectException.class,
+                () -> adminService.updateProject(request),
+                "Actual start date is required"
+        );
+    }
+
+    @Test
+    void updateProject_ActualFinishDateIsRequired() {
+
+        UpdateProjectStatusRequest request = new UpdateProjectStatusRequest(1L, FINISHED, null, null);
+        Project p = Project.builder()
+                .state(ON_GOING)
+                .build();
+        when(projectRepository.findById(request.id())).thenReturn(Optional.of(p));
+
+        assertThrows(
+                ProjectException.class,
+                () -> adminService.updateProject(request),
+                "Actual finished date is required"
+        );
+    }
+
+    @Test
+    void updateProject_Success() {
+
+        UpdateProjectStatusRequest request = new UpdateProjectStatusRequest(1L, FINISHED, LocalDate.now(), LocalDate.now());
+        Project p = Project.builder()
+                .state(ON_GOING)
+                .build();
+        when(projectRepository.findById(request.id())).thenReturn(Optional.of(p));
+        when(projectRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        ProjectResponse response = adminService.updateProject(request);
+
+        assertAll(
+                () -> assertEquals(request.newState(), response.state())
+        );
+
+        verify(projectRepository, times(1)).save(any());
+    }
+
 
     @Test
     void assignEmployeeToProject() {
