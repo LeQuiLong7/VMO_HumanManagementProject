@@ -82,6 +82,7 @@ public class MappingUtility {
         return new LeaveResponse(request.getId(),
                 request.getEmployee().getId(),
                 request.getDate(),
+                request.getType(),
                 request.getReason(),
                 request.getStatus(),
                 request.getApprovedBy() == null ? null : request.getApprovedBy().getId());

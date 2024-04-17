@@ -76,7 +76,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Scheduled(cron = "0 9 * * 6 *") // Run at 9AM every Saturday
     public void createEmployeeWeeklyReports() {
-        List<OnlyIdPersonalEmailAndFirstName> employees = employeeRepository.findByQuitIsFalse();
+        List<OnlyIdPersonalEmailAndFirstName> employees = employeeRepository.findByQuitIsFalse(OnlyIdPersonalEmailAndFirstName.class);
 
         LocalDate startDate = LocalDate.now().minusDays(5);
         LocalDate endDate = LocalDate.now().minusDays(1);

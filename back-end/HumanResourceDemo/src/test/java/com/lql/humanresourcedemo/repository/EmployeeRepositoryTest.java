@@ -3,6 +3,7 @@ package com.lql.humanresourcedemo.repository;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.security.MyAuthentication;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -38,25 +39,39 @@ class EmployeeRepositoryTest {
     @BeforeEach
     public void setup() {
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-
         securityContext.setAuthentication(new MyAuthentication(1L, Role.ADMIN));
 
         try (MockedStatic<SecurityContextHolder> utilities = Mockito.mockStatic(SecurityContextHolder.class)) {
             utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             Employee e1 = Employee.builder()
+                    .id(1L)
+                    .leaveDays((byte) 1)
                     .email("longlq@company.com")
-                    .quit(false)
+                    .role(Role.EMPLOYEE)
                     .build();
             Employee e2 = Employee.builder()
+                    .id(2L)
+                    .leaveDays((byte) 1)
                     .email("longlq1@company.com")
-                    .quit(false)
+                    .role(Role.EMPLOYEE)
+                    .build();
+
+            Employee e3 = Employee.builder()
+                    .id(2L)
+                    .leaveDays((byte) 1)
+                    .email("admin@company.com")
+                    .role(Role.ADMIN)
                     .build();
 
             employeeRepository.save(e1);
             employeeRepository.save(e2);
+            employeeRepository.save(e3);
         }
+    }
 
-
+    @AfterEach
+    public void tearDown() {
+        employeeRepository.deleteAll();
     }
 
 
@@ -68,8 +83,23 @@ class EmployeeRepositoryTest {
     @Test
     void getAllIdByQuitIsFalse() {
 
-        assertEquals(2, employeeRepository.findByQuitIsFalse().size());
-
-
+        assertEquals(3, employeeRepository.findByQuitIsFalse(Employee.class).size());
     }
+
+    @Test
+    void increaseLeaveDaysBy1() {
+        employeeRepository.increaseLeaveDaysBy1();
+
+        employeeRepository.findAll().forEach(employee -> {
+            assertEquals(2, (int) employee.getLeaveDays());
+        });
+    }
+
+    @Test
+    void decreaseLeaveDaysBy1() {
+        employeeRepository.decreaseLeaveDaysBy1(1L);
+
+        assertEquals(0, (int) employeeRepository.findById(1L).get().getLeaveDays());
+    }
+
 }

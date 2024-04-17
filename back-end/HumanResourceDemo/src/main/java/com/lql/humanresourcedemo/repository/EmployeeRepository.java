@@ -1,6 +1,5 @@
 package com.lql.humanresourcedemo.repository;
 
-import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -24,7 +23,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     Page<Employee> findAllByManagedById(Long manageBy, Pageable pageable);
 
-    List<OnlyIdPersonalEmailAndFirstName> findByQuitIsFalse();
+    <T> List<T> findByQuitIsFalse(Class<T> clazz);
 
     boolean existsByEmail(String email);
 
