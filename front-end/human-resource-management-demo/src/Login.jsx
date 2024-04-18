@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './style.css';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loggedIn, setLoggedIn] = useState(false);
   const [fail, setFail] = useState(false);
   const [failMessage, setFailMessage] = useState("");
   const navigate = useNavigate()
 
+  const location = useLocation();
+
+
+  useEffect(() => {
+    if(location.pathname.localeCompare("/login") != 0) {
+      navigate("/login")
+    }
+  }, [])
   async function handleSubmit(e) {
 
     e.preventDefault();
@@ -48,6 +55,7 @@ function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        <h4 className='blue forgot-bt'onClick={() => navigate('/forgot-password')}>Forgot password?</h4>
         {fail && <h4 className='red'>{failMessage}</h4>}
         <button type="submit">Login</button>
       </form>

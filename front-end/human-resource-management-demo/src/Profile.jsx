@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import image from "./image.png"
 import { useNavigate } from "react-router-dom";
+import TechInfo from "./TechInfo";
 export default function Profile({ employee, setEmployee }) {
 
     const [firstName, setFirstName] = useState("");
@@ -9,7 +10,14 @@ export default function Profile({ employee, setEmployee }) {
     const [birthDate, setBirthDate] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [personalEmail, setPersonalEmail] = useState("");
+
     const [error, setError] = useState(null);
+    const [updateSuccess, setUpdateSuccess] = useState(null);
+    const [techInfo, setTechInfo] = useState(null);
+
+    const [oldPassword, setOldPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
 
     useEffect(() => {
         if (employee) {
@@ -19,12 +27,14 @@ export default function Profile({ employee, setEmployee }) {
             setPhoneNumber(employee.phoneNumber || "");
             setPersonalEmail(employee.personalEmail || "");
             setError(null)
+            setUpdateSuccess(null)
         }
     }, [employee]);
 
 
     useEffect(() => {
         getProfile();
+        getTechInfo();
     }, [])
 
     async function handleImageSelect(event) {
@@ -44,8 +54,7 @@ export default function Profile({ employee, setEmployee }) {
                 });
                 getProfile();
             } catch (error) {
-                
-                
+                console.log(error);  
             }
 
         }
@@ -53,30 +62,41 @@ export default function Profile({ employee, setEmployee }) {
 
 
     async function handleUpdateProfile() {
-
         const data = {
-            firstName,
-            lastName,
-            birthDate,
-            phoneNumber,
-            personalEmail
+            firstName, lastName, birthDate, phoneNumber, personalEmail
         }
-
         try {
-
             const response = await axios.put('http://localhost:8080/profile', data, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access-token')}`
                 }
             });
-            getProfile();
+            setUpdateSuccess(true)
+            setTimeout(() => {
+                getProfile();
+            }, 2000)
         } catch (error) {
-            console.log(error);
             setError(error.response.data.details);
         }
-
-
     }
+
+    async function handleUpdatePassword() {
+        const data = {
+            oldPassword, newPassword, confirmPassword
+        }
+        try {
+            const response = await axios.put('http://localhost:8080/profile/password', data, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access-token')}`
+                }
+            });
+            setError(null)
+            setUpdateSuccess(true)
+        } catch (error) {
+            setError(error.response.data.error);
+        }
+    }
+
 
 
     async function getProfile() {
@@ -91,6 +111,22 @@ export default function Profile({ employee, setEmployee }) {
             console.log(error);
         }
     }
+
+    async function getTechInfo() {
+        try {
+            const response = await axios.get('http://localhost:8080/profile/tech', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('access-token')}`
+                }
+            });
+            setTechInfo(response.data.techInfo)
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+
     return (
         <>
             <h1 className="padding-10">Personal Information</h1>
@@ -166,7 +202,43 @@ export default function Profile({ employee, setEmployee }) {
                             </tr>
                         </table>
                         {error && <h3 className="red">{error}</h3>}
+                        {updateSuccess && <h3 className="blue">Updated successfully</h3>}
                         <button className="update-bt" onClick={handleUpdateProfile}>Update</button>
+                    </div>
+
+
+                    <h2>Tech infomation</h2>
+                    <div className="detail-info tech">
+                        <table className="right">
+                            <tr>
+                                <th><h3> Tech id</h3></th>
+                                <th><h3> Tech name</h3></th>
+                                <th><h3> Years of experience</h3></th>
+                            </tr>
+                            {techInfo && techInfo.map(t => (
+                                <TechInfo techId={t.techId} techName={t.techName} yearOfExperience={t.yearOfExperience}/>
+                            ))}
+                        </table>
+                    </div>
+
+
+                    <h2>Password</h2>
+                    <div className="detail-info">
+                        <table className="right password">
+                            <tr>
+                                <th><h3> Current password</h3></th>
+                                <th><h3> New password</h3></th>
+                                <th><h3> Confirm pasword</h3></th>
+                            </tr>
+                            <tr>
+                                <td><input type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} /></td>
+                                <td><input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} /></td>
+                                <td><input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}/></td>
+                            </tr>
+                        </table>
+                        {error && <h3 className="red">{error}</h3>}
+                        {updateSuccess && <h3 className="blue">Updated successfully</h3>}
+                        <button className="update-bt" onClick={handleUpdatePassword}>Update</button>
                     </div>
                 </div>
             )}

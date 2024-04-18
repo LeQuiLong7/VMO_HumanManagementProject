@@ -40,12 +40,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> methodArgumentNotValidHandler(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        log.warn(buildLogMessage("Method argument", "Someone provide not valid arguments to an endpoint", request));
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .toList();
+        log.warn(buildLogMessage("Method argument", "Someone provide not valid arguments to an endpoint " + ex.getMessage(), request));
         return createResponseDetail("Provide valid argument!", HttpStatus.BAD_REQUEST, errors);
     }
 

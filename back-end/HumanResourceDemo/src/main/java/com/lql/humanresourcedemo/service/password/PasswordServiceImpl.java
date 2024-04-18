@@ -62,11 +62,11 @@ public class PasswordServiceImpl implements PasswordService{
         }
 
         PasswordResetRequest passwordResetRequest = passwordResetRepository.findByToken(request.token())
-                .orElseThrow(() -> new ResetPasswordException("token is not found"));
+                .orElseThrow(() -> new ResetPasswordException("Token is not found"));
 
 
         if(passwordResetRequest.getValidUntil().isBefore(LocalDateTime.now())) {
-            throw new ResetPasswordException("token expired");
+            throw new ResetPasswordException("Token expired");
         }
 
 

@@ -87,7 +87,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     public ChangePasswordResponse changePassword(Long employeeId, ChangePasswordRequest request) {
 
-        if (!request.oldPassword().equals(request.confirmPassword())) {
+        if (!request.newPassword().equals(request.confirmPassword())) {
             throw new ChangePasswordException("Password and confirmation password do not match");
         }
 

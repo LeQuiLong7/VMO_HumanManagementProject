@@ -56,6 +56,7 @@ body, html {
   
   .red {
     color: red;
+    padding: 10px;
   }
 
 .main {
@@ -254,6 +255,11 @@ body, html {
 img{
   border: 2px solid gray;
 }
+
+.blue {
+  color: rgb(34, 34, 230);
+  padding: 10px;
+}
 .company-logo {
   position: fixed;
   left: 20;
@@ -268,6 +274,9 @@ img{
   padding: 20px;
   width: 100%;
 }
+/* .detail-info table {
+  text-align: center;
+} */
 
 .detail-info input {
   padding: 5px;
@@ -279,4 +288,27 @@ img{
 }
 .avt:hover{
   cursor: pointer;
+}
+
+.tech{
+  border-collapse: collapse;
+}
+ .tech table {
+  text-align: center;
+ }
+.bold {
+  font-weight: bold;
+}
+.strong {
+  font-size: larger;
+}
+
+.password {
+  text-align: center;
+}
+
+
+.forgot-bt:hover {
+  cursor: pointer;
+  font-size: 17px;
 }
