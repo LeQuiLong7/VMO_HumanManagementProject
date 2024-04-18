@@ -11,6 +11,7 @@ import com.lql.humanresourcedemo.exception.model.password.ChangePasswordExceptio
 import com.lql.humanresourcedemo.exception.model.project.ProjectException;
 import com.lql.humanresourcedemo.exception.model.resetpassword.ResetPasswordException;
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
+import com.lql.humanresourcedemo.exception.model.tech.TechException;
 import com.lql.humanresourcedemo.utility.FileUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -107,6 +108,11 @@ public class GlobalExceptionHandler {
         return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(TechException.class)
+    public ResponseEntity<Object> TechExceptionHandler(TechException ex, HttpServletRequest request) {
+        log.warn(buildLogMessage("Tech ", ex.getMessage(), request));
+        return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 
     private ResponseEntity<Object> createResponseDetail(String message, HttpStatus status) {
         Map<String, String> detail = new HashMap<>();

@@ -8,6 +8,7 @@ import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.service.admin.AdminService;
+import com.lql.humanresourcedemo.utility.ContextUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,7 +47,7 @@ public class AdminController {
 
     @PutMapping("/salary")
     public SalaryRaiseResponse handleSalaryRaise(@RequestBody HandleSalaryRaiseRequest handleSalaryRaiseRequest) {
-        return adminService.handleSalaryRaiseRequest(handleSalaryRaiseRequest);
+        return adminService.handleSalaryRaiseRequest(ContextUtility.getCurrentEmployeeId(), handleSalaryRaiseRequest);
     }
     @GetMapping("/project")
     public Page<Project> getAllProjects(@RequestParam(required = false, defaultValue = "0") String page,

@@ -17,7 +17,7 @@ public interface AdminService {
     Page<GetProfileResponse> getAllEmployee(String page, String pageSize, List<String> properties, List<String> orders);
     Page<Project> getAllProject(String page, String pageSize, List<String> properties, List<String> orders);
     GetProfileResponse createNewEmployee(CreateNewEmployeeRequest request);
-    SalaryRaiseResponse handleSalaryRaiseRequest(HandleSalaryRaiseRequest handleRequest);
+    SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest);
 
     TechStackResponse updateEmployeeTechStack(UpdateEmployeeTechStackRequest request);
     ProjectResponse createNewProject(CreateNewProjectRequest request);

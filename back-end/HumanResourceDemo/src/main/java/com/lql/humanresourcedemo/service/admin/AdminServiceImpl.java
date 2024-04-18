@@ -7,10 +7,12 @@ import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.ProjectResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
+import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.newaccount.NewAccountException;
 import com.lql.humanresourcedemo.exception.model.project.ProjectException;
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
+import com.lql.humanresourcedemo.exception.model.tech.TechException;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;
 import com.lql.humanresourcedemo.model.project.Project;
@@ -36,7 +38,6 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import static com.lql.humanresourcedemo.enumeration.ProjectState.*;
-import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
 import static com.lql.humanresourcedemo.utility.HelperUtility.*;
 import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 
@@ -114,20 +115,25 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public SalaryRaiseResponse handleSalaryRaiseRequest(HandleSalaryRaiseRequest handleRequest) {
+    public SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest) {
 
         SalaryRaiseRequest raiseRequest = salaryRepository.findById(handleRequest.requestId())
                 .orElseThrow(() -> new SalaryRaiseException("Raise request doesn't exists"));
 
+        if(raiseRequest.getStatus() != SalaryRaiseRequestStatus.PROCESSING) {
+            throw new SalaryRaiseException("Raise request already handled");
+        }
+
         Double newSalary = switch (handleRequest.status()) {
-            case REJECTED, PROCESSING -> raiseRequest.getCurrentSalary();
+            case PROCESSING -> throw new SalaryRaiseException("New status is not valid");
+            case REJECTED -> raiseRequest.getCurrentSalary();
             case FULLY_ACCEPTED -> raiseRequest.getExpectedSalary();
             case PARTIALLY_ACCEPTED -> handleRequest.newSalary();
         };
 
         raiseRequest.setStatus(handleRequest.status());
         raiseRequest.setNewSalary(newSalary);
-        raiseRequest.setApprovedBy(employeeRepository.getReferenceById(getCurrentEmployeeId()));
+        raiseRequest.setApprovedBy(employeeRepository.getReferenceById(adminId));
         salaryRepository.save(raiseRequest);
 
         employeeRepository.updateSalaryById(raiseRequest.getEmployee().getId(), newSalary);
@@ -144,12 +150,15 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public TechStackResponse updateEmployeeTechStack(UpdateEmployeeTechStackRequest request) {
 
-        for (var s : request.techStacks()) {
+        requiredExistsEmployee(request.employeeId());
 
+        for (var s : request.techStacks()) {
+            if(!techRepository.existsById(s.techId())) {
+                throw new TechException("Tech id %s not found".formatted(s.techId()));
+            }
             if (employeeTechRepository.existsByIdEmployeeIdAndIdTechId(request.employeeId(), s.techId())) {
                 employeeTechRepository.updateYearOfExperienceByEmployeeIdAndTechId(request.employeeId(), s.techId(), s.yearOfExperience());
             } else {
-
                 employeeTechRepository.save(
                         new EmployeeTech(
                                 new EmployeeTech.EmployeeTechId(
