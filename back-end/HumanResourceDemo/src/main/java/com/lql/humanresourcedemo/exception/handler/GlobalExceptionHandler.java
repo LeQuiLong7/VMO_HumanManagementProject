@@ -125,7 +125,7 @@ public class GlobalExceptionHandler {
         Map<String, String> detail = new HashMap<>();
         detail.put("error", message);
         detail.put("time_stamp", LocalDateTime.now().toString());
-        detail.put("details: ", errors.toString());
+        detail.put("details", errors.toString());
 
         return new ResponseEntity<>(detail, status);
     }

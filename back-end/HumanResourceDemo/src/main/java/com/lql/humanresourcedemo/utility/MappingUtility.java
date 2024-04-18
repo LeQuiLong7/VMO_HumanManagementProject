@@ -27,7 +27,7 @@ public class MappingUtility {
                 e.getCurrentSalary(),
                 e.getCreatedAt(),
                 e.getCreatedBy(),
-                e.getManagedBy(),
+                e.getManagedBy() != null ? e.getManagedBy().getId() : null,
                 e.getRole()
         );
     }

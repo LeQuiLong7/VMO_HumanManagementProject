@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ResetPasswordController {
 
-    private final PasswordService resetPasswordService;
+    private final PasswordService passwordService;
 
     @PostMapping
     public ChangePasswordResponse createResetPasswordRequest(@RequestBody CreateResetPasswordRequest request) {
-        return resetPasswordService.createPasswordResetRequest(request.email());
+        return passwordService.createPasswordResetRequest(request.email());
     }
     @PutMapping
     public ChangePasswordResponse performResetPassword(@RequestBody ResetPasswordRequest request) {
-        return resetPasswordService.resetPassword(request);
+        return passwordService.resetPassword(request);
     }
 }

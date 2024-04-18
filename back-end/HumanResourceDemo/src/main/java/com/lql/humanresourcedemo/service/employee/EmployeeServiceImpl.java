@@ -122,8 +122,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.updateAvatarURLById(employeeId, avatarUrl);
 
         return avatarUrl;
-
-
     }
 
     @Override

@@ -19,7 +19,7 @@ public record GetProfileResponse(
         Double currentSalary,
         LocalDateTime createdAt,
         Long createdBy,
-        Employee managedBy,
+        Long managedById,
         Role role
 ) {
 }

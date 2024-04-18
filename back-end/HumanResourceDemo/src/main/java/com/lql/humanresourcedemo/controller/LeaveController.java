@@ -21,7 +21,7 @@ public class LeaveController {
 
     @PreAuthorize("hasRole('EMPLOYEE')")
     @GetMapping
-    public Page<LeaveResponse> createLeaveRequest(@RequestParam(required = false, defaultValue = "0") String page,
+    public Page<LeaveResponse> getAllLeaveRequest(@RequestParam(required = false, defaultValue = "0") String page,
                                                   @RequestParam(required = false, defaultValue = "10") String size,
                                                   @RequestParam(required = false) List<String> p,
                                                   @RequestParam(required = false) List<String> o) {

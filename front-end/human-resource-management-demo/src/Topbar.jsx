@@ -1,17 +1,20 @@
-import { useEffect } from "react"
-import { useLocation } from "react-router-dom"
+import { useEffect, useState } from "react"
+import axios from "axios";
 import image from "./image.png"
 
-export default function Topbar() {
-    const location = useLocation()
-    useEffect(() =>{
-        console.log(location);
-    }, [])
+export default function Topbar({ employee, setEmployee }) {
+
+
+    
     return <div className="top-bar">
-        <input type="text" placeholder="Search..." class="search-input"/>
-        <div className="current-user">
-            <img src={location.state.avatarUrl == null ? image : location.state.avatarUrl}></img>
-            <h5>{location.state.firstName + " " + location.state.lastName}</h5>
-        </div>
+        <h3 className="company-logo">COMPANY-LOGO</h3>
+        <input type="text" placeholder="Search..." className="search-input" />
+        {employee && (
+            <div className="current-user">
+                <img src={`${employee.avatarUrl || image}?${new Date().getTime()}`} alt="User Avatar"></img>
+                <h5>{employee.firstName + " " + employee.lastName}</h5>
+            </div>
+        )
+        }
     </div>
 }

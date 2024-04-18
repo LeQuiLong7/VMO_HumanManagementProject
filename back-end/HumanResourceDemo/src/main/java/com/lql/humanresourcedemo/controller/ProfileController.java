@@ -9,6 +9,7 @@ import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.service.employee.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,6 +18,7 @@ import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmploye
 @RestController
 @RequestMapping("/profile")
 @RequiredArgsConstructor
+@Slf4j
 public class ProfileController {
 
     private final EmployeeService employeeService;
@@ -44,6 +46,7 @@ public class ProfileController {
 
     @PutMapping("/avatar")
     public String uploadAvatar(MultipartFile file) {
+        log.info("uploading avatar for account id " + getCurrentEmployeeId());
         return employeeService.uploadAvatar(getCurrentEmployeeId(), file);
     }
 }

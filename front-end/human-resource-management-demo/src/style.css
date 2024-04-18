@@ -251,7 +251,17 @@ body, html {
   display: flex;
   width: 100%;
 }
-
+img{
+  border: 2px solid gray;
+}
+.company-logo {
+  position: fixed;
+  left: 20;
+  color: white;
+  top: 11px;
+  left: 30px;
+  font-size: 29px;
+}
 .detail-info {
   border: 1px solid #ccc;
   border-radius: 5px;
