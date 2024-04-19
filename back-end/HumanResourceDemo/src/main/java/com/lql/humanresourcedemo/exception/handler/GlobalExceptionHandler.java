@@ -1,6 +1,7 @@
 package com.lql.humanresourcedemo.exception.handler;
 
 
+import com.lql.humanresourcedemo.exception.model.aws.AWSException;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
 import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
@@ -113,6 +114,15 @@ public class GlobalExceptionHandler {
         log.warn(buildLogMessage("Tech ", ex.getMessage(), request));
         return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(AWSException.class)
+    public ResponseEntity<Object> awsExceptionHandler(AWSException ex, HttpServletRequest request) {
+        log.warn(buildLogMessage("AWS ", ex.getMessage(), request));
+        return createResponseDetail(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+
 
     private ResponseEntity<Object> createResponseDetail(String message, HttpStatus status) {
         Map<String, String> detail = new HashMap<>();

@@ -1,6 +1,8 @@
 package com.lql.humanresourcedemo.service.aws;
 
 
+import com.lql.humanresourcedemo.exception.model.aws.AWSException;
+import com.lql.humanresourcedemo.utility.ContextUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -36,8 +38,8 @@ public class AWSServiceImpl implements AWSService {
         try {
             s3Client.putObject(build, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (Exception ex) {
+            throw new AWSException("Error uploading file for " + ContextUtility.getCurrentEmployeeId());
         }
 
         return key;
@@ -49,8 +51,12 @@ public class AWSServiceImpl implements AWSService {
                 .bucket(bucketName)
                 .key(key)
                 .build();
+        try {
+            s3Client.putObject(build, RequestBody.fromFile(file));
+        } catch (Exception e) {
+            throw new AWSException("Error uploading file for " + ContextUtility.getCurrentEmployeeId());
 
-        s3Client.putObject(build, RequestBody.fromFile(file));
+        }
         return key;
     }
 

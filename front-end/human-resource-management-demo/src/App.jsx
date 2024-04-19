@@ -4,6 +4,9 @@ import Login from './Login'
 import Profile from './Profile'
 import ForgotPassword from './ForgotPassword'
 import Sidebar from './Sidebar'
+import Leave from './Leave'
+import Salary from './Salary'
+import EmployeeManage from './EmployeeManage'
 
 function App() {
 
@@ -16,6 +19,9 @@ function App() {
 
       <Route path='/home' element={<Sidebar employee={employee}/>}>
         <Route path='profile' element={<Profile employee={employee} setEmployee={setEmployee} />}/>
+        <Route path='leave' element={<Leave employee={employee} setEmployee={setEmployee} />}/>
+        <Route path='salary' element={<Salary employee={employee} setEmployee={setEmployee} />}/>
+        <Route path='employees' element={<EmployeeManage />}/>
       </Route>
       <Route path='*' element={<Login/>}/>
 

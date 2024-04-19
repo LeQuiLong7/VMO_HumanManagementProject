@@ -109,7 +109,7 @@ class PasswordServiceTest {
             passwordService.resetPassword(request);
         });
 
-        assertEquals("token is not found", exception.getMessage());
+        assertEquals("Token is not found", exception.getMessage());
     }
     @Test
     void testResetPassword_NewPasswordAndConfirmationDoNotMatch() {
@@ -142,6 +142,6 @@ class PasswordServiceTest {
             passwordService.resetPassword(request);
         });
 
-        assertEquals("token expired", exception.getMessage());
+        assertEquals("Token expired", exception.getMessage());
     }
 }

@@ -8,7 +8,9 @@ import java.time.LocalDateTime;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record SalaryRaiseResponse (
+        Long id,
         Long employeeId,
+        Double oldSalary,
         Double expectedSalary,
         String description,
         SalaryRaiseRequestStatus status,

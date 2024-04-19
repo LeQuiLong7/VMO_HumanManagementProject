@@ -312,3 +312,135 @@ img{
   cursor: pointer;
   font-size: 17px;
 }
+
+
+#leave-table {
+  text-align: center;
+  overflow: hidden;
+  border-radius: 10px;
+  margin: 20px;
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 95%;
+}
+
+#leave-table td, #leave-table th {
+  text-align: center;
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+#leave-table tr:nth-child(even){background-color: #f2f2f2;}
+
+#leave-table tr:hover {background-color: #ddd;}
+
+#leave-table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: center;
+  background-color: #007bff;
+  color: white;
+}
+
+.pop-up{
+  padding: 10px;
+  width: 500px; /* Adjust the size of the square as needed */
+  height: 300px; /* Equal width and height for a square */
+  background-color: #ccc; /* Color of the square */
+  position: absolute;
+  top: 50%;
+  left: 60%;
+  transform: translate(-50%, -50%); /* Centering trick */
+}
+
+.close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 5px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.close-button:hover {
+  color: red; /* Change color on hover if desired */
+}
+
+#leave-create-button{
+  position: fixed;
+  right: 50px;
+  bottom: 50px;
+  width: 100px;
+  text-align: center;
+  height: 60px;
+
+  padding: 10px 20px; /* Adjust padding to increase/decrease button size */
+  background-color: #007bff; /* Button background color */
+  color: white; /* Button text color */
+ 
+  border-radius: 5px; /* Rounded corners */
+  font-size: 16px; /* Button text size */
+  cursor: pointer; /* Show pointer on hover */
+  transition: background-color 0.3s
+}
+#leave-create-button:hover{
+  background-color: #0675eb; /* Button background color */
+
+}
+
+.pop-up input[type="date"],
+.pop-up input[type="text"],
+.pop-up select
+ {
+  width: 80%;
+  padding: 8px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.pop-up input[type="number"]
+ {
+  width: 70%;
+  padding: 8px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+/* Style h4 elements */
+.pop-up h4 {
+  margin-top: 15px;
+  font-size: 16px;
+}
+
+#create-inside {
+  position: fixed;
+  right: 50px;
+  bottom: 20px;
+  width: 80px;
+  text-align: center;
+  height: 40px;
+
+  padding: 10px 20px; /* Adjust padding to increase/decrease button size */
+  background-color: #007bff; /* Button background color */
+  color: white; /* Button text color */
+ 
+  border-radius: 5px; /* Rounded corners */
+  font-size: 13px; /* Button text size */
+  cursor: pointer; /* Show pointer on hover */
+  transition: background-color 0.3s
+
+}
+
+.yellow {
+  color: rgb(146, 146, 10);
+}
+.green {
+  color: green;
+}

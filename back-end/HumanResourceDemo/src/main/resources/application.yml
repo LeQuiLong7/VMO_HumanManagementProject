@@ -32,6 +32,9 @@ spring:
       credentials:
         access-key: ${AWS_ACCESS_KEY}
         secret-key: ${AWS_SECRET_KEY}
+  docker:
+    compose:
+      lifecycle-management: start_only
 mail:
   username: ${MAIL_USERNAME}
   password: ${MAIL_PASSWORD}
