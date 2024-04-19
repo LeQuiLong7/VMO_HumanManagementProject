@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import GeneralInfo from "./GeneralInfo";
 
-export default function EmployeeManage() {
+export default function AdminEmployee() {
     const [employeeList, setEmployeeList] = useState(null);
 
     useEffect(() => {
@@ -11,7 +11,7 @@ export default function EmployeeManage() {
 
     async function getEmployeesList() {
         try {
-            const response = await axios.get('http://localhost:8080/pm/employees', {
+            const response = await axios.get('http://localhost:8080/admin/employees', {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('access-token')}`
                 }

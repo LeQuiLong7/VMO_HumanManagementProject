@@ -7,6 +7,10 @@ import Sidebar from './Sidebar'
 import Leave from './Leave'
 import Salary from './Salary'
 import EmployeeManage from './EmployeeManage'
+import Attendance from './Attendance'
+import HandleLeave from './HanleLeave'
+import AdminEmployee from './AdminEmployee'
+import Project from './Project'
 
 function App() {
 
@@ -22,6 +26,10 @@ function App() {
         <Route path='leave' element={<Leave employee={employee} setEmployee={setEmployee} />}/>
         <Route path='salary' element={<Salary employee={employee} setEmployee={setEmployee} />}/>
         <Route path='employees' element={<EmployeeManage />}/>
+        <Route path='admin-employee' element={<AdminEmployee />}/>
+        <Route path='attendance' element={<Attendance />}/>
+        <Route path='handle-leave' element={<HandleLeave />}/>
+        <Route path='project' element={<Project />}/>
       </Route>
       <Route path='*' element={<Login/>}/>
 

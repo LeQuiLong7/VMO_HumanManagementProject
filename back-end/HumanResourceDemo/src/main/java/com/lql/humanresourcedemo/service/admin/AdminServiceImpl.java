@@ -187,7 +187,8 @@ public class AdminServiceImpl implements AdminService {
                 .expectedStartDate(request.expectedStartDate())
                 .expectedFinishDate(request.expectedFinishDate())
                 .state(INITIATION)
-                .client(clientRepository.getReferenceById(request.clientId())).build();
+//                .client(clientRepository.getReferenceById(request.clientId()))
+                .build();
 
         return projectToProjectResponse(projectRepository.save(project));
     }

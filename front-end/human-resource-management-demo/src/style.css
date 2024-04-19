@@ -191,7 +191,7 @@ body, html {
 
 
 
-.employee-container .avt {
+.general-info .avt {
   width: 100px;
   height: 100px;
   border-radius: 100%;
@@ -343,13 +343,17 @@ img{
 }
 
 .pop-up{
-  padding: 10px;
-  width: 500px; /* Adjust the size of the square as needed */
-  height: 300px; /* Equal width and height for a square */
+  padding-top: 10px;
+  padding-bottom: 80px;
+  padding-left: 50px;
+  padding-right: 50px;
+  /* width: 500px; 
+  height: 300px;  */
   background-color: #ccc; /* Color of the square */
   position: absolute;
   top: 50%;
   left: 60%;
+
   transform: translate(-50%, -50%); /* Centering trick */
 }
 
@@ -393,9 +397,10 @@ img{
 
 .pop-up input[type="date"],
 .pop-up input[type="text"],
+.pop-up input[type="number"],
 .pop-up select
  {
-  width: 80%;
+  width: 100%;
   padding: 8px;
   margin-top: 10px;
   border: 1px solid #ccc;
@@ -403,15 +408,6 @@ img{
   box-sizing: border-box;
 }
 
-.pop-up input[type="number"]
- {
-  width: 70%;
-  padding: 8px;
-  margin-top: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box;
-}
 
 /* Style h4 elements */
 .pop-up h4 {
@@ -443,4 +439,24 @@ img{
 }
 .green {
   color: green;
+}
+
+
+.attendance-form {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.attendance-details {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.attendance-details input {
+  margin-right: 10px;
+}
+
+.attendance-form button {
+  display: block;
+  margin-top: 10px;
 }

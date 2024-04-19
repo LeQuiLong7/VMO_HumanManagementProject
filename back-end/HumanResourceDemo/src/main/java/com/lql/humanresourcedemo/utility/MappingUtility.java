@@ -93,6 +93,6 @@ public class MappingUtility {
 
 
     public static ProjectResponse projectToProjectResponse(Project p) {
-        return new ProjectResponse(p.getId(), p.getName(), p.getDescription(), p.getState(), p.getExpectedStartDate(), p.getExpectedFinishDate(), p.getActualStartDate(), p.getActualFinishDate(), p.getClient().getId());
+        return new ProjectResponse(p.getId(), p.getName(), p.getDescription(), p.getState(), p.getExpectedStartDate(), p.getExpectedFinishDate(), p.getActualStartDate(), p.getActualFinishDate());
     }
 }

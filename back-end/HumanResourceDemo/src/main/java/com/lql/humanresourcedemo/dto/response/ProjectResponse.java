@@ -15,7 +15,6 @@ public record ProjectResponse(
         LocalDate expectedStartDate,
         LocalDate expectedFinishDate,
         LocalDate actualStartDate,
-        LocalDate actualFinishDate,
-        Long clientId
+        LocalDate actualFinishDate
 ) {
 }

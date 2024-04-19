@@ -59,7 +59,7 @@ public class AdminController {
     }
 
     @PostMapping("/project")
-    public ProjectResponse createNewProject(@RequestBody CreateNewProjectRequest createNewProjectRequest) {
+    public ProjectResponse createNewProject(@RequestBody @Valid CreateNewProjectRequest createNewProjectRequest) {
         return adminService.createNewProject(createNewProjectRequest);
     }
     @PutMapping("/project")

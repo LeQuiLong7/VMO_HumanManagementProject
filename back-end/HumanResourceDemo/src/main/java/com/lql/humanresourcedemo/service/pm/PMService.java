@@ -12,7 +12,8 @@ import java.util.List;
 public interface PMService {
     List<Attendance> checkAttendance(Long pmId, CheckAttendanceRequest request);
 
-    LeaveResponse handleLeaveRequest(Long pmId, HandleLeaveRequest request);
+    List<LeaveResponse> handleLeaveRequest(Long pmId, List<HandleLeaveRequest> request);
 
     Page<GetProfileResponse> getAllEmployee(Long pmId, String page, String pageSize, List<String> properties, List<String> orders);
+    Page<LeaveResponse> getAllLeaveRequest(Long pmId, String page, String pageSize, List<String> properties, List<String> orders);
 }

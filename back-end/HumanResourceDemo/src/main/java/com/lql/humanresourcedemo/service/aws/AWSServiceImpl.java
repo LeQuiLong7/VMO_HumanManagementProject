@@ -39,7 +39,7 @@ public class AWSServiceImpl implements AWSService {
             s3Client.putObject(build, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
         } catch (Exception ex) {
-            throw new AWSException("Error uploading file for " + ContextUtility.getCurrentEmployeeId());
+            throw new AWSException("Error uploading file");
         }
 
         return key;
@@ -54,7 +54,7 @@ public class AWSServiceImpl implements AWSService {
         try {
             s3Client.putObject(build, RequestBody.fromFile(file));
         } catch (Exception e) {
-            throw new AWSException("Error uploading file for " + ContextUtility.getCurrentEmployeeId());
+            throw new AWSException("Error uploading file");
 
         }
         return key;

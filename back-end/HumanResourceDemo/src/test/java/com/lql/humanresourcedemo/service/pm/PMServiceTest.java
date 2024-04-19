@@ -125,7 +125,7 @@ class PMServiceTest {
 
         assertThrows(
                 LeaveRequestException.class,
-                () -> pmService.handleLeaveRequest(1L, handleRequest),
+                () -> pmService.handleLeaveRequest(1L, List.of(handleRequest)),
                 "Leave request %s can not be found".formatted(handleRequest.requestId())
         );
     }
@@ -138,7 +138,7 @@ class PMServiceTest {
 
         assertThrows(
                 LeaveRequestException.class,
-                () -> pmService.handleLeaveRequest(1L, handleRequest),
+                () -> pmService.handleLeaveRequest(1L, List.of(handleRequest)),
                 "Status " + handleRequest.status() + " is not valid for leave request %s".formatted(handleRequest.requestId())
         );
     }
@@ -161,7 +161,7 @@ class PMServiceTest {
 
         when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
-        pmService.handleLeaveRequest(1L, handleRequest);
+        pmService.handleLeaveRequest(1L, List.of(handleRequest));
 
         verify(employeeRepository, times(0)).decreaseLeaveDaysBy1(any());
         verify(mailService, times(1)).sendEmail(any(), any(), any());
@@ -187,7 +187,7 @@ class PMServiceTest {
 
         when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
-        pmService.handleLeaveRequest(1L, handleRequest);
+        pmService.handleLeaveRequest(1L, List.of(handleRequest));
 
         verify(employeeRepository, times(0)).decreaseLeaveDaysBy1(any());
         verify(mailService, times(1)).sendEmail(any(), any(), any());
@@ -214,7 +214,7 @@ class PMServiceTest {
 
         when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
-        pmService.handleLeaveRequest(1L, handleRequest);
+        pmService.handleLeaveRequest(1L, List.of(handleRequest));
 
         verify(employeeRepository, times(1)).decreaseLeaveDaysBy1(any());
         verify(mailService, times(1)).sendEmail(any(), any(), any());

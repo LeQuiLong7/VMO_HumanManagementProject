@@ -1,5 +1,6 @@
 package com.lql.humanresourcedemo.model.project;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.lql.humanresourcedemo.enumeration.ProjectState;
 import com.lql.humanresourcedemo.model.Auditable;
@@ -36,5 +37,6 @@ public class Project extends Auditable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clientId")
+    @JsonIgnore
     private Client client;
 }

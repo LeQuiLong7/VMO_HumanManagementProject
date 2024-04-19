@@ -26,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.lql.humanresourcedemo.utility.HelperUtility.buildLeaveRequestProcessedMail;
@@ -48,41 +49,46 @@ public class PMServiceImpl implements PMService {
     public List<Attendance> checkAttendance(Long pmId, CheckAttendanceRequest request) {
 
         List<Long> empIdsInManage = employeeRepository.findAllIdByManagedById(pmId);
+        LocalDate now = LocalDate.now();
 
-        request.attendanceDetails().stream()
-                .map(CheckAttendanceRequest.AttendanceDetail::employeeId)
-                .forEach(empId -> {
-                    if(!employeeRepository.existsById(empId)) {
-                        throw new EmployeeException(empId);
-                    }
-                    if(!empIdsInManage.contains(empId)) {
-                        throw new EmployeeException("You cannot give attendance to people who are not in your manage");
-                    }
-                });
+        request.attendanceDetails()
+                        .forEach(detail -> {
+                            if(!employeeRepository.existsById(detail.employeeId())) {
+                                throw new EmployeeException(detail.employeeId());
+                            }
+                            if(!empIdsInManage.contains(detail.employeeId())) {
+                                throw new EmployeeException("You cannot give attendance to people who are not in your manage");
+                            }
+                            if(attendanceRepository.existsByEmployeeIdAndDate(detail.employeeId(), now)) {
+                                throw new EmployeeException("Employee %s already have an attendance record".formatted(detail.employeeId()));
+
+                            }
+                        });
 
         return request.attendanceDetails()
                 .stream()
                 .map(attendanceDetail -> attendanceRepository.save(
                         Attendance.builder()
                                 .employee(employeeRepository.getReferenceById(attendanceDetail.employeeId()))
-                                .date(LocalDate.now())
+                                .date(now)
                                 .timeIn(attendanceDetail.timeIn())
                                 .timeOut(attendanceDetail.timeOut())
                                 .build()))
                 .toList();
     }
 
-    @Transactional
-    @Override
-    public LeaveResponse handleLeaveRequest(Long pmId,HandleLeaveRequest request) {
+    private LeaveResponse handleLeaveRequest(Long pmId,HandleLeaveRequest request) {
+        if (request.status().equals(LeaveStatus.PROCESSING)) {
+            throw new LeaveRequestException("Status " + request.status() + " is not valid");
+        }
 
         LeaveRequest l = leaveRepository.findById(request.requestId())
                 .orElseThrow(() -> new LeaveRequestException("Leave request %s can not be found".formatted(request.requestId())));
 
-        if (request.status().equals(LeaveStatus.PROCESSING)) {
-            throw new LeaveRequestException("Status " + request.status() + " is not valid for leave request %s".formatted(request.requestId()));
-        }
+        if(!l.getEmployee().getManagedBy().getId().equals(pmId)) {
+            throw new LeaveRequestException("You cannot handle leave request %s: employee is not in your manage".formatted(l.getId()));
 
+        }
         l.setStatus(request.status());
         l.setApprovedBy(employeeRepository.getReferenceById(pmId));
         leaveRepository.save(l);
@@ -98,6 +104,15 @@ public class PMServiceImpl implements PMService {
 
         return leaveRequestToResponse(l);
     }
+    @Override
+    @Transactional
+    public List<LeaveResponse> handleLeaveRequest(Long pmId, List<HandleLeaveRequest> requests) {
+        List<LeaveResponse> leaveResponses = new ArrayList<>();
+        for(var leaveRequest : requests) {
+            leaveResponses.add(handleLeaveRequest(pmId, leaveRequest));
+        }
+        return leaveResponses;
+    }
 
     @Override
     public Page<GetProfileResponse> getAllEmployee(Long pmId, String page, String pageSize, List<String> properties, List<String> orders) {
@@ -107,4 +122,13 @@ public class PMServiceImpl implements PMService {
 
         return employeeRepository.findAllIdByManagedById(pmId, pageRequest).map(MappingUtility::employeeToProfileResponse);
     }
+    @Override
+    public Page<LeaveResponse> getAllLeaveRequest(Long pmId, String page, String pageSize, List<String> properties, List<String> orders) {
+        validateService.validatePageRequest(page, pageSize, properties, orders, LeaveRequest.class);
+
+        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Employee.class);
+
+        return leaveRepository.findAllByPMId(pmId, pageRequest).map(MappingUtility::leaveRequestToResponse);
+    }
+
 }
