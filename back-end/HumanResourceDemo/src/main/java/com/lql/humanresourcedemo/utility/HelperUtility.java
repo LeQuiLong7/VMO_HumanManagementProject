@@ -31,7 +31,7 @@ public class HelperUtility {
 
     public static String buildEmailWithWildcard(String email) {
 
-       return email.substring(0, email.indexOf("@")) + "%" + email.substring(email.indexOf("@"));
+        return email.substring(0, email.indexOf("@")) + "%" + email.substring(email.indexOf("@"));
     }
 
 
@@ -49,6 +49,7 @@ public class HelperUtility {
                 Password: %s
                 """.formatted(recipientName, email, password);
     }
+
     public static String buildSalaryProcessedMail(String recipientName, SalaryRaiseRequest raiseRequest) {
         return """
                     Dear %s,
@@ -94,6 +95,7 @@ public class HelperUtility {
                 Violation code: %s
                 """.formatted(recipientName, date, violationCode);
     }
+
     public static String buildEmployeeWeeklyReport(String recipientName, LocalDate startDate, LocalDate endDate, Map<LeaveViolationCode, Integer> detail, String reportUrl) {
 
         return """
@@ -108,25 +110,18 @@ public class HelperUtility {
     public static Pageable buildPageRequest(int page, int pageSize, List<String> properties, List<String> order, Class<?> clazz) {
         List<Sort.Order> sorts = new ArrayList<>();
 
-        if(properties == null) {
+        List<String> originalFieldName = Arrays.stream(clazz.getDeclaredFields()).map(Field::getName).toList();
+        List<String> lowerCaseFiledName = originalFieldName.stream().map(String::toLowerCase).toList();
+        for (int i = 0; i < properties.size(); i++) {
+            String property = originalFieldName.get(lowerCaseFiledName.indexOf(properties.get(i).toLowerCase()));
+            try {
+                Sort.Direction direction = Sort.Direction.valueOf(order.get(i).toUpperCase());
+                sorts.add(new Sort.Order(direction, property, true, Sort.NullHandling.NULLS_LAST));
+            } catch (IndexOutOfBoundsException | NullPointerException e) {
 
-            sorts.add(new Sort.Order(Sort.Direction.ASC, "id"));
-
-        } else {
-            List<String> list = Arrays.stream(clazz.getDeclaredFields()).map(Field::getName).toList();
-            List<String> collect = list.stream().map(String::toLowerCase).toList();
-
-
-            for (int i = 0; i < properties.size(); i++) {
-                String property = list.get(collect.indexOf(properties.get(i).toLowerCase()));
-                try {
-                    Sort.Direction direction = Sort.Direction.valueOf(order.get(i).toUpperCase());
-                    sorts.add(new Sort.Order(direction, property, true, Sort.NullHandling.NULLS_LAST));
-                } catch (IndexOutOfBoundsException | NullPointerException e) {
-
-                    sorts.add(new Sort.Order(Sort.Direction.ASC, property, true, Sort.NullHandling.NULLS_LAST));
-                }
+                sorts.add(new Sort.Order(Sort.Direction.ASC, property, true, Sort.NullHandling.NULLS_LAST));
             }
+
         }
 
         return PageRequest.of(page, pageSize, Sort.by(sorts));

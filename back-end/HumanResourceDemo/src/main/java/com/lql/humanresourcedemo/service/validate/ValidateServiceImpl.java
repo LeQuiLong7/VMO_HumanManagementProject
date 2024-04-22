@@ -36,22 +36,19 @@ public class ValidateServiceImpl implements ValidateService {
 
             throw new PagingException("%s is not a valid page size".formatted(pageSize));
         }
-        if (order != null)
-            order.forEach(o -> {
-                if (!isSortingOrderValid(o)) {
-                    throw new PagingException("%s is not a valid sort order, whether asc or desc".formatted(o));
-                }
-            });
+        order.forEach(o -> {
+            if (!isSortingOrderValid(o)) {
+                throw new PagingException("%s is not a valid sort order, whether asc or desc".formatted(o));
+            }
+        });
 
-        if (sortProperties != null) {
-            Set<String> classProperties = Arrays.stream(clazz.getDeclaredFields()).map(field -> field.getName().toLowerCase()).collect(Collectors.toSet());
-            sortProperties.forEach(p -> {
-                if (!classProperties.contains(p.toLowerCase())) {
-                    throw new PagingException("%s is not a valid sort property".formatted(p));
-                }
-            });
+        Set<String> classProperties = Arrays.stream(clazz.getDeclaredFields()).map(field -> field.getName().toLowerCase()).collect(Collectors.toSet());
+        sortProperties.forEach(p -> {
+            if (!classProperties.contains(p.toLowerCase())) {
+                throw new PagingException("%s is not a valid sort property".formatted(p));
+            }
+        });
 
-        }
 
     }
 }

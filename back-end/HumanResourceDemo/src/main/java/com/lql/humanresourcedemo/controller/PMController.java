@@ -24,8 +24,8 @@ public class PMController {
     @GetMapping("/employees")
     public Page<GetProfileResponse> getAllEmployee(@RequestParam(required = false, defaultValue = "0") String page,
                                                    @RequestParam(required = false, defaultValue = "10") String size,
-                                                   @RequestParam(required = false) List<String> p,
-                                                   @RequestParam(required = false) List<String> o) {
+                                                   @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                   @RequestParam(required = false, defaultValue = "asc") List<String> o) {
         return pmService.getAllEmployee(ContextUtility.getCurrentEmployeeId(), page, size, p, o);
     }
 
@@ -33,8 +33,8 @@ public class PMController {
     @GetMapping("/leave")
     public Page<LeaveResponse> getAllLeaveRequest(@RequestParam(required = false, defaultValue = "0") String page,
                                                    @RequestParam(required = false, defaultValue = "10") String size,
-                                                   @RequestParam(required = false) List<String> p,
-                                                   @RequestParam(required = false) List<String> o) {
+                                                   @RequestParam(required = false, defaultValue = "date") List<String> p,
+                                                   @RequestParam(required = false, defaultValue = "desc") List<String> o) {
         return pmService.getAllLeaveRequest(ContextUtility.getCurrentEmployeeId(), page, size, p, o);
     }
 

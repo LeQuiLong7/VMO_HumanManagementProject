@@ -31,8 +31,8 @@ public class AdminController {
     @GetMapping("/employees")
     public Page<GetProfileResponse> getAllEmployee(@RequestParam(required = false, defaultValue = "0") String page,
                                                    @RequestParam(required = false, defaultValue = "10") String size,
-                                                   @RequestParam(required = false) List<String> p,
-                                                   @RequestParam(required = false) List<String> o) {
+                                                   @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                   @RequestParam(required = false, defaultValue = "asc") List<String> o) {
         return adminService.getAllEmployee(page, size, p, o);
     }
 
@@ -53,8 +53,8 @@ public class AdminController {
     @GetMapping("/project")
     public Page<Project> getAllProjects(@RequestParam(required = false, defaultValue = "0") String page,
                                         @RequestParam(required = false, defaultValue = "10") String size,
-                                        @RequestParam(required = false) List<String> p,
-                                        @RequestParam(required = false) List<String> o) {
+                                        @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                        @RequestParam(required = false, defaultValue = "desc") List<String> o) {
         return adminService.getAllProject(page, size, p, o);
     }
 

@@ -7,6 +7,7 @@ import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
+import com.lql.humanresourcedemo.model.attendance.Attendance;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,5 +26,6 @@ public interface EmployeeService {
 
     SalaryRaiseResponse createSalaryRaiseRequest(Long employeeId, CreateSalaryRaiseRequest request);
 
-    Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long currentEmployeeId, String page, String pageSize, List<String> properties, List<String> orders);
+    Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders);
+    Page<Attendance> getAllAttendanceHistory(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders);
 }

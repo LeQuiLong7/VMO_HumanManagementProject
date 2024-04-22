@@ -13,8 +13,10 @@ import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
 import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
+import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
+import com.lql.humanresourcedemo.repository.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.EmployeeTechRepository;
 import com.lql.humanresourcedemo.repository.SalaryRaiseRequestRepository;
@@ -45,6 +47,7 @@ import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeTechRepository employeeTechRepository;
+    private final AttendanceRepository attendanceRepository;
     private final SalaryRaiseRequestRepository salaryRepository;
     private final PasswordEncoder passwordEncoder;
     private final AWSService awsService;
@@ -149,6 +152,15 @@ public class EmployeeServiceImpl implements EmployeeService {
         Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, SalaryRaiseRequest.class);
 
         return salaryRepository.findAllByEmployeeId(employeeId, pageRequest).map(MappingUtility::salaryRaiseRequestToResponse);
+    }
+
+    @Override
+    public Page<Attendance> getAllAttendanceHistory(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
+        validateService.validatePageRequest(page, pageSize, properties, orders, Attendance.class);
+
+        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Attendance.class);
+
+        return attendanceRepository.findAllByEmployeeId(employeeId, pageRequest);
     }
 
     private void requireExists(Long employeeId) {

@@ -3,6 +3,7 @@ package com.lql.humanresourcedemo.controller;
 
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.service.employee.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,9 +34,18 @@ public class EmployeeController {
     @GetMapping("/salary")
     public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(@RequestParam(required = false, defaultValue = "0") String page,
                                                               @RequestParam(required = false, defaultValue = "10") String size,
-                                                              @RequestParam(required = false) List<String> p,
-                                                              @RequestParam(required = false) List<String> o) {
+                                                              @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                              @RequestParam(required = false, defaultValue = "desc") List<String> o) {
         return employeeService.getAllSalaryRaiseRequest(getCurrentEmployeeId(), page, size, p, o);
     }
 
+
+    @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
+    @GetMapping("/attendance")
+    public Page<Attendance> getAttendanceHistory(@RequestParam(required = false, defaultValue = "0") String page,
+                                                 @RequestParam(required = false, defaultValue = "10") String size,
+                                                 @RequestParam(required = false, defaultValue = "date") List<String> p,
+                                                 @RequestParam(required = false, defaultValue = "desc") List<String> o) {
+        return employeeService.getAllAttendanceHistory(getCurrentEmployeeId(), page, size, p, o);
+    }
 }
