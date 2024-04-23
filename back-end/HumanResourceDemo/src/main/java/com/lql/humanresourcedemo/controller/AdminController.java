@@ -51,7 +51,7 @@ public class AdminController {
         return adminService.handleSalaryRaiseRequest(ContextUtility.getCurrentEmployeeId(), handleSalaryRaiseRequest);
     }
     @GetMapping("/project")
-    public Page<Project> getAllProjects(@RequestParam(required = false, defaultValue = "0") String page,
+    public Page<ProjectResponse> getAllProjects(@RequestParam(required = false, defaultValue = "0") String page,
                                         @RequestParam(required = false, defaultValue = "10") String size,
                                         @RequestParam(required = false, defaultValue = "id") List<String> p,
                                         @RequestParam(required = false, defaultValue = "desc") List<String> o) {

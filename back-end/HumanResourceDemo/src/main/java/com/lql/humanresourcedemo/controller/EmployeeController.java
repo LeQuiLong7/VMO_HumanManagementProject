@@ -5,6 +5,7 @@ import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.service.employee.EmployeeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +25,7 @@ public class EmployeeController {
 
     @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
     @PostMapping("/salary")
-    public SalaryRaiseResponse createSalaryRaiseRequest(@RequestBody CreateSalaryRaiseRequest createSalaryRaiseRequest) {
+    public SalaryRaiseResponse createSalaryRaiseRequest(@RequestBody @Valid CreateSalaryRaiseRequest createSalaryRaiseRequest) {
         return employeeService.createSalaryRaiseRequest(getCurrentEmployeeId(), createSalaryRaiseRequest);
     }
 

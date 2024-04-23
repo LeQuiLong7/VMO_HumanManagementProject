@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -93,7 +94,7 @@ class LeaveControllerTest {
             LeaveRequestt request = new LeaveRequestt(LocalDate.now(), "", LeaveType.UNPAID);
 
             when(leaveService.createLeaveRequest(anyLong(), any(LeaveRequestt.class)))
-                    .thenReturn(new LeaveResponse(1L, 1L, LocalDate.now(), LeaveType.UNPAID, "", LeaveStatus.PROCESSING, null));
+                    .thenReturn(new LeaveResponse(1L, 1L, LocalDate.now(), LocalDateTime.now(), LeaveType.UNPAID, "", LeaveStatus.PROCESSING, null));
 
             String url = LeaveController.class.getAnnotation(RequestMapping.class).value()[0];
 

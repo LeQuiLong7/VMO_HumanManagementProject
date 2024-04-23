@@ -62,9 +62,9 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public Page<Project> getAllProject(String page, String pageSize, List<String> properties, List<String> orders) {
+    public Page<ProjectResponse> getAllProject(String page, String pageSize, List<String> properties, List<String> orders) {
 
-        return getAll(Project.class, ProjectRepository.class, Function.identity(), page, pageSize, properties, orders);
+        return getAll(Project.class, ProjectRepository.class, MappingUtility::projectToProjectResponse, page, pageSize, properties, orders);
     }
 
     private  <T, R extends PagingAndSortingRepository<T, ?>, V> Page<V> getAll(Class<T> clazz, Class<R> repoClass, Function<T, V> mappingFunction, String page, String pageSize, List<String> properties, List<String> orders) {

@@ -106,7 +106,7 @@ class AdminServiceTest {
 
     @Test
     void createNewProject() {
-        CreateNewProjectRequest request = new CreateNewProjectRequest("p1", "", LocalDate.now(), LocalDate.now(), 1L);
+        CreateNewProjectRequest request = new CreateNewProjectRequest("p1", "", LocalDate.now(), LocalDate.now());
 
         when(clientRepository.getReferenceById(anyLong())).thenReturn(new Client());
         when(projectRepository.save(ArgumentMatchers.any())).thenAnswer(invocation -> invocation.getArgument(0));

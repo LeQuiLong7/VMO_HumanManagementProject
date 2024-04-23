@@ -3,6 +3,7 @@ package com.lql.humanresourcedemo.controller;
 import com.lql.humanresourcedemo.dto.request.employee.LeaveRequestt;
 import com.lql.humanresourcedemo.dto.response.LeaveResponse;
 import com.lql.humanresourcedemo.service.leave.LeaveService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,7 +31,7 @@ public class LeaveController {
 
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping
-    public LeaveResponse createLeaveRequest(@RequestBody LeaveRequestt leaveRequestt) {
+    public LeaveResponse createLeaveRequest(@RequestBody @Valid LeaveRequestt leaveRequestt) {
         return leaveService.createLeaveRequest(getCurrentEmployeeId(), leaveRequestt);
     }
 

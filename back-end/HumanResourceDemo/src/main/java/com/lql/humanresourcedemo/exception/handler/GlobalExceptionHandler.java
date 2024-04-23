@@ -1,6 +1,7 @@
 package com.lql.humanresourcedemo.exception.handler;
 
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.lql.humanresourcedemo.exception.model.aws.AWSException;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
@@ -18,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -121,6 +123,31 @@ public class GlobalExceptionHandler {
         return createResponseDetail(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> httpMessageNotReadableExceptionHandler(HttpMessageNotReadableException ex, HttpServletRequest request) {
+
+        Object value = ((InvalidFormatException) ex.getCause()).getValue();
+        Object fieldName = ((InvalidFormatException) ex.getCause()).getPath().get(0).getFieldName();
+
+        log.warn(buildLogMessage(" ", ex.getMessage(), request));
+        return createResponseDetail(String.format("%s is not a valid value for %s", value, convertCamelCaseToNormalWords(((String) fieldName))), HttpStatus.BAD_REQUEST);
+    }
+
+    public static String convertCamelCaseToNormalWords(String camelCase) {
+        StringBuilder normalWords = new StringBuilder();
+
+        for (int i = 0; i < camelCase.length(); i++) {
+            char currentChar = camelCase.charAt(i);
+
+            if (Character.isUpperCase(currentChar) && i > 0) {
+                normalWords.append(" " + Character.toLowerCase(currentChar));
+            }else {
+                normalWords.append(currentChar);
+            }
+        }
+
+        return normalWords.toString();
+    }
 
 
 
