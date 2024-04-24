@@ -70,6 +70,8 @@ public class MappingUtility {
         return new SalaryRaiseResponse(
                 request.getId(),
                 request.getEmployee().getId(),
+                request.getEmployee().getLastName() + ' ' + request.getEmployee().getFirstName(),
+                request.getEmployee().getAvatarUrl(),
                 request.getExpectedSalary(),
                 request.getCurrentSalary(),
                 request.getDescription(),
@@ -83,6 +85,8 @@ public class MappingUtility {
     public static LeaveResponse leaveRequestToResponse(LeaveRequest request) {
         return new LeaveResponse(request.getId(),
                 request.getEmployee().getId(),
+                request.getEmployee().getLastName() + " " + request.getEmployee().getFirstName(),
+                request.getEmployee().getAvatarUrl(),
                 request.getDate(),
                 request.getCreatedAt(),
                 request.getType(),

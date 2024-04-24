@@ -1,7 +1,6 @@
 package com.lql.humanresourcedemo.service.admin;
 
 
-import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.dto.request.admin.*;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.ProjectResponse;
@@ -18,6 +17,7 @@ import com.lql.humanresourcedemo.model.project.EmployeeProject;
 import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
+import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.repository.*;
 import com.lql.humanresourcedemo.service.mail.MailService;
 import com.lql.humanresourcedemo.service.validate.ValidateService;
@@ -65,6 +65,17 @@ public class AdminServiceImpl implements AdminService {
     public Page<ProjectResponse> getAllProject(String page, String pageSize, List<String> properties, List<String> orders) {
 
         return getAll(Project.class, ProjectRepository.class, MappingUtility::projectToProjectResponse, page, pageSize, properties, orders);
+    }
+
+    @Override
+    public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(String page, String pageSize, List<String> properties, List<String> orders) {
+
+        return getAll(SalaryRaiseRequest.class, SalaryRaiseRequestRepository.class, MappingUtility::salaryRaiseRequestToResponse, page, pageSize, properties, orders);
+    }
+    @Override
+    public Page<Tech> getAllTech(String page, String pageSize, List<String> properties, List<String> orders) {
+
+        return getAll(Tech.class, TechRepository.class, Function.identity(), page, pageSize, properties, orders);
     }
 
     private  <T, R extends PagingAndSortingRepository<T, ?>, V> Page<V> getAll(Class<T> clazz, Class<R> repoClass, Function<T, V> mappingFunction, String page, String pageSize, List<String> properties, List<String> orders) {
@@ -138,10 +149,9 @@ public class AdminServiceImpl implements AdminService {
 
         employeeRepository.updateSalaryById(raiseRequest.getEmployee().getId(), newSalary);
 
-        OnlyPersonalEmailAndFirstName personalEmailAndFirstName = employeeRepository.findById(raiseRequest.getEmployee().getId(), OnlyPersonalEmailAndFirstName.class).get();
-        mailService.sendEmail(personalEmailAndFirstName.personalEmail(),
+        mailService.sendEmail(raiseRequest.getEmployee().getPersonalEmail(),
                 "[COMPANY] - YOUR SALARY RAISE REQUEST HAS BEEN PROCESSED",
-                buildSalaryProcessedMail(personalEmailAndFirstName.firstName(), raiseRequest));
+                buildSalaryProcessedMail(raiseRequest.getEmployee().getFirstName(), raiseRequest));
 
         return salaryRaiseRequestToResponse(raiseRequest);
     }

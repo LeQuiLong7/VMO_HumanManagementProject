@@ -7,6 +7,7 @@ import com.lql.humanresourcedemo.dto.response.ProjectResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.model.project.Project;
+import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.service.admin.AdminService;
 import com.lql.humanresourcedemo.utility.ContextUtility;
 import jakarta.validation.Valid;
@@ -35,6 +36,13 @@ public class AdminController {
                                                    @RequestParam(required = false, defaultValue = "asc") List<String> o) {
         return adminService.getAllEmployee(page, size, p, o);
     }
+    @GetMapping("/techStack")
+    public Page<Tech> getAllTechStack(@RequestParam(required = false, defaultValue = "0") String page,
+                                      @RequestParam(required = false, defaultValue = "10") String size,
+                                      @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                      @RequestParam(required = false, defaultValue = "asc") List<String> o) {
+        return adminService.getAllTech(page, size, p, o);
+    }
 
     @PostMapping
     public GetProfileResponse createNewEmployee(@RequestBody @Valid CreateNewEmployeeRequest createNewEmployeeRequest) {
@@ -46,10 +54,19 @@ public class AdminController {
         return adminService.updateEmployeeTechStack(request);
     }
 
+
+    @GetMapping("/salary")
+    public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(@RequestParam(required = false, defaultValue = "0") String page,
+                                                   @RequestParam(required = false, defaultValue = "10") String size,
+                                                   @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                   @RequestParam(required = false, defaultValue = "asc") List<String> o) {
+        return adminService.getAllSalaryRaiseRequest(page, size, p, o);
+    }
     @PutMapping("/salary")
     public SalaryRaiseResponse handleSalaryRaise(@RequestBody HandleSalaryRaiseRequest handleSalaryRaiseRequest) {
         return adminService.handleSalaryRaiseRequest(ContextUtility.getCurrentEmployeeId(), handleSalaryRaiseRequest);
     }
+
     @GetMapping("/project")
     public Page<ProjectResponse> getAllProjects(@RequestParam(required = false, defaultValue = "0") String page,
                                         @RequestParam(required = false, defaultValue = "10") String size,

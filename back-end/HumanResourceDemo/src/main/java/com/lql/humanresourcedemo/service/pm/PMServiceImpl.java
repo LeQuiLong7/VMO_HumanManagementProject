@@ -85,10 +85,15 @@ public class PMServiceImpl implements PMService {
         LeaveRequest l = leaveRepository.findById(request.requestId())
                 .orElseThrow(() -> new LeaveRequestException("Leave request %s can not be found".formatted(request.requestId())));
 
+        if(l.getStatus() != LeaveStatus.PROCESSING) {
+            throw new LeaveRequestException("Cannot change already handle request");
+
+        }
         if(!l.getEmployee().getManagedBy().getId().equals(pmId)) {
             throw new LeaveRequestException("You cannot handle leave request %s: employee is not in your manage".formatted(l.getId()));
 
         }
+
         l.setStatus(request.status());
         l.setApprovedBy(employeeRepository.getReferenceById(pmId));
         leaveRepository.save(l);
@@ -126,9 +131,10 @@ public class PMServiceImpl implements PMService {
     public Page<LeaveResponse> getAllLeaveRequest(Long pmId, String page, String pageSize, List<String> properties, List<String> orders) {
         validateService.validatePageRequest(page, pageSize, properties, orders, LeaveRequest.class);
 
-        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Employee.class);
+        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, LeaveRequest.class);
 
-        return leaveRepository.findAllByPMId(pmId, pageRequest).map(MappingUtility::leaveRequestToResponse);
+
+        return leaveRepository.findAllByEmployeeManagedById(pmId, pageRequest).map(MappingUtility::leaveRequestToResponse);
     }
 
 }

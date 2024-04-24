@@ -6,6 +6,7 @@ import com.lql.humanresourcedemo.dto.response.ProjectResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.model.project.Project;
+import com.lql.humanresourcedemo.model.tech.Tech;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,4 +26,8 @@ public interface AdminService {
     ProjectResponse updateProject(UpdateProjectStatusRequest request);
 
     AssignEmployeeToProjectRequest assignEmployeeToProject(AssignEmployeeToProjectRequest request);
+
+    Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(String page, String size, List<String> properties, List<String> orders);
+
+    Page<Tech> getAllTech(String page, String size, List<String> properties, List<String> orders);
 }

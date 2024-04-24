@@ -1,5 +1,6 @@
 package com.lql.humanresourcedemo.model.tech;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,6 +19,8 @@ public class Tech {
     private Long id;
     private String name;
 
+
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "techGroupId")
     private TechGroup techGroup;

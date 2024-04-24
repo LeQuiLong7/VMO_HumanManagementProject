@@ -1,7 +1,6 @@
 package com.lql.humanresourcedemo.repository;
 
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
-import com.lql.humanresourcedemo.model.employee.Employee;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +14,6 @@ public interface LeaveRepository extends JpaRepository<LeaveRequest, Long> {
     LeaveRequest findByEmployeeIdAndDate(Long employeeId, LocalDate date);
     Page<LeaveRequest> findAllByEmployeeId(Long employeeId, Pageable pageable);
 
-    @Query(value = "select l from LeaveRequest l where l.employee.managedBy.id = :pmId")
-    Page<LeaveRequest> findAllByPMId(Long pmId, Pageable pageable);
+//    @Query(value = "select l from LeaveRequest l join Employee  e on l.employee.id = e.id where e.managedBy.id = :pmId")
+    Page<LeaveRequest> findAllByEmployeeManagedById(Long pmId, Pageable pageable);
 }
