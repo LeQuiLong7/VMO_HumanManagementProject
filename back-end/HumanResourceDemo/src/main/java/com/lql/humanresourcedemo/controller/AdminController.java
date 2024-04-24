@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
+
 @RestController
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
@@ -36,6 +38,7 @@ public class AdminController {
                                                    @RequestParam(required = false, defaultValue = "asc") List<String> o) {
         return adminService.getAllEmployee(page, size, p, o);
     }
+
     @GetMapping("/techStack")
     public Page<Tech> getAllTechStack(@RequestParam(required = false, defaultValue = "0") String page,
                                       @RequestParam(required = false, defaultValue = "10") String size,
@@ -43,6 +46,12 @@ public class AdminController {
                                       @RequestParam(required = false, defaultValue = "asc") List<String> o) {
         return adminService.getAllTech(page, size, p, o);
     }
+
+    @GetMapping("/techStack/{empId}")
+    public TechStackResponse getTechStack(@PathVariable Long empId) {
+        return adminService.getTechStackByEmployeeId(empId);
+    }
+
 
     @PostMapping
     public GetProfileResponse createNewEmployee(@RequestBody @Valid CreateNewEmployeeRequest createNewEmployeeRequest) {
@@ -57,11 +66,12 @@ public class AdminController {
 
     @GetMapping("/salary")
     public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(@RequestParam(required = false, defaultValue = "0") String page,
-                                                   @RequestParam(required = false, defaultValue = "10") String size,
-                                                   @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                                   @RequestParam(required = false, defaultValue = "asc") List<String> o) {
+                                                              @RequestParam(required = false, defaultValue = "10") String size,
+                                                              @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                              @RequestParam(required = false, defaultValue = "asc") List<String> o) {
         return adminService.getAllSalaryRaiseRequest(page, size, p, o);
     }
+
     @PutMapping("/salary")
     public SalaryRaiseResponse handleSalaryRaise(@RequestBody HandleSalaryRaiseRequest handleSalaryRaiseRequest) {
         return adminService.handleSalaryRaiseRequest(ContextUtility.getCurrentEmployeeId(), handleSalaryRaiseRequest);
@@ -69,16 +79,26 @@ public class AdminController {
 
     @GetMapping("/project")
     public Page<ProjectResponse> getAllProjects(@RequestParam(required = false, defaultValue = "0") String page,
-                                        @RequestParam(required = false, defaultValue = "10") String size,
-                                        @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                        @RequestParam(required = false, defaultValue = "desc") List<String> o) {
+                                                @RequestParam(required = false, defaultValue = "10") String size,
+                                                @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                @RequestParam(required = false, defaultValue = "desc") List<String> o) {
         return adminService.getAllProject(page, size, p, o);
+    }
+
+    @GetMapping("/project/{projectId}/employees")
+    public Page<GetProfileResponse> getAllEmployeesInsideProjects(@RequestParam(required = false, defaultValue = "0") String page,
+                                                               @RequestParam(required = false, defaultValue = "10") String size,
+                                                               @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                               @RequestParam(required = false, defaultValue = "desc") List<String> o,
+                                                               @PathVariable Long projectId) {
+        return adminService.getAllEmployeeInsideProject(projectId, page, size, p, o);
     }
 
     @PostMapping("/project")
     public ProjectResponse createNewProject(@RequestBody @Valid CreateNewProjectRequest createNewProjectRequest) {
         return adminService.createNewProject(createNewProjectRequest);
     }
+
     @PutMapping("/project")
     public ProjectResponse updateProjectState(@RequestBody UpdateProjectStatusRequest updateProjectStatusRequest) {
         return adminService.updateProject(updateProjectStatusRequest);

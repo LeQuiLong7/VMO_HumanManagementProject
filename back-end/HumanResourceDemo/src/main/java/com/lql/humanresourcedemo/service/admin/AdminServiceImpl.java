@@ -78,6 +78,32 @@ public class AdminServiceImpl implements AdminService {
         return getAll(Tech.class, TechRepository.class, Function.identity(), page, pageSize, properties, orders);
     }
 
+
+    @Override
+    public TechStackResponse getTechStackByEmployeeId(Long empId) {
+        if (!employeeRepository.existsById(empId)) {
+            throw new EmployeeException(empId);
+        }
+        return new TechStackResponse(
+                empId,
+                employeeTechRepository.findTechInfoByEmployeeId(empId)
+                        .stream()
+                        .map(MappingUtility::employeeTechDTOtoTechInfo)
+                        .toList()
+        );
+    }
+
+    @Override
+    public Page<GetProfileResponse> getAllEmployeeInsideProject(Long projectId, String page, String size, List<String> p, List<String> o) {
+        validateService.validatePageRequest(page, size, p, o, Employee.class);
+
+        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(size), p, o, Employee.class);
+
+
+        return employeeProjectRepository.findAllByIdProjectId(projectId, pageRequest).map(employeeProject -> employeeProject.getId().getEmployee()).map(MappingUtility::employeeToProfileResponse);
+//        return null;
+    }
+
     private  <T, R extends PagingAndSortingRepository<T, ?>, V> Page<V> getAll(Class<T> clazz, Class<R> repoClass, Function<T, V> mappingFunction, String page, String pageSize, List<String> properties, List<String> orders) {
         validateService.validatePageRequest(page, pageSize, properties, orders, clazz);
 

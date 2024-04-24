@@ -30,4 +30,8 @@ public interface AdminService {
     Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(String page, String size, List<String> properties, List<String> orders);
 
     Page<Tech> getAllTech(String page, String size, List<String> properties, List<String> orders);
+
+    TechStackResponse getTechStackByEmployeeId(Long empId);
+
+    Page<GetProfileResponse> getAllEmployeeInsideProject(Long projectId, String page, String size, List<String> p, List<String> o);
 }
