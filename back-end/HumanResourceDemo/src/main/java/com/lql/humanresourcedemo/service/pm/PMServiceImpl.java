@@ -53,6 +53,7 @@ public class PMServiceImpl implements PMService {
 
         request.attendanceDetails()
                         .forEach(detail -> {
+
                             if(!employeeRepository.existsById(detail.employeeId())) {
                                 throw new EmployeeException(detail.employeeId());
                             }

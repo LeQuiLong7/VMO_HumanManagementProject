@@ -133,14 +133,14 @@ public class GlobalExceptionHandler {
         return createResponseDetail(String.format("%s is not a valid value for %s", value, convertCamelCaseToNormalWords(((String) fieldName))), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> unhandledException(Exception ex, HttpServletRequest request) {
-
-        ex.printStackTrace();
-        log.warn(buildLogMessage("unhandled ", ex.getMessage(), request));
-        return createResponseDetail(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<Object> unhandledException(Exception ex, HttpServletRequest request) {
+//
+//        ex.printStackTrace();
+//        log.warn(buildLogMessage("unhandled ", ex.getMessage(), request));
+//        return createResponseDetail(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
+//
 
     public static String convertCamelCaseToNormalWords(String camelCase) {
         StringBuilder normalWords = new StringBuilder();

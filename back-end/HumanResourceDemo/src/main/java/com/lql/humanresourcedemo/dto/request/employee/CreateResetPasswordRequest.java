@@ -1,4 +1,7 @@
 package com.lql.humanresourcedemo.dto.request.employee;
 
-public record CreateResetPasswordRequest(String email) {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record CreateResetPasswordRequest(@NotNull @NotBlank String email) {
 }

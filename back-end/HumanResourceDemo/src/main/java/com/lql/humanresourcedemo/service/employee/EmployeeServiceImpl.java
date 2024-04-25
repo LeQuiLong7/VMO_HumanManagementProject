@@ -13,6 +13,7 @@ import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
 import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
+import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
@@ -133,7 +134,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         OnlySalary currentSalary = employeeRepository.findById(employeeId, OnlySalary.class)
                 .orElseThrow(() -> new EmployeeException(employeeId));
-
+        if(request.expectedSalary() <= currentSalary.currentSalary()) {
+            throw new SalaryRaiseException("Expected salary is lower than current salary");
+        }
         SalaryRaiseRequest salaryRaiseRequest = SalaryRaiseRequest.builder()
                 .employee(employeeRepository.getReferenceById(employeeId))
                 .currentSalary(currentSalary.currentSalary())
