@@ -6,6 +6,7 @@ import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.ProjectResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
+import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.newaccount.NewAccountException;
@@ -59,6 +60,16 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public Page<GetProfileResponse> getAllEmployee(String page, String pageSize, List<String> properties, List<String> orders) {
         return getAll(Employee.class, EmployeeRepository.class, MappingUtility::employeeToProfileResponse, page, pageSize, properties, orders);
+    }
+
+    @Override
+    public Page<GetProfileResponse> getAllPM(String page, String pageSize, List<String> properties, List<String> orders) {
+        validateService.validatePageRequest(page, pageSize, properties, orders, Employee.class);
+
+        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Employee.class);
+
+
+        return employeeRepository.findAllByRole(Role.PM, pageRequest).map(MappingUtility::employeeToProfileResponse);
     }
 
     @Override

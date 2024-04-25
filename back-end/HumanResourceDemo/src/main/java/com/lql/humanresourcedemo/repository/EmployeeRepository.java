@@ -1,5 +1,6 @@
 package com.lql.humanresourcedemo.repository;
 
+import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Optional<Employee> findByEmail(String email);
 
     Page<Employee> findAllIdByManagedById(Long managedBy, Pageable pageable);
+    Page<Employee> findAllByRole(Role role, Pageable pageable);
     @Query("select e.id from Employee e where e.managedBy.id = :managedBy")
     List<Long> findAllIdByManagedById(Long managedBy);
 

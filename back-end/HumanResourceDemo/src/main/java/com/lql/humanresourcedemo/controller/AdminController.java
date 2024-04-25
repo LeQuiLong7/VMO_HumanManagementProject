@@ -39,6 +39,13 @@ public class AdminController {
         return adminService.getAllEmployee(page, size, p, o);
     }
 
+    @GetMapping("/pm")
+    public Page<GetProfileResponse> getAllPM(@RequestParam(required = false, defaultValue = "0") String page,
+                                                   @RequestParam(required = false, defaultValue = "10") String size,
+                                                   @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                   @RequestParam(required = false, defaultValue = "asc") List<String> o) {
+        return adminService.getAllPM(page, size, p, o);
+    }
     @GetMapping("/techStack")
     public Page<Tech> getAllTechStack(@RequestParam(required = false, defaultValue = "0") String page,
                                       @RequestParam(required = false, defaultValue = "10") String size,
@@ -53,7 +60,7 @@ public class AdminController {
     }
 
 
-    @PostMapping
+    @PostMapping("/employees")
     public GetProfileResponse createNewEmployee(@RequestBody @Valid CreateNewEmployeeRequest createNewEmployeeRequest) {
         return adminService.createNewEmployee(createNewEmployeeRequest);
     }

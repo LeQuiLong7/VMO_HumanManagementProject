@@ -7,11 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface LeaveRepository extends JpaRepository<LeaveRequest, Long> {
 
     boolean existsByEmployeeIdAndDate(Long employeeId, LocalDate date);
-    LeaveRequest findByEmployeeIdAndDate(Long employeeId, LocalDate date);
+    Optional<LeaveRequest> findByEmployeeIdAndDate(Long employeeId, LocalDate date);
     Page<LeaveRequest> findAllByEmployeeId(Long employeeId, Pageable pageable);
 
 //    @Query(value = "select l from LeaveRequest l join Employee  e on l.employee.id = e.id where e.managedBy.id = :pmId")

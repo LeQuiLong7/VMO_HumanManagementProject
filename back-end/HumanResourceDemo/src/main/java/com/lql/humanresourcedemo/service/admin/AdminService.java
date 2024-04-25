@@ -16,6 +16,7 @@ import java.util.List;
 public interface AdminService {
 
     Page<GetProfileResponse> getAllEmployee(String page, String pageSize, List<String> properties, List<String> orders);
+    Page<GetProfileResponse> getAllPM(String page, String pageSize, List<String> properties, List<String> orders);
     Page<ProjectResponse> getAllProject(String page, String pageSize, List<String> properties, List<String> orders);
     GetProfileResponse createNewEmployee(CreateNewEmployeeRequest request);
     SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest);

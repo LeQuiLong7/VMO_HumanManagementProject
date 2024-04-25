@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_ARRIVAL_TIME;
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_LEAVE_TIME;
@@ -125,8 +126,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     private LeaveViolationCode of(Attendance attendance) {
         if(attendance.getTimeIn() == null && attendance.getTimeOut() == null){
-            LeaveRequest leaveRequest = leaveRepository.findByEmployeeIdAndDate(attendance.getEmployee().getId(), attendance.getDate());
-            if(leaveRequest == null || !leaveRequest.getStatus().equals(LeaveStatus.ACCEPTED)) {
+            Optional<LeaveRequest> leaveRequest = leaveRepository.findByEmployeeIdAndDate(attendance.getEmployee().getId(), attendance.getDate());
+
+            if(leaveRequest.isEmpty()|| !leaveRequest.get().getStatus().equals(LeaveStatus.ACCEPTED)) {
                 return ABSENCE;
             }
             return ON_TIME;

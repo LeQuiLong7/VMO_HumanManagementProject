@@ -20,7 +20,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 //import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static com.lql.humanresourcedemo.utility.HelperUtility.buildPageRequest;
 import static com.lql.humanresourcedemo.utility.MappingUtility.leaveRequestToResponse;
@@ -65,5 +67,11 @@ public class LeaveServiceImpl implements LeaveService{
 
         Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, LeaveRequest.class);
         return leaveRepository.findAllByEmployeeId(employeeId, pageRequest).map(MappingUtility::leaveRequestToResponse);
+    }
+
+    @Override
+    public Optional<LeaveResponse> getLeaveRequestByDateAndEmployeeId(Long employeeId, LocalDate date) {
+        return leaveRepository.findByEmployeeIdAndDate(employeeId,date).map(MappingUtility::leaveRequestToResponse);
+//        return Optional.empty();
     }
 }
