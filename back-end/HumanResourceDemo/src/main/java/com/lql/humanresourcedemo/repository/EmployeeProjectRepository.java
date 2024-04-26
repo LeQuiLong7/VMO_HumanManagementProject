@@ -16,8 +16,12 @@ public interface EmployeeProjectRepository extends JpaRepository<EmployeeProject
     @Query(value = "select e.id.employee.id from EmployeeProject e where e.id.project.id = :projectId")
     List<Long> getAllEmployeesAssignedByProjectId(Long projectId);
 
+
+
+
 //    @Query(value = "select e.id.employee from EmployeeProject e where e.id.project.id = :projectId")
     Page<EmployeeProject> findAllByIdProjectId(Long projectId, Pageable pageable);
+    Page<EmployeeProject> findAllByIdEmployeeId(Long employeeId, Pageable pageable);
 }
 
 

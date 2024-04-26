@@ -3,10 +3,7 @@ package com.lql.humanresourcedemo.service.employee;
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
-import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
-import com.lql.humanresourcedemo.dto.response.TechStackResponse;
+import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,4 +25,6 @@ public interface EmployeeService {
 
     Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders);
     Page<Attendance> getAllAttendanceHistory(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders);
+
+    Page<ProjectDetail> getAllProjects(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders);
 }

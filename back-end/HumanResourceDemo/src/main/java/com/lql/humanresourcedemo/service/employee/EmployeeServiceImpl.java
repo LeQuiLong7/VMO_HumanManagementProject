@@ -5,10 +5,7 @@ import com.lql.humanresourcedemo.dto.model.employee.OnlySalary;
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
-import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
-import com.lql.humanresourcedemo.dto.response.TechStackResponse;
+import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
@@ -16,11 +13,10 @@ import com.lql.humanresourcedemo.exception.model.password.ChangePasswordExceptio
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.employee.Employee;
+import com.lql.humanresourcedemo.model.project.EmployeeProject;
+import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
-import com.lql.humanresourcedemo.repository.AttendanceRepository;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.EmployeeTechRepository;
-import com.lql.humanresourcedemo.repository.SalaryRaiseRequestRepository;
+import com.lql.humanresourcedemo.repository.*;
 import com.lql.humanresourcedemo.service.aws.AWSService;
 import com.lql.humanresourcedemo.service.aws.AWSServiceImpl;
 import com.lql.humanresourcedemo.service.validate.ValidateService;
@@ -48,6 +44,7 @@ import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeTechRepository employeeTechRepository;
+    private final EmployeeProjectRepository employeeProjectRepository;
     private final AttendanceRepository attendanceRepository;
     private final SalaryRaiseRequestRepository salaryRepository;
     private final PasswordEncoder passwordEncoder;
@@ -134,7 +131,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         OnlySalary currentSalary = employeeRepository.findById(employeeId, OnlySalary.class)
                 .orElseThrow(() -> new EmployeeException(employeeId));
-        if(request.expectedSalary() <= currentSalary.currentSalary()) {
+        if (request.expectedSalary() <= currentSalary.currentSalary()) {
             throw new SalaryRaiseException("Expected salary is lower than current salary");
         }
         SalaryRaiseRequest salaryRaiseRequest = SalaryRaiseRequest.builder()
@@ -164,6 +161,28 @@ public class EmployeeServiceImpl implements EmployeeService {
         Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Attendance.class);
 
         return attendanceRepository.findAllByEmployeeId(employeeId, pageRequest);
+    }
+
+    @Override
+    public Page<ProjectDetail> getAllProjects(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
+        requireExists(employeeId);
+        validateService.validatePageRequest(page, pageSize, properties, orders, Project.class);
+
+        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Project.class);
+
+        return employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageRequest)
+                .map(employeeProject ->
+                        new ProjectDetail(employeeProject.getId().getProject(),
+                                employeeProjectRepository.findAllByIdProjectId(employeeProject.getId().getProject().getId(), Pageable.unpaged()).map(
+                                        p -> new ProjectDetail.AssignHistory(p.getId().getEmployee().getId(), p.getId().getEmployee().getLastName() + ' ' + p.getId().getEmployee().getLastName(),
+
+                                                p.getId().getEmployee().getAvatarUrl(),
+                                                p.getId().getEmployee().getRole(),
+                                                p.getCreatedAt(), p.getCreatedBy()
+                                        )
+                                ).stream().toList()
+                        ));
+//        return null;
     }
 
     private void requireExists(Long employeeId) {

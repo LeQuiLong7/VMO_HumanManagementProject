@@ -20,7 +20,7 @@ public class ResetPasswordController {
         return passwordService.createPasswordResetRequest(request.email());
     }
     @PutMapping
-    public ChangePasswordResponse performResetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+    public ChangePasswordResponse performResetPassword(@RequestBody @Valid  ResetPasswordRequest request) {
         return passwordService.resetPassword(request);
     }
 }
