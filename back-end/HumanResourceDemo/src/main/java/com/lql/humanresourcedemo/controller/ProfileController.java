@@ -23,7 +23,6 @@ public class ProfileController {
 
     private final EmployeeService employeeService;
 
-
     @GetMapping
     public GetProfileResponse getProfile() {
         return employeeService.getProfile(getCurrentEmployeeId());
@@ -46,7 +45,6 @@ public class ProfileController {
 
     @PutMapping("/avatar")
     public String uploadAvatar(MultipartFile file) {
-        log.info("uploading avatar for account id " + getCurrentEmployeeId());
         return employeeService.uploadAvatar(getCurrentEmployeeId(), file);
     }
 }

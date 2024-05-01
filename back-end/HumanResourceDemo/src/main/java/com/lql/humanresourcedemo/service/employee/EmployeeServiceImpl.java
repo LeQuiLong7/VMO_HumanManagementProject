@@ -169,20 +169,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         validateService.validatePageRequest(page, pageSize, properties, orders, Project.class);
 
         Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Project.class);
-
         return employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageRequest)
                 .map(employeeProject ->
                         new ProjectDetail(employeeProject.getId().getProject(),
-                                employeeProjectRepository.findAllByIdProjectId(employeeProject.getId().getProject().getId(), Pageable.unpaged()).map(
-                                        p -> new ProjectDetail.AssignHistory(p.getId().getEmployee().getId(), p.getId().getEmployee().getLastName() + ' ' + p.getId().getEmployee().getLastName(),
-
-                                                p.getId().getEmployee().getAvatarUrl(),
-                                                p.getId().getEmployee().getRole(),
-                                                p.getCreatedAt(), p.getCreatedBy()
-                                        )
-                                ).stream().toList()
+                                employeeProjectRepository.getAssignHistoryByProjectId(employeeProject.getId().getProject().getId())
                         ));
-//        return null;
     }
 
     private void requireExists(Long employeeId) {

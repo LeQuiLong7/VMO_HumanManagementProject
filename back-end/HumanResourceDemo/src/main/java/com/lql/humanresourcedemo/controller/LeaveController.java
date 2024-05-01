@@ -22,21 +22,22 @@ public class LeaveController {
     private final LeaveService leaveService;
 
 
-    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
     @GetMapping
-    public Page<LeaveResponse> getAllLeaveRequest(@RequestParam(required = false, defaultValue = "0") String page,
-                                                  @RequestParam(required = false, defaultValue = "10") String size,
-                                                  @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                                  @RequestParam(required = false, defaultValue = "desc") List<String> o) {
+    public Page<LeaveResponse> getAllLeaveRequestByEmployeeId(@RequestParam(required = false, defaultValue = "0") String page,
+                                                              @RequestParam(required = false, defaultValue = "10") String size,
+                                                              @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                              @RequestParam(required = false, defaultValue = "desc") List<String> o) {
         return leaveService.getAllLeaveRequest(getCurrentEmployeeId(), page, size, p, o);
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
     @GetMapping("/{date}")
     public Optional<LeaveResponse> getLeaveRequestByDateAndEmployeeId(@PathVariable LocalDate date) {
         return leaveService.getLeaveRequestByDateAndEmployeeId(getCurrentEmployeeId(), date);
     }
-    @PreAuthorize("hasRole('EMPLOYEE')")
+
+    @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
     @PostMapping
     public LeaveResponse createLeaveRequest(@RequestBody @Valid LeaveRequestt leaveRequestt) {
         return leaveService.createLeaveRequest(getCurrentEmployeeId(), leaveRequestt);

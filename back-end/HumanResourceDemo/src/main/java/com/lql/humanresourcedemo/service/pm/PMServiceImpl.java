@@ -49,6 +49,7 @@ public class PMServiceImpl implements PMService {
     public List<Attendance> checkAttendance(Long pmId, CheckAttendanceRequest request) {
 
         List<Long> empIdsInManage = employeeRepository.findAllIdByManagedById(pmId);
+        empIdsInManage.add(pmId);
         LocalDate now = LocalDate.now();
 
         request.attendanceDetails()

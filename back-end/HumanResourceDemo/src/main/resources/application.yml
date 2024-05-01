@@ -38,3 +38,7 @@ spring:
 mail:
   username: ${MAIL_USERNAME}
   password: ${MAIL_PASSWORD}
+logging:
+  level:
+    org.springframework.data: DEBUG
+    org.hibernate: DEBUG

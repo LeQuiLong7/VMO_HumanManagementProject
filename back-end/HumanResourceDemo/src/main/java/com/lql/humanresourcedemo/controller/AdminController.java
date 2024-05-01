@@ -2,10 +2,7 @@ package com.lql.humanresourcedemo.controller;
 
 
 import com.lql.humanresourcedemo.dto.request.admin.*;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.ProjectResponse;
-import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
-import com.lql.humanresourcedemo.dto.response.TechStackResponse;
+import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.service.admin.AdminService;
@@ -39,13 +36,28 @@ public class AdminController {
         return adminService.getAllEmployee(page, size, p, o);
     }
 
+    @PostMapping("/employees")
+    public GetProfileResponse createNewEmployee(@RequestBody @Valid CreateNewEmployeeRequest createNewEmployeeRequest) {
+        return adminService.createNewEmployee(createNewEmployeeRequest);
+    }
+
+    @GetMapping("/employee/{employeeId}/projects")
+    public Page<ProjectDetail> getAllProjectsByEmployeeId(@RequestParam(required = false, defaultValue = "0") String page,
+                                                          @RequestParam(required = false, defaultValue = "10") String size,
+                                                          @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                          @RequestParam(required = false, defaultValue = "asc") List<String> o,
+                                                          @PathVariable Long employeeId) {
+        return adminService.getAllProjectsByEmployeeId(employeeId, page, size, p, o);
+    }
+
     @GetMapping("/pm")
     public Page<GetProfileResponse> getAllPM(@RequestParam(required = false, defaultValue = "0") String page,
-                                                   @RequestParam(required = false, defaultValue = "10") String size,
-                                                   @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                                   @RequestParam(required = false, defaultValue = "asc") List<String> o) {
+                                             @RequestParam(required = false, defaultValue = "10") String size,
+                                             @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                             @RequestParam(required = false, defaultValue = "asc") List<String> o) {
         return adminService.getAllPM(page, size, p, o);
     }
+
     @GetMapping("/techStack")
     public Page<Tech> getAllTechStack(@RequestParam(required = false, defaultValue = "0") String page,
                                       @RequestParam(required = false, defaultValue = "10") String size,
@@ -60,10 +72,6 @@ public class AdminController {
     }
 
 
-    @PostMapping("/employees")
-    public GetProfileResponse createNewEmployee(@RequestBody @Valid CreateNewEmployeeRequest createNewEmployeeRequest) {
-        return adminService.createNewEmployee(createNewEmployeeRequest);
-    }
 
     @PutMapping("/techStack")
     public TechStackResponse updateTechStackForEmployee(@RequestBody UpdateEmployeeTechStackRequest request) {
@@ -94,10 +102,10 @@ public class AdminController {
 
     @GetMapping("/project/{projectId}/employees")
     public Page<GetProfileResponse> getAllEmployeesInsideProjects(@RequestParam(required = false, defaultValue = "0") String page,
-                                                               @RequestParam(required = false, defaultValue = "10") String size,
-                                                               @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                                               @RequestParam(required = false, defaultValue = "desc") List<String> o,
-                                                               @PathVariable Long projectId) {
+                                                                  @RequestParam(required = false, defaultValue = "10") String size,
+                                                                  @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                                  @RequestParam(required = false, defaultValue = "desc") List<String> o,
+                                                                  @PathVariable Long projectId) {
         return adminService.getAllEmployeeInsideProject(projectId, page, size, p, o);
     }
 

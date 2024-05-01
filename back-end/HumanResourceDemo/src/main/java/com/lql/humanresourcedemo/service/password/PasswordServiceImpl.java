@@ -38,7 +38,7 @@ public class PasswordServiceImpl implements PasswordService{
     @Transactional
     public ChangePasswordResponse createPasswordResetRequest(String email) {
         Employee e = employeeRepository.findByEmail(email)
-                .orElseThrow(() -> new EmployeeException("Could not find employee " + email));
+                .orElseThrow(() -> new EmployeeException("Email not found"));
 
         String token = UUID.randomUUID().toString();
         LocalDateTime validUntil = LocalDateTime.now().plus(VALID_UNTIL_TIME_AMOUNT, VALID_UNTIL_TEMPORAL_UNIT);

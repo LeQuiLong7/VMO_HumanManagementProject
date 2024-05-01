@@ -15,5 +15,4 @@ public record ProjectDetail(
 
 ) {
 
-    public record AssignHistory(Long employeeId, String employeeName, String avatarUrl, Role role,  LocalDateTime assignAt, Long assignBy){}
 }

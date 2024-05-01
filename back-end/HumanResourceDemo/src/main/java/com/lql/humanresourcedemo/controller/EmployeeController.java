@@ -32,7 +32,6 @@ public class EmployeeController {
     }
 
 
-
     @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
     @GetMapping("/salary")
     public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(@RequestParam(required = false, defaultValue = "0") String page,
@@ -42,23 +41,22 @@ public class EmployeeController {
         return employeeService.getAllSalaryRaiseRequest(getCurrentEmployeeId(), page, size, p, o);
     }
 
-    @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
+    @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM', 'ADMIN'})")
     @GetMapping("/project")
-    public Page<ProjectDetail> getAllProjects(@RequestParam(required = false, defaultValue = "0") String page,
-                                              @RequestParam(required = false, defaultValue = "10") String size,
-                                              @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                              @RequestParam(required = false, defaultValue = "desc") List<String> o) {
+    public Page<ProjectDetail> getAllProjectsByEmployeeId(@RequestParam(required = false, defaultValue = "0") String page,
+                                                          @RequestParam(required = false, defaultValue = "10") String size,
+                                                          @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                          @RequestParam(required = false, defaultValue = "desc") List<String> o) {
         return employeeService.getAllProjects(getCurrentEmployeeId(), page, size, p, o);
     }
 
 
-
     @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
     @GetMapping("/attendance")
-    public Page<Attendance> getAttendanceHistory(@RequestParam(required = false, defaultValue = "0") String page,
-                                                 @RequestParam(required = false, defaultValue = "10") String size,
-                                                 @RequestParam(required = false, defaultValue = "date") List<String> p,
-                                                 @RequestParam(required = false, defaultValue = "desc") List<String> o) {
+    public Page<Attendance> getAttendanceHistoryByEmployeeId(@RequestParam(required = false, defaultValue = "0") String page,
+                                                             @RequestParam(required = false, defaultValue = "10") String size,
+                                                             @RequestParam(required = false, defaultValue = "date") List<String> p,
+                                                             @RequestParam(required = false, defaultValue = "desc") List<String> o) {
         return employeeService.getAllAttendanceHistory(getCurrentEmployeeId(), page, size, p, o);
     }
 }

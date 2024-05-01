@@ -2,10 +2,7 @@ package com.lql.humanresourcedemo.service.admin;
 
 
 import com.lql.humanresourcedemo.dto.request.admin.*;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.ProjectResponse;
-import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
-import com.lql.humanresourcedemo.dto.response.TechStackResponse;
+import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
@@ -113,6 +110,19 @@ public class AdminServiceImpl implements AdminService {
 
         return employeeProjectRepository.findAllByIdProjectId(projectId, pageRequest).map(employeeProject -> employeeProject.getId().getEmployee()).map(MappingUtility::employeeToProfileResponse);
 //        return null;
+    }
+
+    @Override
+    public Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, String page, String size, List<String> properties, List<String> orders) {
+        validateService.validatePageRequest(page, size, properties, orders, Project.class);
+
+//        List<AssignHistory> assignHistoryByProjectId = employeeProjectRepository.getAssignHistoryByProjectId(1L);
+        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(size), properties, orders, Project.class);
+        return employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageRequest)
+                .map(employeeProject ->
+                        new ProjectDetail(employeeProject.getId().getProject(),
+                                employeeProjectRepository.getAssignHistoryByProjectId(employeeProject.getId().getProject().getId())
+                        ));
     }
 
     private  <T, R extends PagingAndSortingRepository<T, ?>, V> Page<V> getAll(Class<T> clazz, Class<R> repoClass, Function<T, V> mappingFunction, String page, String pageSize, List<String> properties, List<String> orders) {
