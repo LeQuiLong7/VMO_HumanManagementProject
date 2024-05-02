@@ -24,7 +24,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     Page<Employee> findAllIdByManagedById(Long managedBy, Pageable pageable);
     Page<Employee> findAllByRole(Role role, Pageable pageable);
-    @Query("select e.id from Employee e where e.managedBy.id = :managedBy")
+    @Query("select e.id from Employee e where e.managedBy.id = :managedBy or e.id = :managedBy ")
     List<Long> findAllIdByManagedById(Long managedBy);
 
     <T> List<T> findByQuitIsFalse(Class<T> clazz);

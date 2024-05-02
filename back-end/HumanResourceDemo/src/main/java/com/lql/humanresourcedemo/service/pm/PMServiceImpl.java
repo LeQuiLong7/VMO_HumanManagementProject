@@ -17,7 +17,7 @@ import com.lql.humanresourcedemo.repository.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.LeaveRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
-import com.lql.humanresourcedemo.service.validate.ValidateService;
+//import com.lql.humanresourcedemo.service.validate.ValidateService;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +29,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.lql.humanresourcedemo.utility.HelperUtility.buildLeaveRequestProcessedMail;
-import static com.lql.humanresourcedemo.utility.HelperUtility.buildPageRequest;
+import static com.lql.humanresourcedemo.utility.HelperUtility.*;
 import static com.lql.humanresourcedemo.utility.MappingUtility.leaveRequestToResponse;
 
 @Service
@@ -41,20 +40,18 @@ public class PMServiceImpl implements PMService {
     private final EmployeeRepository employeeRepository;
     private final LeaveRepository leaveRepository;
     private final MailService mailService;
-    private final ValidateService validateService;
+//    private final ValidateService validateService;
 
 
     @Override
     @Transactional
     public List<Attendance> checkAttendance(Long pmId, CheckAttendanceRequest request) {
-
         List<Long> empIdsInManage = employeeRepository.findAllIdByManagedById(pmId);
-        empIdsInManage.add(pmId);
+//        empIdsInManage.add(pmId);
         LocalDate now = LocalDate.now();
 
         request.attendanceDetails()
                         .forEach(detail -> {
-
                             if(!employeeRepository.existsById(detail.employeeId())) {
                                 throw new EmployeeException(detail.employeeId());
                             }
@@ -123,18 +120,21 @@ public class PMServiceImpl implements PMService {
 
     @Override
     public Page<GetProfileResponse> getAllEmployee(Long pmId, String page, String pageSize, List<String> properties, List<String> orders) {
-        validateService.validatePageRequest(page, pageSize, properties, orders, Employee.class);
+//        validateService.validatePageRequest(page, pageSize, properties, orders, Employee.class);
+//
+//        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Employee.class);
+        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, Employee.class);
 
-        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Employee.class);
 
         return employeeRepository.findAllIdByManagedById(pmId, pageRequest).map(MappingUtility::employeeToProfileResponse);
     }
     @Override
     public Page<LeaveResponse> getAllLeaveRequest(Long pmId, String page, String pageSize, List<String> properties, List<String> orders) {
-        validateService.validatePageRequest(page, pageSize, properties, orders, LeaveRequest.class);
+//        validateService.validatePageRequest(page, pageSize, properties, orders, LeaveRequest.class);
+//
+//        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, LeaveRequest.class);
 
-        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, LeaveRequest.class);
-
+        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, LeaveRequest.class);
 
         return leaveRepository.findAllByEmployeeManagedById(pmId, pageRequest).map(MappingUtility::leaveRequestToResponse);
     }

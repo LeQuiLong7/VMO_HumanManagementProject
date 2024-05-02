@@ -18,7 +18,6 @@ import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.repository.*;
 import com.lql.humanresourcedemo.service.mail.MailService;
-import com.lql.humanresourcedemo.service.validate.ValidateService;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -49,9 +48,9 @@ public class AdminServiceImpl implements AdminService {
     private final EmployeeTechRepository employeeTechRepository;
     private final EmployeeProjectRepository employeeProjectRepository;
     private final TechRepository techRepository;
-    private final ClientRepository clientRepository;
+//    private final ClientRepository clientRepository;
     private final ProjectRepository projectRepository;
-    private final ValidateService validateService;
+//    private final ValidateService validateService;
     private final ApplicationContext applicationContext;
 
     @Override
@@ -61,12 +60,12 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Page<GetProfileResponse> getAllPM(String page, String pageSize, List<String> properties, List<String> orders) {
-        validateService.validatePageRequest(page, pageSize, properties, orders, Employee.class);
+//        validateService.validatePageRequest(page, pageSize, properties, orders, Employee.class);
 
-        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Employee.class);
+//        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Employee.class);
 
 
-        return employeeRepository.findAllByRole(Role.PM, pageRequest).map(MappingUtility::employeeToProfileResponse);
+        return employeeRepository.findAllByRole(Role.PM, validateAndBuildPageRequest(page, pageSize, properties, orders, Employee.class)).map(MappingUtility::employeeToProfileResponse);
     }
 
     @Override
@@ -103,9 +102,10 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Page<GetProfileResponse> getAllEmployeeInsideProject(Long projectId, String page, String size, List<String> p, List<String> o) {
-        validateService.validatePageRequest(page, size, p, o, Employee.class);
+//        validateService.validatePageRequest(page, size, p, o, Employee.class);
 
-        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(size), p, o, Employee.class);
+//        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(size), p, o, Employee.class);
+        Pageable pageRequest = validateAndBuildPageRequest(page, size, p, o, Employee.class);
 
 
         return employeeProjectRepository.findAllByIdProjectId(projectId, pageRequest).map(employeeProject -> employeeProject.getId().getEmployee()).map(MappingUtility::employeeToProfileResponse);
@@ -114,7 +114,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, String page, String size, List<String> properties, List<String> orders) {
-        validateService.validatePageRequest(page, size, properties, orders, Project.class);
+//        validateService.validatePageRequest(page, size, properties, orders, Project.class);
 
 //        List<AssignHistory> assignHistoryByProjectId = employeeProjectRepository.getAssignHistoryByProjectId(1L);
         Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(size), properties, orders, Project.class);
@@ -126,9 +126,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     private  <T, R extends PagingAndSortingRepository<T, ?>, V> Page<V> getAll(Class<T> clazz, Class<R> repoClass, Function<T, V> mappingFunction, String page, String pageSize, List<String> properties, List<String> orders) {
-        validateService.validatePageRequest(page, pageSize, properties, orders, clazz);
+//        validateService.validatePageRequest(page, pageSize, properties, orders, clazz);
 
-        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, clazz);
+//        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, clazz);
+        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, clazz);
+
 
         try {
             Method findAll = repoClass.getMethod("findAll", Pageable.class);

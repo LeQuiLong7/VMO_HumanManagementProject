@@ -27,7 +27,7 @@ public class EmployeeProject extends Auditable {
     @Getter
     @Setter
     public static class EmployeeProjectId implements Serializable {
-        @ManyToOne(fetch = FetchType.LAZY)
+        @ManyToOne(fetch = FetchType.EAGER)
         @JoinColumn(name = "employeeId")
         private Employee employee;
         @ManyToOne(fetch = FetchType.EAGER)

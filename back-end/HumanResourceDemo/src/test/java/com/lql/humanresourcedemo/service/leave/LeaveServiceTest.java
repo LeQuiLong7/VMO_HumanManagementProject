@@ -33,13 +33,11 @@ class LeaveServiceTest {
     private EmployeeRepository employeeRepository;
     @Mock
     private LeaveRepository leaveRepository;
-    @Mock
-    private ValidateService validateService;
     private LeaveService leaveService;
 
     @BeforeEach
     void setUp() {
-        leaveService = new LeaveServiceImpl(employeeRepository, leaveRepository, validateService);
+        leaveService = new LeaveServiceImpl(employeeRepository, leaveRepository);
     }
 
     @Test

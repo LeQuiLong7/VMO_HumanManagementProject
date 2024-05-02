@@ -1,10 +1,12 @@
 package com.lql.humanresourcedemo.service.jwt;
 
 
+import com.lql.humanresourcedemo.constant.JWTConstants;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPasswordAndRole;
 import com.lql.humanresourcedemo.enumeration.Role;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -15,10 +17,17 @@ import java.util.function.Function;
 import static com.lql.humanresourcedemo.constant.JWTConstants.*;
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class JWTServiceImpl implements JwtService {
     private final JwtBuilder jwtBuilder;
     private final JwtParser jwtParser;
+    private final long EXPIRED_DURATION;
+
+    public JWTServiceImpl(JwtBuilder jwtBuilder, JwtParser jwtParser, @Value("${jwt.expiration.duration}") long EXPIRED_DURATION) {
+        this.jwtBuilder = jwtBuilder;
+        this.jwtParser = jwtParser;
+        this.EXPIRED_DURATION = EXPIRED_DURATION;
+    }
 
     @Override
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -38,12 +47,10 @@ public class JWTServiceImpl implements JwtService {
 
     @Override
     public String generateToken( OnlyIdPasswordAndRole e) {
-
         return  jwtBuilder
                 .setClaims(buildClaims(e))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + (1000 * 60
-                        * 1000)))
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRED_DURATION))
                 .compact();
     }
 

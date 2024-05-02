@@ -75,7 +75,7 @@ class LeaveControllerTest {
             ).andExpectAll(
                     status().isBadRequest(),
                     jsonPath("$.error").exists(),
-                    jsonPath("$.error").value(ERROR_MESSAGE),
+                    jsonPath("$.error").value("leaveDate: must be a future date"),
                     jsonPath("$.time_stamp").exists()
             );
         }
@@ -91,10 +91,10 @@ class LeaveControllerTest {
             utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             objectMapper.registerModule(new JavaTimeModule());
 
-            LeaveRequestt request = new LeaveRequestt(LocalDate.now(), "", LeaveType.UNPAID);
+            LeaveRequestt request = new LeaveRequestt(LocalDate.now().plusDays(2), "", LeaveType.UNPAID);
 
             when(leaveService.createLeaveRequest(anyLong(), any(LeaveRequestt.class)))
-                    .thenReturn(new LeaveResponse(1L, 1L, LocalDate.now(), LocalDateTime.now(), LeaveType.UNPAID, "", LeaveStatus.PROCESSING, null));
+                    .thenReturn(new LeaveResponse(1L, 1L, "", "", LocalDate.now(), LocalDateTime.now(), LeaveType.UNPAID, "", LeaveStatus.PROCESSING, null));
 
             String url = LeaveController.class.getAnnotation(RequestMapping.class).value()[0];
 

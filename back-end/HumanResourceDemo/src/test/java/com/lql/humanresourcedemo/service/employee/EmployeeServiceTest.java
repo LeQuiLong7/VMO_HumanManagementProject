@@ -14,10 +14,7 @@ import com.lql.humanresourcedemo.exception.model.file.FileException;
 import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
-import com.lql.humanresourcedemo.repository.AttendanceRepository;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.EmployeeTechRepository;
-import com.lql.humanresourcedemo.repository.SalaryRaiseRequestRepository;
+import com.lql.humanresourcedemo.repository.*;
 import com.lql.humanresourcedemo.service.aws.AWSService;
 import com.lql.humanresourcedemo.service.validate.ValidateService;
 import com.lql.humanresourcedemo.utility.FileUtility;
@@ -49,6 +46,8 @@ class EmployeeServiceTest {
     @Mock
     private  EmployeeTechRepository employeeTechRepository;
     @Mock
+    private EmployeeProjectRepository employeeProjectRepository;
+    @Mock
     private  SalaryRaiseRequestRepository salaryRepository;
     @Mock
     private  PasswordEncoder passwordEncoder;
@@ -64,7 +63,7 @@ class EmployeeServiceTest {
 
     @BeforeEach
     void setUp() {
-        employeeService = new EmployeeServiceImpl(employeeRepository, employeeTechRepository, attendanceRepository, salaryRepository, passwordEncoder, awsService, validateService);
+        employeeService = new EmployeeServiceImpl(employeeRepository, employeeTechRepository, employeeProjectRepository, attendanceRepository, salaryRepository, passwordEncoder, awsService);
     }
 
     @Test
@@ -273,7 +272,4 @@ class EmployeeServiceTest {
     }
 
 
-    @Test
-    void getAllSalaryRaiseRequest() {
-    }
 }

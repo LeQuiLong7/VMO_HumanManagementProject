@@ -48,7 +48,7 @@ class ResetPasswordControllerTest {
     private final String SUCCESS_MESSAGE = "success message";
 
     @Test
-    void createResetPasswordRequest_Fail() throws Exception {
+    void createResetPasswordRequest_ValidationFail() throws Exception {
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(new MyAuthentication(1L, Role.ADMIN));
 
@@ -56,6 +56,31 @@ class ResetPasswordControllerTest {
             utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
 
             String email = "";
+            CreateResetPasswordRequest request = new CreateResetPasswordRequest(email);
+
+            String url = ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0];
+            mockMvc.perform(post(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            ).andExpectAll(
+                    status().isBadRequest(),
+                    jsonPath("$.error").exists(),
+                    jsonPath("$.error").value("email: must not be blank"),
+                    jsonPath("$.time_stamp").exists()
+            );
+        }
+    }
+
+
+    @Test
+    void createResetPasswordRequest_ServiceFail() throws Exception {
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(new MyAuthentication(1L, Role.ADMIN));
+
+        try (MockedStatic<SecurityContextHolder> utilities = Mockito.mockStatic(SecurityContextHolder.class)) {
+            utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+            String email = "longlq@company.com";
             CreateResetPasswordRequest request = new CreateResetPasswordRequest(email);
 
             when(passwordService.createPasswordResetRequest(email))
@@ -78,7 +103,7 @@ class ResetPasswordControllerTest {
     @Test
     void createResetPasswordRequest_Success() throws Exception {
 
-        String email = "";
+        String email = "longlq@company.com";
         CreateResetPasswordRequest request = new CreateResetPasswordRequest(email);
 
         when(passwordService.createPasswordResetRequest(email))
@@ -99,14 +124,14 @@ class ResetPasswordControllerTest {
 
 
     @Test
-    void performResetPassword_Fail() throws Exception {
+    void performResetPassword_ServiceFail() throws Exception {
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(new MyAuthentication(1L, Role.ADMIN));
 
         try (MockedStatic<SecurityContextHolder> utilities = Mockito.mockStatic(SecurityContextHolder.class)) {
             utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
 
-            ResetPasswordRequest request = new ResetPasswordRequest("", "", "");
+            ResetPasswordRequest request = new ResetPasswordRequest("a", "a", "a");
 
             when(passwordService.resetPassword(request))
                     .thenThrow(new ResetPasswordException(ERROR_MESSAGE));
@@ -128,7 +153,7 @@ class ResetPasswordControllerTest {
     void performResetPassword_Success() throws Exception {
 
 
-        ResetPasswordRequest request = new ResetPasswordRequest("", "", "");
+        ResetPasswordRequest request = new ResetPasswordRequest("a", "a", "a");
 
         when(passwordService.resetPassword(request))
                 .thenReturn( new ChangePasswordResponse(SUCCESS_MESSAGE));

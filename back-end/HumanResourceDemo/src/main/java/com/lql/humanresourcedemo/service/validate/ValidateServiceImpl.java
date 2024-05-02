@@ -4,11 +4,15 @@ import com.lql.humanresourcedemo.exception.model.paging.PagingException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.lql.humanresourcedemo.utility.HelperUtility.getAllFields;
 
 @Service
 public class ValidateServiceImpl implements ValidateService {
@@ -27,6 +31,7 @@ public class ValidateServiceImpl implements ValidateService {
         }
     }
 
+
     @Override
     public void validatePageRequest(String pageNumber, String pageSize, List<String> sortProperties, List<String> order, Class<?> clazz) {
         if (!isPositiveIntegerNumber(pageNumber)) {
@@ -36,18 +41,24 @@ public class ValidateServiceImpl implements ValidateService {
 
             throw new PagingException("%s is not a valid page size".formatted(pageSize));
         }
-        order.forEach(o -> {
-            if (!isSortingOrderValid(o)) {
-                throw new PagingException("%s is not a valid sort order, whether asc or desc".formatted(o));
-            }
-        });
+        if (order != null)
+            order.forEach(o -> {
+                if (!isSortingOrderValid(o)) {
+                    throw new PagingException("%s is not a valid sort order, whether asc or desc".formatted(o));
+                }
+            });
 
-        Set<String> classProperties = Arrays.stream(clazz.getDeclaredFields()).map(field -> field.getName().toLowerCase()).collect(Collectors.toSet());
-        sortProperties.forEach(p -> {
-            if (!classProperties.contains(p.toLowerCase())) {
-                throw new PagingException("%s is not a valid sort property".formatted(p));
-            }
-        });
+
+        Set<String> classProperties = getAllFields(clazz)
+                .stream()
+                .map(field -> field.getName().toLowerCase())
+                .collect(Collectors.toSet());
+        if (sortProperties != null)
+            sortProperties.forEach(p -> {
+                if (!classProperties.contains(p.toLowerCase())) {
+                    throw new PagingException("%s is not a valid sort property".formatted(p));
+                }
+            });
 
 
     }

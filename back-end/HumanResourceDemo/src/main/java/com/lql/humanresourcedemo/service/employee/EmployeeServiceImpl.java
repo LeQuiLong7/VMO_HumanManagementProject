@@ -14,12 +14,9 @@ import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseExceptio
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;
-import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.repository.*;
 import com.lql.humanresourcedemo.service.aws.AWSService;
-import com.lql.humanresourcedemo.service.aws.AWSServiceImpl;
-import com.lql.humanresourcedemo.service.validate.ValidateService;
 import com.lql.humanresourcedemo.utility.FileUtility;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
@@ -31,12 +28,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
-import static com.lql.humanresourcedemo.utility.HelperUtility.buildPageRequest;
+import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPageRequest;
 import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 
 @Service
@@ -49,7 +44,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final SalaryRaiseRequestRepository salaryRepository;
     private final PasswordEncoder passwordEncoder;
     private final AWSService awsService;
-    private final ValidateService validateService;
 
     @Value("${spring.cloud.aws.region.static}")
     private String region;
@@ -147,18 +141,19 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
-        validateService.validatePageRequest(page, pageSize, properties, orders, SalaryRaiseRequest.class);
+//        validateService.validatePageRequest(page, pageSize, properties, orders, SalaryRaiseRequest.class);
 
-        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, SalaryRaiseRequest.class);
+        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, SalaryRaiseRequest.class);
 
         return salaryRepository.findAllByEmployeeId(employeeId, pageRequest).map(MappingUtility::salaryRaiseRequestToResponse);
     }
 
     @Override
     public Page<Attendance> getAllAttendanceHistory(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
-        validateService.validatePageRequest(page, pageSize, properties, orders, Attendance.class);
 
-        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Attendance.class);
+        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, Attendance.class);
+
+//        Pageable pageRequest = validateAndBuildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Attendance.class);
 
         return attendanceRepository.findAllByEmployeeId(employeeId, pageRequest);
     }
@@ -166,9 +161,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Page<ProjectDetail> getAllProjects(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
         requireExists(employeeId);
-        validateService.validatePageRequest(page, pageSize, properties, orders, Project.class);
+//        Pageable pageRequest = validateAndBuildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Project.class);
+        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, EmployeeProject.class);
 
-        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Project.class);
         return employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageRequest)
                 .map(employeeProject ->
                         new ProjectDetail(employeeProject.getId().getProject(),

@@ -72,9 +72,9 @@ public class AdminControllerTest {
         LoginResponse loginResponse = objectMapper.readValue(loginResponseString, LoginResponse.class);
 
 
-        CreateNewEmployeeRequest createNewEmployeeRequest = new CreateNewEmployeeRequest("long", "le qui", LocalDate.now().minusYears(2), "", "abc@gmai.com", 100D, Role.EMPLOYEE, 1L, null);
+        CreateNewEmployeeRequest createNewEmployeeRequest = new CreateNewEmployeeRequest("long", "le qui", LocalDate.now().minusYears(2), "0123456789", "abc@gmail.com", 100D, Role.EMPLOYEE, 1L, null);
 
-        String createNewEmployeeResponeString = mockMvc.perform(post("/admin")
+        String createNewEmployeeResponeString = mockMvc.perform(post("/admin/employees")
                         .header("Authorization", loginResponse.type() + " " + loginResponse.token())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createNewEmployeeRequest)))

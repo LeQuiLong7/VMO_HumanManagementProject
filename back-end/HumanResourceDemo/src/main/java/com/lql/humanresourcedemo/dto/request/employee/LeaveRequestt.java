@@ -6,5 +6,11 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
-public record LeaveRequestt(@Future @NotNull LocalDate leaveDate, String reason, @NotNull LeaveType type) {
+public record LeaveRequestt(
+        @Future
+        @NotNull
+        LocalDate leaveDate,
+        String reason,
+        @NotNull LeaveType type
+) {
 }

@@ -3,6 +3,9 @@ package com.lql.humanresourcedemo.utility;
 import com.lql.humanresourcedemo.enumeration.LeaveViolationCode;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
+import com.lql.humanresourcedemo.service.validate.ValidateService;
+import com.lql.humanresourcedemo.service.validate.ValidateServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,7 +19,10 @@ import java.util.stream.Collectors;
 
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_DOMAIN;
 
+
+//@RequiredArgsConstructor
 public class HelperUtility {
+    private static final ValidateService validateService  = new ValidateServiceImpl();
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss a");
 
 
@@ -107,11 +113,45 @@ public class HelperUtility {
 
     }
 
-    public static Pageable buildPageRequest(int page, int pageSize, List<String> properties, List<String> order, Class<?> clazz) {
+    public static Pageable validateAndBuildPageRequest(String page, String pageSize, List<String> properties, List<String> order, Class<?> clazz) {
+
+        validateService.validatePageRequest(page, pageSize, properties, order, clazz);
+
+
+        return buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, order, clazz);
+
+    }
+
+    public static List<Field> getAllFields(Class<?> clazz) {
+        List<Field> fields = new ArrayList<>();
+
+        // Add fields declared in this class
+        Field[] declaredFields = clazz.getDeclaredFields();
+        for (Field field : declaredFields) {
+            fields.add(field);
+        }
+
+        // Recursively add fields from superclasses
+        Class<?> superClass = clazz.getSuperclass();
+        if (superClass != null) {
+            List<Field> superClassFields = getAllFields(superClass);
+            fields.addAll(superClassFields);
+        }
+
+        return fields;
+    }
+
+    public static   Pageable buildPageRequest(int page, int pageSize, List<String> properties, List<String> order, Class<?> clazz) {
         List<Sort.Order> sorts = new ArrayList<>();
 
-        List<String> originalFieldName = Arrays.stream(clazz.getDeclaredFields()).map(Field::getName).toList();
+        List<String> originalFieldName = getAllFields(clazz).stream().map(Field::getName).toList();
         List<String> lowerCaseFiledName = originalFieldName.stream().map(String::toLowerCase).toList();
+
+
+
+
+
+
         for (int i = 0; i < properties.size(); i++) {
             String property = originalFieldName.get(lowerCaseFiledName.indexOf(properties.get(i).toLowerCase()));
             try {

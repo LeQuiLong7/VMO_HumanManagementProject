@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .toList();
         log.warn(buildLogMessage("Method argument", "Someone provide not valid arguments to an endpoint " + ex.getMessage(), request));
-        return createResponseDetail("Provide valid argument!", HttpStatus.BAD_REQUEST, errors);
+        return createResponseDetail(errors.toString().substring(1, errors.toString().length() - 1), HttpStatus.BAD_REQUEST);
     }
 
 
@@ -133,14 +133,6 @@ public class GlobalExceptionHandler {
         return createResponseDetail(String.format("%s is not a valid value for %s", value, convertCamelCaseToNormalWords(((String) fieldName))), HttpStatus.BAD_REQUEST);
     }
 
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<Object> unhandledException(Exception ex, HttpServletRequest request) {
-//
-//        ex.printStackTrace();
-//        log.warn(buildLogMessage("unhandled ", ex.getMessage(), request));
-//        return createResponseDetail(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//    }
-//
 
     public static String convertCamelCaseToNormalWords(String camelCase) {
         StringBuilder normalWords = new StringBuilder();
@@ -164,14 +156,6 @@ public class GlobalExceptionHandler {
         Map<String, String> detail = new HashMap<>();
         detail.put("error", message);
         detail.put("time_stamp", LocalDateTime.now().toString());
-
-        return new ResponseEntity<>(detail, status);
-    }
-    private ResponseEntity<Object> createResponseDetail(String message, HttpStatus status, List<String> errors) {
-        Map<String, String> detail = new HashMap<>();
-        detail.put("error", message);
-        detail.put("time_stamp", LocalDateTime.now().toString());
-        detail.put("details", errors.toString());
 
         return new ResponseEntity<>(detail, status);
     }

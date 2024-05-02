@@ -31,7 +31,7 @@ class JwtServiceTest {
     void setUp() {
         jwtBuilder = Jwts.builder().signWith(getSecretKey(), SignatureAlgorithm.HS256);
         jwtParser = Jwts.parserBuilder().setSigningKey(getSecretKey()).build();
-        jwtService = new JWTServiceImpl(jwtBuilder, jwtParser);
+        jwtService = new JWTServiceImpl(jwtBuilder, jwtParser, 60000);
     }
 
 
@@ -40,7 +40,6 @@ class JwtServiceTest {
         OnlyIdPasswordAndRole employee = new OnlyIdPasswordAndRole(1L, "", Role.ADMIN);
 
         String token = jwtService.generateToken(employee);
-        System.out.println(token);
 
         Long id = Long.valueOf(jwtService.extractClaim(token, Claims::getSubject));
         Role role = Role.valueOf(jwtService.extractClaim(token, claim -> claim.get(ROLE).toString()));
@@ -78,5 +77,26 @@ class JwtServiceTest {
                 () -> jwtService.extractAllClaims(token));
     }
 
+
+    @Test
+    public void expiredTokenTest() {
+
+        jwtService = new JWTServiceImpl(jwtBuilder, jwtParser, -60000);
+
+        OnlyIdPasswordAndRole employee = new OnlyIdPasswordAndRole(1L, "", Role.ADMIN);
+
+        String token = jwtService.generateToken(employee);
+
+        assertTrue(
+                () -> jwtService.isTokenExpired(token));
+    }
+
+    @Test
+    public void expiredNotValidTokenTest() {
+
+        String token = "abc";
+        assertThrows(JwtException.class,
+                () -> jwtService.isTokenExpired(token));
+    }
 
 }

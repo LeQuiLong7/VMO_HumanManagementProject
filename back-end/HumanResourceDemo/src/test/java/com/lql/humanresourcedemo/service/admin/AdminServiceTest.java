@@ -1,14 +1,11 @@
 package com.lql.humanresourcedemo.service.admin;
 
-import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.dto.model.tech.TechStack;
 import com.lql.humanresourcedemo.dto.request.admin.*;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.ProjectResponse;
 import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
-import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
-import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.newaccount.NewAccountException;
 import com.lql.humanresourcedemo.exception.model.project.ProjectException;
@@ -20,20 +17,17 @@ import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.repository.*;
 import com.lql.humanresourcedemo.service.mail.MailService;
-import com.lql.humanresourcedemo.service.validate.ValidateService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,19 +53,16 @@ class AdminServiceTest {
     private EmployeeProjectRepository employeeProjectRepository;
     @Mock
     private TechRepository techRepository;
-    @Mock
-    private ClientRepository clientRepository;
+
     @Mock
     private ProjectRepository projectRepository;
-    @Mock
-    private ValidateService validateService;
     @Mock
     private ApplicationContext applicationContext;
     private AdminService adminService;
 
     @BeforeEach
     void setUp() {
-        adminService = new AdminServiceImpl(employeeRepository, passwordEncoder, mailService, salaryRepository, employeeTechRepository, employeeProjectRepository, techRepository, clientRepository, projectRepository, validateService, applicationContext);
+        adminService = new AdminServiceImpl(employeeRepository, passwordEncoder, mailService, salaryRepository, employeeTechRepository, employeeProjectRepository, techRepository,  projectRepository, applicationContext);
     }
 
     @Test
@@ -108,7 +99,6 @@ class AdminServiceTest {
     void createNewProject() {
         CreateNewProjectRequest request = new CreateNewProjectRequest("p1", "", LocalDate.now(), LocalDate.now());
 
-        when(clientRepository.getReferenceById(anyLong())).thenReturn(new Client());
         when(projectRepository.save(ArgumentMatchers.any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         ProjectResponse newProject = adminService.createNewProject(request);
@@ -290,7 +280,6 @@ class AdminServiceTest {
         raiseRequest.setCreatedAt(LocalDateTime.now());
 
         when(salaryRepository.findById(handleRequest.requestId())).thenReturn(Optional.of(raiseRequest));
-        when(employeeRepository.findById(any(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(Mockito.mock(OnlyPersonalEmailAndFirstName.class)));
 
         SalaryRaiseResponse response = adminService.handleSalaryRaiseRequest(1L, handleRequest);
 
@@ -301,6 +290,7 @@ class AdminServiceTest {
         );
         verify(salaryRepository, times(1)).save(raiseRequest);
         verify(employeeRepository, times(1)).updateSalaryById(anyLong(), anyDouble());
+//        verify(employeeRepository, times(1)).findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class));
         verify(mailService, times(1)).sendEmail(any(), any(), any());
     }
 
@@ -346,9 +336,15 @@ class AdminServiceTest {
         when(employeeRepository.existsById(request.employeeId())).thenReturn(true);
         when(techRepository.existsById(techStack.techId())).thenReturn(true);
         when(employeeTechRepository.existsByIdEmployeeIdAndIdTechId(request.employeeId(), techStack.techId())).thenReturn(false);
-
-        TechStackResponse response = adminService.updateEmployeeTechStack(request);
+        adminService.updateEmployeeTechStack(request);
 
         verify(employeeTechRepository, times(1)).save(any());
+    }
+
+
+    @Test
+    void getAllEmployees() {
+
+
     }
 }

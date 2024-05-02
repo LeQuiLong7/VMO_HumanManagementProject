@@ -52,11 +52,10 @@ class PasswordServiceTest {
         when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
 
 
-        EmployeeException exception = assertThrows(EmployeeException.class, () -> {
-            passwordService.createPasswordResetRequest(email);
-        });
+        assertThrows(EmployeeException.class,
+                () -> passwordService.createPasswordResetRequest(email),
+                "Email not found");
 
-        assertEquals("Could not find employee " + email, exception.getMessage());
     }
 
     @Test
@@ -105,24 +104,22 @@ class PasswordServiceTest {
         when(passwordResetRepository.findByToken(token))
                 .thenReturn(Optional.empty());
 
-        ResetPasswordException exception = assertThrows(ResetPasswordException.class, () -> {
-            passwordService.resetPassword(request);
-        });
+        assertThrows(ResetPasswordException.class,
+                () -> passwordService.resetPassword(request),
+                "Token not found");
 
-        assertEquals("Token is not found", exception.getMessage());
     }
+
     @Test
     void testResetPassword_NewPasswordAndConfirmationDoNotMatch() {
         String token = UUID.randomUUID().toString();
         ResetPasswordRequest request = new ResetPasswordRequest(token, "newPassword", "newPassword1");
 
-        ResetPasswordException exception = assertThrows(ResetPasswordException.class, () -> {
-            passwordService.resetPassword(request);
-        });
+        assertThrows(ResetPasswordException.class,
+                () -> passwordService.resetPassword(request),
+                "Password and confirmation password do not match");
 
-        assertEquals("Password and confirmation password do not match", exception.getMessage());
     }
-
 
 
     @Test
@@ -138,10 +135,9 @@ class PasswordServiceTest {
         when(passwordResetRepository.findByToken(token))
                 .thenReturn(Optional.of(passwordResetRequest));
 
-        ResetPasswordException exception = assertThrows(ResetPasswordException.class, () -> {
-            passwordService.resetPassword(request);
-        });
+        assertThrows(ResetPasswordException.class,
+                () -> passwordService.resetPassword(request),
+                "Token expired");
 
-        assertEquals("Token expired", exception.getMessage());
     }
 }

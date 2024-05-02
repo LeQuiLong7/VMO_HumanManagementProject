@@ -42,14 +42,12 @@ class PMServiceTest {
     private LeaveRepository leaveRepository;
     @Mock
     private MailService mailService;
-    @Mock
-    private ValidateService validateService;
 
     private PMService pmService;
 
     @BeforeEach
     void setUp() {
-        pmService = new PMServiceImpl(attendanceRepository, employeeRepository, leaveRepository, mailService, validateService);
+        pmService = new PMServiceImpl(attendanceRepository, employeeRepository, leaveRepository, mailService);
     }
 
     @Test
@@ -134,12 +132,10 @@ class PMServiceTest {
     void handleLeaveRequest_StatusProcessingIsNotValid() {
         HandleLeaveRequest handleRequest = new HandleLeaveRequest(1L, LeaveStatus.PROCESSING);
 
-        when(leaveRepository.findById(handleRequest.requestId())).thenReturn(Optional.of(new LeaveRequest()));
-
         assertThrows(
                 LeaveRequestException.class,
                 () -> pmService.handleLeaveRequest(1L, List.of(handleRequest)),
-                "Status " + handleRequest.status() + " is not valid for leave request %s".formatted(handleRequest.requestId())
+                "Status " + handleRequest.status() + " is not valid"
         );
     }
 
@@ -150,10 +146,13 @@ class PMServiceTest {
 
         Employee employee = Employee.builder()
                 .id(1L)
+                .managedBy(Employee.builder().id(2L).build())
                 .build();
         LeaveRequest leaveRequest = LeaveRequest.builder()
                 .id(1L)
+                .status(LeaveStatus.PROCESSING)
                 .employee(employee)
+                .type(LeaveType.UNPAID)
                 .build();
 
         when(leaveRepository.findById(handleRequest.requestId()))
@@ -161,7 +160,7 @@ class PMServiceTest {
 
         when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
-        pmService.handleLeaveRequest(1L, List.of(handleRequest));
+        pmService.handleLeaveRequest(2L, List.of(handleRequest));
 
         verify(employeeRepository, times(0)).decreaseLeaveDaysBy1(any());
         verify(mailService, times(1)).sendEmail(any(), any(), any());
@@ -175,9 +174,11 @@ class PMServiceTest {
 
         Employee employee = Employee.builder()
                 .id(1L)
+                .managedBy(Employee.builder().id(2L).build())
                 .build();
         LeaveRequest leaveRequest = LeaveRequest.builder()
                 .id(1L)
+                .status(LeaveStatus.PROCESSING)
                 .employee(employee)
                 .type(LeaveType.UNPAID)
                 .build();
@@ -187,7 +188,7 @@ class PMServiceTest {
 
         when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
-        pmService.handleLeaveRequest(1L, List.of(handleRequest));
+        pmService.handleLeaveRequest(2L, List.of(handleRequest));
 
         verify(employeeRepository, times(0)).decreaseLeaveDaysBy1(any());
         verify(mailService, times(1)).sendEmail(any(), any(), any());
@@ -202,19 +203,22 @@ class PMServiceTest {
 
         Employee employee = Employee.builder()
                 .id(1L)
+                .managedBy(Employee.builder().id(2L).build())
                 .build();
+
         LeaveRequest leaveRequest = LeaveRequest.builder()
                 .id(1L)
+                .status(LeaveStatus.PROCESSING)
                 .employee(employee)
                 .type(LeaveType.PAID)
                 .build();
 
         when(leaveRepository.findById(handleRequest.requestId()))
                 .thenReturn(Optional.of(leaveRequest));
+        when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class)))
+                .thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
-        when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
-
-        pmService.handleLeaveRequest(1L, List.of(handleRequest));
+        pmService.handleLeaveRequest(2L, List.of(handleRequest));
 
         verify(employeeRepository, times(1)).decreaseLeaveDaysBy1(any());
         verify(mailService, times(1)).sendEmail(any(), any(), any());
