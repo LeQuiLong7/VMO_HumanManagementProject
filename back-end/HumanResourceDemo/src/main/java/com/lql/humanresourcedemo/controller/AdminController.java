@@ -3,10 +3,13 @@ package com.lql.humanresourcedemo.controller;
 
 import com.lql.humanresourcedemo.dto.request.admin.*;
 import com.lql.humanresourcedemo.dto.response.*;
+import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.project.Project;
+import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.service.admin.AdminService;
 import com.lql.humanresourcedemo.utility.ContextUtility;
+import com.lql.humanresourcedemo.utility.HelperUtility;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
+import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPageRequest;
 
 @RestController
 @RequestMapping("/admin")
@@ -33,7 +37,8 @@ public class AdminController {
                                                    @RequestParam(required = false, defaultValue = "10") String size,
                                                    @RequestParam(required = false, defaultValue = "id") List<String> p,
                                                    @RequestParam(required = false, defaultValue = "asc") List<String> o) {
-        return adminService.getAllEmployee(page, size, p, o);
+
+        return adminService.getAllEmployee(validateAndBuildPageRequest(page, size, p, o, Employee.class));
     }
 
     @PostMapping("/employees")
@@ -47,7 +52,7 @@ public class AdminController {
                                                           @RequestParam(required = false, defaultValue = "id") List<String> p,
                                                           @RequestParam(required = false, defaultValue = "asc") List<String> o,
                                                           @PathVariable Long employeeId) {
-        return adminService.getAllProjectsByEmployeeId(employeeId, page, size, p, o);
+        return adminService.getAllProjectsByEmployeeId(employeeId, validateAndBuildPageRequest(page, size, p, o, Project.class));
     }
 
     @GetMapping("/pm")
@@ -55,7 +60,7 @@ public class AdminController {
                                              @RequestParam(required = false, defaultValue = "10") String size,
                                              @RequestParam(required = false, defaultValue = "id") List<String> p,
                                              @RequestParam(required = false, defaultValue = "asc") List<String> o) {
-        return adminService.getAllPM(page, size, p, o);
+        return adminService.getAllPM(validateAndBuildPageRequest(page, size, p, o, Employee.class));
     }
 
     @GetMapping("/techStack")
@@ -63,7 +68,7 @@ public class AdminController {
                                       @RequestParam(required = false, defaultValue = "10") String size,
                                       @RequestParam(required = false, defaultValue = "id") List<String> p,
                                       @RequestParam(required = false, defaultValue = "asc") List<String> o) {
-        return adminService.getAllTech(page, size, p, o);
+        return adminService.getAllTech(validateAndBuildPageRequest(page, size, p, o, Tech.class));
     }
 
     @GetMapping("/techStack/{empId}")
@@ -84,7 +89,7 @@ public class AdminController {
                                                               @RequestParam(required = false, defaultValue = "10") String size,
                                                               @RequestParam(required = false, defaultValue = "id") List<String> p,
                                                               @RequestParam(required = false, defaultValue = "asc") List<String> o) {
-        return adminService.getAllSalaryRaiseRequest(page, size, p, o);
+        return adminService.getAllSalaryRaiseRequest(validateAndBuildPageRequest(page, size, p, o, SalaryRaiseRequest.class));
     }
 
     @PutMapping("/salary")
@@ -97,7 +102,7 @@ public class AdminController {
                                                 @RequestParam(required = false, defaultValue = "10") String size,
                                                 @RequestParam(required = false, defaultValue = "id") List<String> p,
                                                 @RequestParam(required = false, defaultValue = "desc") List<String> o) {
-        return adminService.getAllProject(page, size, p, o);
+        return adminService.getAllProject(validateAndBuildPageRequest(page, size, p, o, Project.class));
     }
 
     @GetMapping("/project/{projectId}/employees")
@@ -106,7 +111,7 @@ public class AdminController {
                                                                   @RequestParam(required = false, defaultValue = "id") List<String> p,
                                                                   @RequestParam(required = false, defaultValue = "desc") List<String> o,
                                                                   @PathVariable Long projectId) {
-        return adminService.getAllEmployeeInsideProject(projectId, page, size, p, o);
+        return adminService.getAllEmployeeInsideProject(projectId, validateAndBuildPageRequest(page, size, p, o, Employee.class));
     }
 
     @PostMapping("/project")

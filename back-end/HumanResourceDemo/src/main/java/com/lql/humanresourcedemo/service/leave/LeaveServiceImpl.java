@@ -29,7 +29,6 @@ import static com.lql.humanresourcedemo.utility.MappingUtility.leaveRequestToRes
 public class LeaveServiceImpl implements LeaveService{
     private final EmployeeRepository employeeRepository;
     private final LeaveRepository leaveRepository;
-//    private final ValidateService validateService;
 
 
     @Override
@@ -59,18 +58,12 @@ public class LeaveServiceImpl implements LeaveService{
     }
 
     @Override
-    public Page<LeaveResponse> getAllLeaveRequest(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
-//        validateService.validatePageRequest(page, pageSize, properties, orders, LeaveRequest.class);
-//
-//        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, LeaveRequest.class);
-        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, LeaveRequest.class);
-
+    public Page<LeaveResponse> getAllLeaveRequest(Long employeeId, Pageable pageRequest) {
         return leaveRepository.findAllByEmployeeId(employeeId, pageRequest).map(MappingUtility::leaveRequestToResponse);
     }
 
     @Override
     public Optional<LeaveResponse> getLeaveRequestByDateAndEmployeeId(Long employeeId, LocalDate date) {
         return leaveRepository.findByEmployeeIdAndDate(employeeId,date).map(MappingUtility::leaveRequestToResponse);
-//        return Optional.empty();
     }
 }

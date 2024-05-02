@@ -18,7 +18,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
@@ -100,4 +106,61 @@ class LeaveServiceTest {
 
     }
 
+    @Test
+    void testGetAllLeaveRequest() {
+        Long employeeId = 1L;
+        Employee employee = Employee.builder().id(1L).build();
+        LeaveRequest leaveRequest = new LeaveRequest(1L, employee, null, null, null, null, null);
+
+        when(leaveRepository.findAllByEmployeeId(any(Long.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(leaveRequest)));
+
+
+        Page<LeaveResponse> response = leaveService.getAllLeaveRequest(employeeId, Pageable.unpaged());
+
+        assertAll(
+                () -> assertEquals(1, response.getTotalElements()),
+                () -> assertEquals(1, response.getContent().size())
+        );
+
+    }
+
+
+    @Test
+    void testGetLeaveRequestByEmployeeIdAndDate_NotFound() {
+        Long employeeId = 1L;
+        LocalDate date = LocalDate.now();
+        when(leaveRepository.findByEmployeeIdAndDate(employeeId, date))
+                .thenReturn(Optional.empty());
+
+
+        Optional<LeaveResponse> response = leaveService.getLeaveRequestByDateAndEmployeeId(employeeId, date);
+
+        assertAll(
+                () -> assertFalse(response.isPresent())
+        );
+
+    }
+
+    @Test
+    void testGetLeaveRequestByEmployeeIdAndDate_Found() {
+        Long employeeId = 1L;
+        LocalDate date = LocalDate.now();
+        Employee employee = Employee.builder().id(1L).build();
+        LeaveRequest leaveRequest = new LeaveRequest(1L, employee, date, null, null, null, null);
+
+
+        when(leaveRepository.findByEmployeeIdAndDate(employeeId, date))
+                .thenReturn(Optional.of(leaveRequest));
+
+
+        Optional<LeaveResponse> response = leaveService.getLeaveRequestByDateAndEmployeeId(employeeId, date);
+
+        assertAll(
+                () -> assertTrue(response.isPresent()),
+                () -> assertEquals(leaveRequest.getEmployee().getId(), response.get().employeeId()),
+                () -> assertEquals(leaveRequest.getDate(), response.get().date())
+        );
+
+    }
 }

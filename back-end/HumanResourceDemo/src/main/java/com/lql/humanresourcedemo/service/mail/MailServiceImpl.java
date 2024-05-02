@@ -3,6 +3,8 @@ package com.lql.humanresourcedemo.service.mail;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.MailException;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -26,7 +28,7 @@ public class MailServiceImpl implements MailService {
             mailSender.send(message);
 
         } catch (Exception exception) {
-            exception.printStackTrace();
+            throw new MailSendException("Error sending email to %s, subject: %s, message: %s".formatted(to, subject, message));
         }
     }
 }

@@ -48,41 +48,38 @@ public class AdminServiceImpl implements AdminService {
     private final EmployeeTechRepository employeeTechRepository;
     private final EmployeeProjectRepository employeeProjectRepository;
     private final TechRepository techRepository;
-//    private final ClientRepository clientRepository;
     private final ProjectRepository projectRepository;
-//    private final ValidateService validateService;
     private final ApplicationContext applicationContext;
 
     @Override
-    public Page<GetProfileResponse> getAllEmployee(String page, String pageSize, List<String> properties, List<String> orders) {
-        return getAll(Employee.class, EmployeeRepository.class, MappingUtility::employeeToProfileResponse, page, pageSize, properties, orders);
+    public Page<GetProfileResponse> getAllEmployee(Pageable pageRequest) {
+        return getAll(Employee.class, EmployeeRepository.class, MappingUtility::employeeToProfileResponse, pageRequest);
+
     }
 
     @Override
-    public Page<GetProfileResponse> getAllPM(String page, String pageSize, List<String> properties, List<String> orders) {
-//        validateService.validatePageRequest(page, pageSize, properties, orders, Employee.class);
+    public Page<GetProfileResponse> getAllPM(Pageable pageRequest) {
+        return employeeRepository.findAllByRole(Role.PM, pageRequest).map(MappingUtility::employeeToProfileResponse);
 
-//        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Employee.class);
-
-
-        return employeeRepository.findAllByRole(Role.PM, validateAndBuildPageRequest(page, pageSize, properties, orders, Employee.class)).map(MappingUtility::employeeToProfileResponse);
     }
 
     @Override
-    public Page<ProjectResponse> getAllProject(String page, String pageSize, List<String> properties, List<String> orders) {
+    public Page<ProjectResponse> getAllProject(Pageable pageRequest) {
+        return getAll(Project.class, ProjectRepository.class, MappingUtility::projectToProjectResponse, pageRequest);
 
-        return getAll(Project.class, ProjectRepository.class, MappingUtility::projectToProjectResponse, page, pageSize, properties, orders);
     }
 
     @Override
-    public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(String page, String pageSize, List<String> properties, List<String> orders) {
+    public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Pageable pageRequest) {
+        return getAll(SalaryRaiseRequest.class, SalaryRaiseRequestRepository.class, MappingUtility::salaryRaiseRequestToResponse, pageRequest);
 
-        return getAll(SalaryRaiseRequest.class, SalaryRaiseRequestRepository.class, MappingUtility::salaryRaiseRequestToResponse, page, pageSize, properties, orders);
     }
-    @Override
-    public Page<Tech> getAllTech(String page, String pageSize, List<String> properties, List<String> orders) {
 
-        return getAll(Tech.class, TechRepository.class, Function.identity(), page, pageSize, properties, orders);
+
+    @Override
+    public Page<Tech> getAllTech(Pageable pageRequest) {
+        return getAll(Tech.class, TechRepository.class, Function.identity(), pageRequest);
+
     }
 
 
@@ -94,30 +91,20 @@ public class AdminServiceImpl implements AdminService {
         return new TechStackResponse(
                 empId,
                 employeeTechRepository.findTechInfoByEmployeeId(empId)
-                        .stream()
-                        .map(MappingUtility::employeeTechDTOtoTechInfo)
-                        .toList()
         );
     }
 
+
     @Override
-    public Page<GetProfileResponse> getAllEmployeeInsideProject(Long projectId, String page, String size, List<String> p, List<String> o) {
-//        validateService.validatePageRequest(page, size, p, o, Employee.class);
-
-//        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(size), p, o, Employee.class);
-        Pageable pageRequest = validateAndBuildPageRequest(page, size, p, o, Employee.class);
-
-
-        return employeeProjectRepository.findAllByIdProjectId(projectId, pageRequest).map(employeeProject -> employeeProject.getId().getEmployee()).map(MappingUtility::employeeToProfileResponse);
-//        return null;
+    public Page<GetProfileResponse> getAllEmployeeInsideProject(Long projectId, Pageable pageRequest) {
+        return employeeProjectRepository.findAllByIdProjectId(projectId, pageRequest)
+                .map(employeeProject -> employeeProject.getId().getEmployee())
+                .map(MappingUtility::employeeToProfileResponse);
     }
 
-    @Override
-    public Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, String page, String size, List<String> properties, List<String> orders) {
-//        validateService.validatePageRequest(page, size, properties, orders, Project.class);
 
-//        List<AssignHistory> assignHistoryByProjectId = employeeProjectRepository.getAssignHistoryByProjectId(1L);
-        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(size), properties, orders, Project.class);
+    @Override
+    public Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, Pageable pageRequest) {
         return employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageRequest)
                 .map(employeeProject ->
                         new ProjectDetail(employeeProject.getId().getProject(),
@@ -125,12 +112,8 @@ public class AdminServiceImpl implements AdminService {
                         ));
     }
 
-    private  <T, R extends PagingAndSortingRepository<T, ?>, V> Page<V> getAll(Class<T> clazz, Class<R> repoClass, Function<T, V> mappingFunction, String page, String pageSize, List<String> properties, List<String> orders) {
-//        validateService.validatePageRequest(page, pageSize, properties, orders, clazz);
 
-//        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, clazz);
-        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, clazz);
-
+    private <T, R extends PagingAndSortingRepository<T, ?>, V> Page<V> getAll(Class<T> clazz, Class<R> repoClass, Function<T, V> mappingFunction, Pageable pageRequest) {
 
         try {
             Method findAll = repoClass.getMethod("findAll", Pageable.class);
@@ -180,7 +163,7 @@ public class AdminServiceImpl implements AdminService {
         SalaryRaiseRequest raiseRequest = salaryRepository.findById(handleRequest.requestId())
                 .orElseThrow(() -> new SalaryRaiseException("Raise request doesn't exists"));
 
-        if(raiseRequest.getStatus() != SalaryRaiseRequestStatus.PROCESSING) {
+        if (raiseRequest.getStatus() != SalaryRaiseRequestStatus.PROCESSING) {
             throw new SalaryRaiseException("Raise request already handled");
         }
 
@@ -212,7 +195,7 @@ public class AdminServiceImpl implements AdminService {
         requiredExistsEmployee(request.employeeId());
 
         for (var s : request.techStacks()) {
-            if(!techRepository.existsById(s.techId())) {
+            if (!techRepository.existsById(s.techId())) {
                 throw new TechException("Tech id %s not found".formatted(s.techId()));
             }
             if (employeeTechRepository.existsByIdEmployeeIdAndIdTechId(request.employeeId(), s.techId())) {
@@ -230,11 +213,7 @@ public class AdminServiceImpl implements AdminService {
         }
         return new TechStackResponse(
                 request.employeeId(),
-                employeeTechRepository.findTechInfoByEmployeeId(request.employeeId())
-                        .stream()
-                        .map(MappingUtility::employeeTechDTOtoTechInfo)
-                        .toList()
-        );
+                employeeTechRepository.findTechInfoByEmployeeId(request.employeeId()));
     }
 
     @Override

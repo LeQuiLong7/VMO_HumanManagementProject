@@ -20,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -120,7 +121,7 @@ class LeaveControllerTest {
         try (MockedStatic<SecurityContextHolder> utilities = Mockito.mockStatic(SecurityContextHolder.class)) {
             utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
 
-            when(leaveService.getAllLeaveRequest(any(), any(), any(), any(), any()))
+            when(leaveService.getAllLeaveRequest(any(), any(Pageable.class)))
                     .thenReturn(Page.empty());
 
             String url = LeaveController.class.getAnnotation(RequestMapping.class).value()[0];

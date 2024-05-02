@@ -5,6 +5,8 @@ import com.lql.humanresourcedemo.dto.request.pm.HandleLeaveRequest;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.LeaveResponse;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
+import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
+import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.service.pm.PMService;
 import com.lql.humanresourcedemo.utility.ContextUtility;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static com.lql.humanresourcedemo.utility.ContextUtility.*;
+import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPageRequest;
 
 @RestController
 @RequestMapping("/pm")
@@ -26,7 +31,7 @@ public class PMController {
                                                    @RequestParam(required = false, defaultValue = "10") String size,
                                                    @RequestParam(required = false, defaultValue = "id") List<String> p,
                                                    @RequestParam(required = false, defaultValue = "asc") List<String> o) {
-        return pmService.getAllEmployee(ContextUtility.getCurrentEmployeeId(), page, size, p, o);
+        return pmService.getAllEmployee(getCurrentEmployeeId(), validateAndBuildPageRequest(page, size, p, o, Employee.class));
     }
 
 
@@ -35,16 +40,16 @@ public class PMController {
                                                    @RequestParam(required = false, defaultValue = "10") String size,
                                                    @RequestParam(required = false, defaultValue = "id") List<String> p,
                                                    @RequestParam(required = false, defaultValue = "desc") List<String> o) {
-        return pmService.getAllLeaveRequest(ContextUtility.getCurrentEmployeeId(), page, size, p, o);
+        return pmService.getAllLeaveRequest(getCurrentEmployeeId(),  validateAndBuildPageRequest(page, size, p, o, LeaveRequest.class));
     }
 
 
     @PostMapping("/attendance")
     public List<Attendance> checkAttendance(@RequestBody CheckAttendanceRequest request) {
-        return pmService.checkAttendance(ContextUtility.getCurrentEmployeeId(), request);
+        return pmService.checkAttendance(getCurrentEmployeeId(), request);
     }
     @PutMapping("/leave")
     public List<LeaveResponse> handleLeaveRequest(@RequestBody List<HandleLeaveRequest> request) {
-        return pmService.handleLeaveRequest(ContextUtility.getCurrentEmployeeId(), request);
+        return pmService.handleLeaveRequest(getCurrentEmployeeId(), request);
     }
 }

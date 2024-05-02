@@ -2,9 +2,7 @@ package com.lql.humanresourcedemo.service.admin;
 
 import com.lql.humanresourcedemo.dto.model.tech.TechStack;
 import com.lql.humanresourcedemo.dto.request.admin.*;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.ProjectResponse;
-import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.newaccount.NewAccountException;
@@ -13,8 +11,10 @@ import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseExceptio
 import com.lql.humanresourcedemo.exception.model.tech.TechException;
 import com.lql.humanresourcedemo.model.client.Client;
 import com.lql.humanresourcedemo.model.employee.Employee;
+import com.lql.humanresourcedemo.model.project.EmployeeProject;
 import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
+import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.repository.*;
 import com.lql.humanresourcedemo.service.mail.MailService;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +24,9 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
@@ -39,6 +42,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AdminServiceTest {
+
+    Pageable pageable = Pageable.ofSize(10);
+
     @Mock
     private EmployeeRepository employeeRepository;
     @Mock
@@ -78,6 +84,225 @@ class AdminServiceTest {
     }
 
     @Test
+    void getAllEmployeeTest() {
+        Employee employee = Employee.builder().id(1L).build();
+        when(applicationContext.getBean(any(Class.class)))
+                .thenReturn(employeeRepository);
+
+        when(employeeRepository.findAll(pageable))
+                .thenReturn(new PageImpl<>(List.of(employee)));
+
+        Page<GetProfileResponse> response = adminService.getAllEmployee(pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize()),
+                () -> assertEquals(1L, response.getContent().get(0).id())
+        );
+    }
+
+    @Test
+    void getAllPMTest() {
+        Employee employee = Employee.builder().id(1L).role(Role.PM).build();
+
+
+        when(employeeRepository.findAllByRole(Role.PM, pageable))
+                .thenReturn(new PageImpl<>(List.of(employee)));
+
+        Page<GetProfileResponse> response = adminService.getAllPM(pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize()),
+                () -> assertEquals(1L, response.getContent().get(0).id()),
+                () -> assertEquals(Role.PM, response.getContent().get(0).role())
+        );
+    }
+
+    @Test
+    void getAllTech() {
+        Tech tech = new Tech(1L, "a", null);
+        when(applicationContext.getBean(any(Class.class)))
+                .thenReturn(techRepository);
+
+
+        when(techRepository.findAll(pageable))
+                .thenReturn(new PageImpl<>(List.of(tech)));
+
+        Page<Tech> response = adminService.getAllTech(pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize()),
+                () -> assertEquals(1L, response.getContent().get(0).getId()),
+                () -> assertEquals("a", response.getContent().get(0).getName())
+        );
+    }
+
+    @Test
+    void getAllProject() {
+        Project project = Project.builder()
+                .id(1L)
+                .name("a")
+                .build();
+        when(applicationContext.getBean(any(Class.class)))
+                .thenReturn(projectRepository);
+
+
+        when(projectRepository.findAll(pageable))
+                .thenReturn(new PageImpl<>(List.of(project)));
+
+        Page<ProjectResponse> response = adminService.getAllProject(pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize()),
+                () -> assertEquals(1L, response.getContent().get(0).id()),
+                () -> assertEquals("a", response.getContent().get(0).name())
+        );
+    }
+
+    @Test
+    void getAllSalaryRaiseRequest() {
+        Employee employee = Employee.builder().id(1L).build();
+
+
+        SalaryRaiseRequest salaryRaiseRequest = SalaryRaiseRequest.builder()
+                .id(1L)
+                .employee(employee)
+                .status(PROCESSING)
+                .build();
+
+        when(applicationContext.getBean(any(Class.class)))
+                .thenReturn(salaryRepository);
+
+
+        when(salaryRepository.findAll(pageable))
+                .thenReturn(new PageImpl<>(List.of(salaryRaiseRequest)));
+
+        Page<SalaryRaiseResponse> response = adminService.getAllSalaryRaiseRequest(pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize()),
+                () -> assertEquals(1L, response.getContent().get(0).id()),
+                () -> assertEquals(PROCESSING, response.getContent().get(0).status())
+        );
+    }
+
+    @Test
+    void getTechStackByEmployeeId() {
+
+        Long employeeId = 1L;
+        TechInfo techInfo = new TechInfo(1L, "java", 1.2);
+
+        when(employeeRepository.existsById(employeeId)).thenReturn(true);
+        when(employeeTechRepository.findTechInfoByEmployeeId(employeeId))
+                .thenReturn(List.of(techInfo));
+
+        TechStackResponse response = adminService.getTechStackByEmployeeId(employeeId);
+        assertAll(
+                () -> assertEquals(employeeId, response.employeeId()),
+                () -> assertEquals(1, response.techInfo().size()),
+                () -> assertEquals(techInfo, response.techInfo().get(0))
+        );
+    }
+
+    @Test
+    void getTechStackByEmployeeId_EmployeeNotFound() {
+
+        Long employeeId = 1L;
+
+        when(employeeRepository.existsById(employeeId)).thenReturn(false);
+        assertThrows(EmployeeException.class,
+                () -> adminService.getTechStackByEmployeeId(employeeId));
+
+    }
+    @Test
+    void getAllEmployeeInsideProject() {
+
+        Employee employee = Employee.builder().id(1L).build();
+        Project project = Project.builder().id(1L).build();
+
+        EmployeeProject ep = new EmployeeProject(
+                new EmployeeProject.EmployeeProjectId(
+                        employee,
+                        project
+                )
+        );
+
+        when(employeeProjectRepository.findAllByIdProjectId(project.getId(), pageable))
+                .thenReturn(new PageImpl<>(List.of(ep)));
+
+        Page<GetProfileResponse> response = adminService.getAllEmployeeInsideProject(project.getId(), pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize()),
+                () -> assertEquals(employee.getId(), response.getContent().get(0).id())
+        );
+    }
+
+    @Test
+    void getAllProjectsByEmployeeId() {
+
+        Employee employee = Employee.builder().id(1L).build();
+        Project project = Project.builder().id(1L).build();
+
+        EmployeeProject ep = new EmployeeProject(
+                new EmployeeProject.EmployeeProjectId(
+                        employee,
+                        project
+                )
+        );
+        when(employeeProjectRepository.findAllByIdEmployeeId(employee.getId(), pageable))
+                .thenReturn(new PageImpl<>(List.of(ep)));
+
+        Page<ProjectDetail> response = adminService.getAllProjectsByEmployeeId(employee.getId(), pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize()),
+                () -> assertEquals(project.getId(), response.getContent().get(0).projectInfo().getId())
+        );
+    }
+
+
+    @Test
+    void assignEmployeeToProject() {
+
+        Employee employee = Employee.builder().id(1L).build();
+        Project project = Project.builder().id(1L).build();
+        AssignEmployeeToProjectRequest request = new AssignEmployeeToProjectRequest(project.getId(), List.of(employee.getId()));
+
+        when(projectRepository.existsById(project.getId()))
+                .thenReturn(true);
+        when(employeeRepository.existsById(employee.getId()))
+                .thenReturn(true);
+        when(employeeProjectRepository.save(any(EmployeeProject.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(employeeProjectRepository.getAllEmployeesAssignedByProjectId(project.getId()))
+                .thenReturn(List.of(employee.getId()));
+
+        AssignEmployeeToProjectRequest response = adminService.assignEmployeeToProject(request);
+        assertAll(
+                () -> assertEquals(1, response.projectId()),
+                () -> assertEquals(1, response.employeeIds().size()),
+                () -> assertEquals(employee.getId(), response.employeeIds().get(0))
+        );
+    }
+
+
+    @Test
+    void createNewEmployee_EmailAlreadyExists() {
+        CreateNewEmployeeRequest request = new CreateNewEmployeeRequest("long", "le qui", null, "", "", 2D, Role.EMPLOYEE, 1L, null);
+        when(employeeRepository.existsByPersonalEmail(anyString())).thenReturn(false);
+        when(employeeRepository.existsByEmail(anyString())).thenReturn(true);
+        when(employeeRepository.countByEmailLike(anyString())).thenReturn(2);
+
+        GetProfileResponse response = adminService.createNewEmployee(request);
+
+        assertAll(
+                () -> assertEquals("long", response.firstName()),
+                () -> assertEquals("le qui", response.lastName()),
+                () -> assertEquals("longlq2@company.com", response.email()),
+                () -> assertEquals("EMPLOYEE", response.role().toString())
+        );
+
+        verify(employeeRepository, times(1)).save(ArgumentMatchers.any(Employee.class));
+        verify(mailService, times(1)).sendEmail(anyString(), anyString(), anyString());
+        verify(passwordEncoder, times(1)).encode(anyString());
+    }
+
+
+    @Test
     void createNewEmployee_Success() {
         CreateNewEmployeeRequest request = new CreateNewEmployeeRequest("long", "le qui", null, "", "", 2D, Role.EMPLOYEE, 1L, null);
         when(employeeRepository.existsByPersonalEmail(anyString())).thenReturn(false);
@@ -86,6 +311,7 @@ class AdminServiceTest {
 
         assertAll(
                 () -> assertEquals("long", response.firstName()),
+                () -> assertEquals("longlq@company.com", response.email()),
                 () -> assertEquals("le qui", response.lastName()),
                 () -> assertEquals("EMPLOYEE", response.role().toString())
         );

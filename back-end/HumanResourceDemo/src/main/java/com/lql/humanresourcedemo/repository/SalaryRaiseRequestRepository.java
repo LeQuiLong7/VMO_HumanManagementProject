@@ -6,5 +6,5 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SalaryRaiseRequestRepository extends JpaRepository<SalaryRaiseRequest, Long> {
-    Page<SalaryRaiseRequest> findAllByEmployeeId(Long employeeId, Pageable pageable);
+    Page<SalaryRaiseRequest> findAllByEmployeeId(Long employeeId, Pageable pageRequest);
 }

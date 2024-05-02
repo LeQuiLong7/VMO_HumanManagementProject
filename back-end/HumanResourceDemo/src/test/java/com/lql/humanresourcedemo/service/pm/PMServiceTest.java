@@ -3,6 +3,8 @@ package com.lql.humanresourcedemo.service.pm;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.dto.request.pm.CheckAttendanceRequest;
 import com.lql.humanresourcedemo.dto.request.pm.HandleLeaveRequest;
+import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.LeaveResponse;
 import com.lql.humanresourcedemo.enumeration.LeaveStatus;
 import com.lql.humanresourcedemo.enumeration.LeaveType;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
@@ -20,6 +22,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalTime;
 import java.util.Collection;
@@ -223,6 +228,52 @@ class PMServiceTest {
         verify(employeeRepository, times(1)).decreaseLeaveDaysBy1(any());
         verify(mailService, times(1)).sendEmail(any(), any(), any());
         verify(leaveRepository, times(1)).save(any());
+    }
+    Pageable pageable = Pageable.ofSize(10);
+
+
+    @Test
+    void getAllEmployeeTest() {
+        Long pmId = 2L;
+        Employee employee = Employee.builder().id(1L).build();
+        when(employeeRepository.existsById(pmId))
+                .thenReturn(true);
+
+        when(employeeRepository.findAllIdByManagedById(pmId, pageable))
+                .thenReturn(new PageImpl<>(List.of(employee)));
+
+        Page<GetProfileResponse> response = pmService.getAllEmployee(pmId, pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize()),
+                () -> assertEquals(1L, response.getContent().get(0).id())
+        );
+    }
+    @Test
+    void getAllEmployeeTest_AdminIdNotFound() {
+        Long pmId = 2L;
+        when(employeeRepository.existsById(pmId))
+                .thenReturn(false);
+
+        assertThrows(EmployeeException.class,
+                () -> pmService.getAllEmployee(pmId, pageable));
+    }
+    @Test
+    void getAllLeaveRequest() {
+        Long pmId = 2L;
+        LeaveRequest leaveRequest = LeaveRequest.builder()
+                .employee(Employee.builder().id(1L).build())
+                .id(1L)
+                .build();
+        when(employeeRepository.existsById(pmId))
+                .thenReturn(true);
+
+        when(leaveRepository.findAllByEmployeeManagedById(pmId, pageable))
+                .thenReturn(new PageImpl<>(List.of(leaveRequest)));
+
+        Page<LeaveResponse> response = pmService.getAllLeaveRequest(pmId, pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize())
+        );
     }
 
 }

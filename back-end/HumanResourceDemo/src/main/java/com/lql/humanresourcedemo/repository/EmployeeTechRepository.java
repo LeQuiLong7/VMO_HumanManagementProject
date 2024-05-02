@@ -1,6 +1,6 @@
 package com.lql.humanresourcedemo.repository;
 
-import com.lql.humanresourcedemo.dto.model.tech.EmployeeTechDTO;
+import com.lql.humanresourcedemo.dto.response.TechInfo;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,8 +11,8 @@ import java.util.List;
 
 public interface EmployeeTechRepository extends JpaRepository<EmployeeTech, EmployeeTech.EmployeeTechId> {
 
-    @Query(value = "select e.id.tech.id as techId, e.id.tech.name as techName, e.yearOfExperience as yearOfExperience from EmployeeTech e where e.id.employee.id = ?1")
-    List<EmployeeTechDTO> findTechInfoByEmployeeId(Long id);
+    @Query(value = "select new com.lql.humanresourcedemo.dto.response.TechInfo( t.id, t.name , e.yearOfExperience) from EmployeeTech e inner join Tech t on e.id.tech.id = t. id where e.id.employee.id = ?1")
+    List<TechInfo> findTechInfoByEmployeeId(Long id);
 
     @Modifying
     @Transactional

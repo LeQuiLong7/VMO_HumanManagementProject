@@ -12,9 +12,9 @@ import java.util.List;
 
 public interface AdminService {
 
-    Page<GetProfileResponse> getAllEmployee(String page, String pageSize, List<String> properties, List<String> orders);
-    Page<GetProfileResponse> getAllPM(String page, String pageSize, List<String> properties, List<String> orders);
-    Page<ProjectResponse> getAllProject(String page, String pageSize, List<String> properties, List<String> orders);
+    Page<GetProfileResponse> getAllEmployee(Pageable pageRequest);
+    Page<GetProfileResponse> getAllPM(Pageable pageRequest);
+    Page<ProjectResponse> getAllProject(Pageable pageRequest);
     GetProfileResponse createNewEmployee(CreateNewEmployeeRequest request);
     SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest);
 
@@ -25,13 +25,13 @@ public interface AdminService {
 
     AssignEmployeeToProjectRequest assignEmployeeToProject(AssignEmployeeToProjectRequest request);
 
-    Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(String page, String size, List<String> properties, List<String> orders);
+    Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Pageable pageRequest);
 
-    Page<Tech> getAllTech(String page, String size, List<String> properties, List<String> orders);
+    Page<Tech> getAllTech(Pageable pageRequest);
 
     TechStackResponse getTechStackByEmployeeId(Long empId);
 
-    Page<GetProfileResponse> getAllEmployeeInsideProject(Long projectId, String page, String size, List<String> p, List<String> o);
+    Page<GetProfileResponse> getAllEmployeeInsideProject(Long projectId, Pageable pageRequest);
 
-    Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, String page, String size, List<String> p, List<String> o);
+    Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, Pageable pageRequest);
 }

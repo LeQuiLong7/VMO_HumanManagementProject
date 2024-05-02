@@ -1,6 +1,5 @@
 package com.lql.humanresourcedemo.utility;
 
-import com.lql.humanresourcedemo.dto.model.tech.EmployeeTechDTO;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
 import com.lql.humanresourcedemo.dto.request.admin.CreateNewEmployeeRequest;
 import com.lql.humanresourcedemo.dto.response.*;
@@ -32,12 +31,12 @@ public class MappingUtility {
         );
     }
 
-    public static TechStackResponse.TechInfo employeeTechDTOtoTechInfo(EmployeeTechDTO employeeTechDTO) {
-        return new TechStackResponse.TechInfo(
-                employeeTechDTO.getTechId(),
-                employeeTechDTO.getTechName(),
-                employeeTechDTO.getYearOfExperience());
-    }
+//    public static TechStackResponse.TechInfo employeeTechDTOtoTechInfo(EmployeeTechDTO employeeTechDTO) {
+//        return new TechStackResponse.TechInfo(
+//                employeeTechDTO.getTechId(),
+//                employeeTechDTO.getTechName(),
+//                employeeTechDTO.getYearOfExperience());
+//    }
 
     public static Employee newInfo(Employee e, UpdateProfileRequest request) {
         e.setFirstName(request.firstName());

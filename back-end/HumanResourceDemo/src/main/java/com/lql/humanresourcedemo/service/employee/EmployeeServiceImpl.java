@@ -61,9 +61,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new TechStackResponse(
                 id,
                 employeeTechRepository.findTechInfoByEmployeeId(id)
-                        .stream()
-                        .map(MappingUtility::employeeTechDTOtoTechInfo)
-                        .toList()
         );
     }
 
@@ -140,29 +137,20 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
-//        validateService.validatePageRequest(page, pageSize, properties, orders, SalaryRaiseRequest.class);
-
-        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, SalaryRaiseRequest.class);
-
+    public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long employeeId, Pageable pageRequest) {
+        requireExists(employeeId);
         return salaryRepository.findAllByEmployeeId(employeeId, pageRequest).map(MappingUtility::salaryRaiseRequestToResponse);
     }
 
     @Override
-    public Page<Attendance> getAllAttendanceHistory(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
-
-        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, Attendance.class);
-
-//        Pageable pageRequest = validateAndBuildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Attendance.class);
-
+    public Page<Attendance> getAllAttendanceHistory(Long employeeId,Pageable pageRequest) {
+        requireExists(employeeId);
         return attendanceRepository.findAllByEmployeeId(employeeId, pageRequest);
     }
 
     @Override
-    public Page<ProjectDetail> getAllProjects(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
+    public Page<ProjectDetail> getAllProjects(Long employeeId, Pageable pageRequest) {
         requireExists(employeeId);
-//        Pageable pageRequest = validateAndBuildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Project.class);
-        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, EmployeeProject.class);
 
         return employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageRequest)
                 .map(employeeProject ->

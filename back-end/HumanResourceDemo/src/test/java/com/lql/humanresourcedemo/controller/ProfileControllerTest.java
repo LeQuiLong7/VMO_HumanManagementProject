@@ -5,6 +5,7 @@ import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
+import com.lql.humanresourcedemo.exception.model.file.FileException;
 import com.lql.humanresourcedemo.filter.JWTAuthenticationFilter;
 import com.lql.humanresourcedemo.security.MyAuthentication;
 import com.lql.humanresourcedemo.service.employee.EmployeeService;
@@ -19,9 +20,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -32,6 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @WebMvcTest(value = ProfileController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
 @AutoConfigureMockMvc(addFilters = false)
 class ProfileControllerTest {
@@ -67,6 +71,7 @@ class ProfileControllerTest {
             );
         }
     }
+
     @Test
     void getTechStackTest() throws Exception {
 
@@ -88,6 +93,7 @@ class ProfileControllerTest {
             );
         }
     }
+
     @Test
     void updateProfileTest_Success() throws Exception {
 
@@ -112,6 +118,7 @@ class ProfileControllerTest {
             );
         }
     }
+
     @Test
     void updateProfileTest_EmailNotValid() throws Exception {
 
@@ -131,6 +138,34 @@ class ProfileControllerTest {
             mockMvc.perform(put(url)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
+            ).andExpectAll(
+                    status().isBadRequest(),
+                    jsonPath("$.time_stamp").exists(),
+                    jsonPath("$.error").exists()
+            );
+        }
+    }
+
+    @Test
+    void uploadAvatar_FileNotSupported() throws Exception {
+
+
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(new MyAuthentication(1L, Role.ADMIN));
+
+        try (MockedStatic<SecurityContextHolder> utilities = Mockito.mockStatic(SecurityContextHolder.class)) {
+            utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+            MockMultipartFile file = new MockMultipartFile("file", "filename.pdf", MediaType.APPLICATION_PDF_VALUE, "file content".getBytes());
+
+
+            when(employeeService.uploadAvatar(any(), any()))
+                    .thenThrow(new FileException(ERROR_MESSAGE));
+
+            String url = ProfileController.class.getAnnotation(RequestMapping.class).value()[0];
+
+            mockMvc.perform(MockMvcRequestBuilders.put(url + "/avatar")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .content(file.getBytes())
             ).andExpectAll(
                     status().isBadRequest(),
                     jsonPath("$.time_stamp").exists(),

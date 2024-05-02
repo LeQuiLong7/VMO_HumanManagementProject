@@ -40,14 +40,12 @@ public class PMServiceImpl implements PMService {
     private final EmployeeRepository employeeRepository;
     private final LeaveRepository leaveRepository;
     private final MailService mailService;
-//    private final ValidateService validateService;
 
 
     @Override
     @Transactional
     public List<Attendance> checkAttendance(Long pmId, CheckAttendanceRequest request) {
         List<Long> empIdsInManage = employeeRepository.findAllIdByManagedById(pmId);
-//        empIdsInManage.add(pmId);
         LocalDate now = LocalDate.now();
 
         request.attendanceDetails()
@@ -119,24 +117,21 @@ public class PMServiceImpl implements PMService {
     }
 
     @Override
-    public Page<GetProfileResponse> getAllEmployee(Long pmId, String page, String pageSize, List<String> properties, List<String> orders) {
-//        validateService.validatePageRequest(page, pageSize, properties, orders, Employee.class);
-//
-//        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, Employee.class);
-        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, Employee.class);
-
-
+    public Page<GetProfileResponse> getAllEmployee(Long pmId, Pageable pageRequest) {
+        requireExists(pmId);
         return employeeRepository.findAllIdByManagedById(pmId, pageRequest).map(MappingUtility::employeeToProfileResponse);
     }
     @Override
-    public Page<LeaveResponse> getAllLeaveRequest(Long pmId, String page, String pageSize, List<String> properties, List<String> orders) {
-//        validateService.validatePageRequest(page, pageSize, properties, orders, LeaveRequest.class);
-//
-//        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, LeaveRequest.class);
-
-        Pageable pageRequest = validateAndBuildPageRequest(page, pageSize, properties, orders, LeaveRequest.class);
-
+    public Page<LeaveResponse> getAllLeaveRequest(Long pmId, Pageable pageRequest) {
+        requireExists(pmId);
         return leaveRepository.findAllByEmployeeManagedById(pmId, pageRequest).map(MappingUtility::leaveRequestToResponse);
+    }
+
+
+    private void requireExists(Long employeeId) {
+        if (!employeeRepository.existsById(employeeId)) {
+            throw new EmployeeException(employeeId);
+        }
     }
 
 }

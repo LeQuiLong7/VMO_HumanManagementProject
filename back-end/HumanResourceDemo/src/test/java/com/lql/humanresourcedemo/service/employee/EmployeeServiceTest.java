@@ -5,14 +5,16 @@ import com.lql.humanresourcedemo.dto.model.employee.OnlySalary;
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
-import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
 import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
+import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
+import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.employee.Employee;
+import com.lql.humanresourcedemo.model.project.EmployeeProject;
+import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.repository.*;
 import com.lql.humanresourcedemo.service.aws.AWSService;
@@ -23,12 +25,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
@@ -53,8 +60,6 @@ class EmployeeServiceTest {
     private  PasswordEncoder passwordEncoder;
     @Mock
     private  AWSService awsService;
-    @Mock
-    private  ValidateService validateService;
 
     @Mock
     private AttendanceRepository attendanceRepository;
@@ -77,6 +82,18 @@ class EmployeeServiceTest {
                 "Could not find employee " + id
         );
     }
+
+    @Test
+    void getProfile_Success() {
+        Long employeeId = 1L;
+
+        GetProfileResponse profileResponse = new GetProfileResponse(employeeId, "", "", "", null, null, null, null, null, null, null, null, null, null);
+        when(employeeRepository.findById(employeeId, GetProfileResponse.class)).thenReturn(Optional.of(profileResponse));
+        GetProfileResponse response = employeeService.getProfile(employeeId);
+
+        assertEquals(employeeId, response.id());
+    }
+
 
     @Test
     void updateInfo_EmployeeNotFound() {
@@ -132,6 +149,22 @@ class EmployeeServiceTest {
         );
     }
 
+    @Test
+    void getTechStack_Success() {
+        Long employeeId = 1L;
+
+        TechInfo techInfo = new TechInfo(1L, "java", 1.5);
+        when(employeeRepository.existsById(employeeId)).thenReturn(true);
+        when(employeeTechRepository.findTechInfoByEmployeeId(employeeId)).thenReturn(
+                List.of(techInfo)
+        );
+        TechStackResponse response = employeeService.getTechStack(employeeId);
+
+        assertAll(
+                () -> assertEquals(employeeId, response.employeeId()),
+                () -> assertEquals(techInfo, response.techInfo().get(0))
+        );
+    }
     @Test
     void changePassword_PasswordAndConfirmationDoNotMatch() {
         Long empId = 1L;
@@ -268,6 +301,90 @@ class EmployeeServiceTest {
                 EmployeeException.class,
                 () -> employeeService.createSalaryRaiseRequest(empId, null),
                 "Could not find employee " + empId
+        );
+    }
+
+    @Test
+    void createSalaryRaiseRequest_ExpectedSalaryLowerThanCurrentSalary() {
+        Long empId = 1L;
+        CreateSalaryRaiseRequest request = new CreateSalaryRaiseRequest(50D, "");
+        OnlySalary currentSalary = new OnlySalary(100D);
+
+
+        when(employeeRepository.findById(empId, OnlySalary.class)).thenReturn(Optional.of(currentSalary));
+
+        assertThrows(
+                SalaryRaiseException.class,
+                () -> employeeService.createSalaryRaiseRequest(empId, request),
+                "Expected salary is lower than current salary"
+        );
+    }
+
+
+
+    Pageable pageable = Pageable.ofSize(10);
+    @Test
+    public void getAllAttendanceHistory() {
+        Long employeeId = 1L;
+
+
+        when(employeeRepository.existsById(employeeId)).thenReturn(true);
+        when(attendanceRepository.findAllByEmployeeId(employeeId, pageable))
+                .thenReturn(new PageImpl<>(List.of(Mockito.mock(Attendance.class))));
+
+        Page<Attendance> response = employeeService.getAllAttendanceHistory(employeeId, pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize()),
+                () -> assertInstanceOf(Attendance.class, response.getContent().get(0))
+        );
+    }
+    @Test
+    public void getAllSalaryRaiseRequest() {
+        Long employeeId = 1L;
+        Employee employee = Employee.builder()
+                .id(employeeId)
+                .build();
+
+        SalaryRaiseRequest salaryRaiseRequest = SalaryRaiseRequest.builder()
+                .id(1L)
+                .employee(employee).build();
+
+        when(employeeRepository.existsById(employeeId)).thenReturn(true);
+        when(salaryRepository.findAllByEmployeeId(employeeId, pageable))
+                .thenReturn(new PageImpl<>(List.of(salaryRaiseRequest)));
+
+        Page<SalaryRaiseResponse> response = employeeService.getAllSalaryRaiseRequest(employeeId, pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize())
+        );
+    }
+
+    @Test
+    public void getAllProjects() {
+        Long employeeId = 1L;
+        Project project = Project.builder()
+                .id(1L)
+                .build();
+        Employee employee = Employee.builder()
+                .id(employeeId)
+                .build();
+
+        EmployeeProject ep = new EmployeeProject(
+                new EmployeeProject.EmployeeProjectId(
+                        employee,
+                        project
+                )
+        );
+        when(employeeRepository.existsById(employeeId)).thenReturn(true);
+
+        when(employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageable))
+                .thenReturn(new PageImpl<>(List.of(ep)));
+        when(employeeProjectRepository.getAssignHistoryByProjectId(employeeId))
+                .thenReturn(List.of(Mockito.mock(AssignHistory.class)));
+
+        Page<ProjectDetail> response = employeeService.getAllProjects(employeeId, pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize())
         );
     }
 

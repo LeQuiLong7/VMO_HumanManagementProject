@@ -2,10 +2,12 @@ package com.lql.humanresourcedemo.controller;
 
 import com.lql.humanresourcedemo.dto.request.employee.LeaveRequestt;
 import com.lql.humanresourcedemo.dto.response.LeaveResponse;
+import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.service.leave.LeaveService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
+import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPageRequest;
 
 @RestController
 @RequestMapping("/leave")
@@ -28,7 +31,7 @@ public class LeaveController {
                                                               @RequestParam(required = false, defaultValue = "10") String size,
                                                               @RequestParam(required = false, defaultValue = "id") List<String> p,
                                                               @RequestParam(required = false, defaultValue = "desc") List<String> o) {
-        return leaveService.getAllLeaveRequest(getCurrentEmployeeId(), page, size, p, o);
+        return leaveService.getAllLeaveRequest(getCurrentEmployeeId(), validateAndBuildPageRequest(page, size, p, o, LeaveRequest.class));
     }
 
     @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
