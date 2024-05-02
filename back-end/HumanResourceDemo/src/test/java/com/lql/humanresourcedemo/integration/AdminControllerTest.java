@@ -78,7 +78,7 @@ public class AdminControllerTest {
                         .header("Authorization", loginResponse.type() + " " + loginResponse.token())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createNewEmployeeRequest)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
 

@@ -25,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import static com.lql.humanresourcedemo.controller.ContextMock.mockSecurityContext;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -48,38 +49,32 @@ class ResetPasswordControllerTest {
     private final String SUCCESS_MESSAGE = "success message";
 
     @Test
-    void createResetPasswordRequest_ValidationFail() throws Exception {
-        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-        securityContext.setAuthentication(new MyAuthentication(1L, Role.ADMIN));
-
-        try (MockedStatic<SecurityContextHolder> utilities = Mockito.mockStatic(SecurityContextHolder.class)) {
-            utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-
+    void createResetPasswordRequest_ValidationFail() {
+        mockSecurityContext(() -> {
             String email = "";
             CreateResetPasswordRequest request = new CreateResetPasswordRequest(email);
 
             String url = ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0];
-            mockMvc.perform(post(url)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-            ).andExpectAll(
-                    status().isBadRequest(),
-                    jsonPath("$.error").exists(),
-                    jsonPath("$.error").value("email: must not be blank"),
-                    jsonPath("$.time_stamp").exists()
-            );
-        }
+            try {
+                mockMvc.perform(post(url)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                ).andExpectAll(
+                        status().isBadRequest(),
+                        jsonPath("$.error").exists(),
+                        jsonPath("$.error").value("email: must not be blank"),
+                        jsonPath("$.time_stamp").exists()
+                );
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
 
     @Test
-    void createResetPasswordRequest_ServiceFail() throws Exception {
-        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-        securityContext.setAuthentication(new MyAuthentication(1L, Role.ADMIN));
-
-        try (MockedStatic<SecurityContextHolder> utilities = Mockito.mockStatic(SecurityContextHolder.class)) {
-            utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-
+    void createResetPasswordRequest_ServiceFail() {
+        mockSecurityContext(() -> {
             String email = "longlq@company.com";
             CreateResetPasswordRequest request = new CreateResetPasswordRequest(email);
 
@@ -87,16 +82,20 @@ class ResetPasswordControllerTest {
                     .thenThrow(new EmployeeException(ERROR_MESSAGE));
 
             String url = ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0];
-            mockMvc.perform(post(url)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-            ).andExpectAll(
-                    status().isBadRequest(),
-                    jsonPath("$.error").exists(),
-                    jsonPath("$.error").value(ERROR_MESSAGE),
-                    jsonPath("$.time_stamp").exists()
-            );
-        }
+            try {
+                mockMvc.perform(post(url)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                ).andExpectAll(
+                        status().isBadRequest(),
+                        jsonPath("$.error").exists(),
+                        jsonPath("$.error").value(ERROR_MESSAGE),
+                        jsonPath("$.time_stamp").exists()
+                );
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
 
@@ -124,29 +123,28 @@ class ResetPasswordControllerTest {
 
 
     @Test
-    void performResetPassword_ServiceFail() throws Exception {
-        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-        securityContext.setAuthentication(new MyAuthentication(1L, Role.ADMIN));
-
-        try (MockedStatic<SecurityContextHolder> utilities = Mockito.mockStatic(SecurityContextHolder.class)) {
-            utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-
+    void performResetPassword_ServiceFail() {
+        mockSecurityContext(() -> {
             ResetPasswordRequest request = new ResetPasswordRequest("a", "a", "a");
 
             when(passwordService.resetPassword(request))
                     .thenThrow(new ResetPasswordException(ERROR_MESSAGE));
 
             String url = ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0];
-            mockMvc.perform(put(url)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-            ).andExpectAll(
-                    status().isBadRequest(),
-                    jsonPath("$.error").exists(),
-                    jsonPath("$.error").value(ERROR_MESSAGE),
-                    jsonPath("$.time_stamp").exists()
-            );
-        }
+            try {
+                mockMvc.perform(put(url)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                ).andExpectAll(
+                        status().isBadRequest(),
+                        jsonPath("$.error").exists(),
+                        jsonPath("$.error").value(ERROR_MESSAGE),
+                        jsonPath("$.time_stamp").exists()
+                );
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Test
@@ -156,7 +154,7 @@ class ResetPasswordControllerTest {
         ResetPasswordRequest request = new ResetPasswordRequest("a", "a", "a");
 
         when(passwordService.resetPassword(request))
-                .thenReturn( new ChangePasswordResponse(SUCCESS_MESSAGE));
+                .thenReturn(new ChangePasswordResponse(SUCCESS_MESSAGE));
 
         String url = ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0];
         mockMvc.perform(put(url)

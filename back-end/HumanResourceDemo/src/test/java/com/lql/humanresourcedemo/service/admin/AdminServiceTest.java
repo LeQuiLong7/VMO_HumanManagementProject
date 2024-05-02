@@ -243,6 +243,8 @@ class AdminServiceTest {
                         project
                 )
         );
+        when(employeeRepository.existsById(employee.getId()))
+                .thenReturn(true);
         when(employeeProjectRepository.findAllByIdEmployeeId(employee.getId(), pageable))
                 .thenReturn(new PageImpl<>(List.of(ep)));
 

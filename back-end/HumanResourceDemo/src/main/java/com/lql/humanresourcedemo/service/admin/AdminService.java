@@ -2,6 +2,8 @@ package com.lql.humanresourcedemo.service.admin;
 
 import com.lql.humanresourcedemo.dto.request.admin.*;
 import com.lql.humanresourcedemo.dto.response.*;
+import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
+import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import org.springframework.data.domain.Page;
@@ -16,7 +18,7 @@ public interface AdminService {
     Page<GetProfileResponse> getAllPM(Pageable pageRequest);
     Page<ProjectResponse> getAllProject(Pageable pageRequest);
     GetProfileResponse createNewEmployee(CreateNewEmployeeRequest request);
-    SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest);
+    SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest) throws SalaryRaiseException;
 
     TechStackResponse updateEmployeeTechStack(UpdateEmployeeTechStackRequest request);
     ProjectResponse createNewProject(CreateNewProjectRequest request);
@@ -29,7 +31,7 @@ public interface AdminService {
 
     Page<Tech> getAllTech(Pageable pageRequest);
 
-    TechStackResponse getTechStackByEmployeeId(Long empId);
+    TechStackResponse getTechStackByEmployeeId(Long empId) throws EmployeeException;
 
     Page<GetProfileResponse> getAllEmployeeInsideProject(Long projectId, Pageable pageRequest);
 

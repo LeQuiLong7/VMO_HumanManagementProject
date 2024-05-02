@@ -18,6 +18,7 @@ import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.repository.*;
 import com.lql.humanresourcedemo.service.aws.AWSService;
 import com.lql.humanresourcedemo.utility.FileUtility;
+import com.lql.humanresourcedemo.utility.HelperUtility;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -98,13 +99,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional
     public String uploadAvatar(Long employeeId, MultipartFile file) {
-        requireExists(employeeId);
 
         String fileExtension = FileUtility.getFileExtension(file.getOriginalFilename()).toLowerCase();
 
         if (!FileUtility.supportAvatarExtension(fileExtension)) {
-            throw new FileException("Not support " + fileExtension + " file for avatar");
+            throw new FileException("Not support " + fileExtension + " file for avatar - supported types: "  + FileUtility.supportImageExtension.toString());
         }
+        requireExists(employeeId);
 
         String objectKey = String.format("image/%s.%s", employeeId, fileExtension);
         awsService.uploadFile(file, BUCKET_NAME, objectKey);

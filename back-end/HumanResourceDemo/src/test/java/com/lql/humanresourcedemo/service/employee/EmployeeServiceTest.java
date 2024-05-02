@@ -30,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
@@ -227,12 +228,14 @@ class EmployeeServiceTest {
     @Test
     void uploadAvatar_EmployeeNotFound() {
         Long empId = 1L;
+        MultipartFile file = new MockMultipartFile("demo.jpg", "demo.jpg", MediaType.IMAGE_JPEG.getType(),  "demo".getBytes());
+
 
         when(employeeRepository.existsById(empId)).thenReturn(false);
 
         assertThrows(
                 EmployeeException.class,
-                () -> employeeService.uploadAvatar(empId, null),
+                () -> employeeService.uploadAvatar(empId, file),
                 "Could not find employee " + empId
         );
 
@@ -243,9 +246,8 @@ class EmployeeServiceTest {
     void uploadAvatar_FileNotSupported() {
         Long empId = 1L;
 
-        when(employeeRepository.existsById(empId)).thenReturn(true);
+        MultipartFile file = new MockMultipartFile("demo.txt", "demo.txt", MediaType.TEXT_PLAIN.getType(),  "demo".getBytes());
 
-        MultipartFile file = new MockMultipartFile("demo.txt", "demo".getBytes());
 
         assertThrows(
                 FileException.class,

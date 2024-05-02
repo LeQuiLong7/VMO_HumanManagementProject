@@ -84,10 +84,8 @@ public class AdminServiceImpl implements AdminService {
 
 
     @Override
-    public TechStackResponse getTechStackByEmployeeId(Long empId) {
-        if (!employeeRepository.existsById(empId)) {
-            throw new EmployeeException(empId);
-        }
+    public TechStackResponse getTechStackByEmployeeId(Long empId) throws EmployeeException {
+        requiredExistsEmployee(empId);
         return new TechStackResponse(
                 empId,
                 employeeTechRepository.findTechInfoByEmployeeId(empId)
@@ -104,7 +102,9 @@ public class AdminServiceImpl implements AdminService {
 
 
     @Override
-    public Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, Pageable pageRequest) {
+    public Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, Pageable pageRequest) throws EmployeeException {
+
+        requiredExistsEmployee(employeeId);
         return employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageRequest)
                 .map(employeeProject ->
                         new ProjectDetail(employeeProject.getId().getProject(),
@@ -158,7 +158,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest) {
+    public SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest) throws SalaryRaiseException {
 
         SalaryRaiseRequest raiseRequest = salaryRepository.findById(handleRequest.requestId())
                 .orElseThrow(() -> new SalaryRaiseException("Raise request doesn't exists"));

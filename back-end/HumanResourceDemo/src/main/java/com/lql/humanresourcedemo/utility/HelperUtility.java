@@ -141,16 +141,11 @@ public class HelperUtility {
         return fields;
     }
 
-    public static   Pageable buildPageRequest(int page, int pageSize, List<String> properties, List<String> order, Class<?> clazz) {
+    private static  Pageable buildPageRequest(int page, int pageSize, List<String> properties, List<String> order, Class<?> clazz) {
         List<Sort.Order> sorts = new ArrayList<>();
 
         List<String> originalFieldName = getAllFields(clazz).stream().map(Field::getName).toList();
         List<String> lowerCaseFiledName = originalFieldName.stream().map(String::toLowerCase).toList();
-
-
-
-
-
 
         for (int i = 0; i < properties.size(); i++) {
             String property = originalFieldName.get(lowerCaseFiledName.indexOf(properties.get(i).toLowerCase()));

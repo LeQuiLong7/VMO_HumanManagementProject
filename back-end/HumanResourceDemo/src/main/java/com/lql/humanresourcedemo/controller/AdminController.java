@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +43,7 @@ public class AdminController {
     }
 
     @PostMapping("/employees")
+    @ResponseStatus(HttpStatus.CREATED)
     public GetProfileResponse createNewEmployee(@RequestBody @Valid CreateNewEmployeeRequest createNewEmployeeRequest) {
         return adminService.createNewEmployee(createNewEmployeeRequest);
     }
@@ -72,14 +74,14 @@ public class AdminController {
     }
 
     @GetMapping("/techStack/{empId}")
-    public TechStackResponse getTechStack(@PathVariable Long empId) {
+    public TechStackResponse getTechStackByEmployeeId(@PathVariable Long empId) {
         return adminService.getTechStackByEmployeeId(empId);
     }
 
 
 
     @PutMapping("/techStack")
-    public TechStackResponse updateTechStackForEmployee(@RequestBody UpdateEmployeeTechStackRequest request) {
+    public TechStackResponse updateTechStackForEmployee(@RequestBody @Valid UpdateEmployeeTechStackRequest request) {
         return adminService.updateEmployeeTechStack(request);
     }
 
@@ -93,7 +95,7 @@ public class AdminController {
     }
 
     @PutMapping("/salary")
-    public SalaryRaiseResponse handleSalaryRaise(@RequestBody HandleSalaryRaiseRequest handleSalaryRaiseRequest) {
+    public SalaryRaiseResponse handleSalaryRaise(@RequestBody @Valid HandleSalaryRaiseRequest handleSalaryRaiseRequest) {
         return adminService.handleSalaryRaiseRequest(ContextUtility.getCurrentEmployeeId(), handleSalaryRaiseRequest);
     }
 
@@ -115,17 +117,18 @@ public class AdminController {
     }
 
     @PostMapping("/project")
+    @ResponseStatus(HttpStatus.CREATED)
     public ProjectResponse createNewProject(@RequestBody @Valid CreateNewProjectRequest createNewProjectRequest) {
         return adminService.createNewProject(createNewProjectRequest);
     }
 
     @PutMapping("/project")
-    public ProjectResponse updateProjectState(@RequestBody UpdateProjectStatusRequest updateProjectStatusRequest) {
+    public ProjectResponse updateProjectState(@RequestBody @Valid UpdateProjectStatusRequest updateProjectStatusRequest) {
         return adminService.updateProject(updateProjectStatusRequest);
     }
 
     @PutMapping("/project/assign")
-    public AssignEmployeeToProjectRequest assignEmployeeToProject(@RequestBody AssignEmployeeToProjectRequest assignEmployeeToProjectRequest) {
+    public AssignEmployeeToProjectRequest assignEmployeeToProject(@RequestBody @Valid AssignEmployeeToProjectRequest assignEmployeeToProjectRequest) {
         return adminService.assignEmployeeToProject(assignEmployeeToProjectRequest);
     }
 

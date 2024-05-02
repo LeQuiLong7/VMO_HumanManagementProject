@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import static com.lql.humanresourcedemo.controller.ContextMock.mockSecurityContext;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -43,15 +44,9 @@ class LoginControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    public void LoginFailTest() throws Exception {
+    public void LoginFailTest(){
 
-        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-        securityContext.setAuthentication(new MyAuthentication(1L, Role.ADMIN));
-
-        try (MockedStatic<SecurityContextHolder> utilities = Mockito.mockStatic(SecurityContextHolder.class)) {
-            utilities.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-
-
+        mockSecurityContext(() -> {
             LoginRequest loginRequest = new LoginRequest("a", "a");
 
             when(loginService.login(any(LoginRequest.class)))
@@ -59,17 +54,20 @@ class LoginControllerTest {
 
 
             String url = LoginController.class.getAnnotation(RequestMapping.class).value()[0];
-            mockMvc.perform(post(url)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(loginRequest))
-            ).andExpectAll(
-                    status().isBadRequest(),
-                    jsonPath("$.error").exists(),
-                    jsonPath("$.error").value("Wrong email or password"),
-                    jsonPath("$.time_stamp").exists()
-            );
-
-        }
+            try {
+                mockMvc.perform(post(url)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest))
+                ).andExpectAll(
+                        status().isBadRequest(),
+                        jsonPath("$.error").exists(),
+                        jsonPath("$.error").value("Wrong email or password"),
+                        jsonPath("$.time_stamp").exists()
+                );
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Test
