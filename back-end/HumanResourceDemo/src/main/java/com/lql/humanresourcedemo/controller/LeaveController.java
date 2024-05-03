@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +43,7 @@ public class LeaveController {
 
     @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public LeaveResponse createLeaveRequest(@RequestBody @Valid LeaveRequestt leaveRequestt) {
         return leaveService.createLeaveRequest(getCurrentEmployeeId(), leaveRequestt);
     }

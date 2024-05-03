@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,7 @@ public class EmployeeController {
 
     @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
     @PostMapping("/salary")
+    @ResponseStatus(HttpStatus.CREATED)
     public SalaryRaiseResponse createSalaryRaiseRequest(@RequestBody @Valid CreateSalaryRaiseRequest createSalaryRaiseRequest) {
         return employeeService.createSalaryRaiseRequest(getCurrentEmployeeId(), createSalaryRaiseRequest);
     }

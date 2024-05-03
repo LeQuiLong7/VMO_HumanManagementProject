@@ -11,6 +11,7 @@ import com.lql.humanresourcedemo.service.pm.PMService;
 import com.lql.humanresourcedemo.utility.ContextUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,6 +46,7 @@ public class PMController {
 
 
     @PostMapping("/attendance")
+    @ResponseStatus(HttpStatus.CREATED)
     public List<Attendance> checkAttendance(@RequestBody CheckAttendanceRequest request) {
         return pmService.checkAttendance(getCurrentEmployeeId(), request);
     }

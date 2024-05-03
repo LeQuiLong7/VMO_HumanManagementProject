@@ -6,6 +6,7 @@ import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
 import com.lql.humanresourcedemo.service.password.PasswordService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,6 +17,7 @@ public class ResetPasswordController {
     private final PasswordService passwordService;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ChangePasswordResponse createResetPasswordRequest(@RequestBody @Valid CreateResetPasswordRequest request) {
         return passwordService.createPasswordResetRequest(request.email());
     }

@@ -32,7 +32,6 @@ public class AdminController {
 
     private final AdminService adminService;
 
-
     @GetMapping("/employees")
     public Page<GetProfileResponse> getAllEmployee(@RequestParam(required = false, defaultValue = "0") String page,
                                                    @RequestParam(required = false, defaultValue = "10") String size,
