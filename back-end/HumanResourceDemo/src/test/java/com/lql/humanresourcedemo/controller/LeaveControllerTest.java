@@ -95,7 +95,7 @@ class LeaveControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                 ).andExpectAll(
-                        status().isOk(),
+                        status().isCreated(),
                         jsonPath("$.date").exists(),
                         jsonPath("$.reason").exists(),
                         jsonPath("$.employeeId").exists(),

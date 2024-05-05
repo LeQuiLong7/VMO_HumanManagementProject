@@ -16,6 +16,7 @@ import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.repository.*;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -215,10 +216,8 @@ class AdminServiceTest {
         Project project = Project.builder().id(1L).build();
 
         EmployeeProject ep = new EmployeeProject(
-                new EmployeeProject.EmployeeProjectId(
                         employee,
                         project
-                )
         );
 
         when(employeeProjectRepository.findAllByIdProjectId(project.getId(), pageable))
@@ -238,10 +237,8 @@ class AdminServiceTest {
         Project project = Project.builder().id(1L).build();
 
         EmployeeProject ep = new EmployeeProject(
-                new EmployeeProject.EmployeeProjectId(
                         employee,
                         project
-                )
         );
         when(employeeRepository.existsById(employee.getId()))
                 .thenReturn(true);

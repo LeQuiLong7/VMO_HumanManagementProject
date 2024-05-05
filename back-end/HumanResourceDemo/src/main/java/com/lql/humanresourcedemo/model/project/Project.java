@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -33,6 +34,10 @@ public class Project extends Auditable {
 
     private LocalDate actualStartDate;
     private LocalDate actualFinishDate;
+    @JsonIgnore
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EmployeeProject> employees;
 
 
     @ManyToOne(fetch = FetchType.LAZY)

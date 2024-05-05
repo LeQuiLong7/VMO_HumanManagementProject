@@ -1,13 +1,10 @@
 package com.lql.humanresourcedemo.service.schedule;
 
-import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
-import com.lql.humanresourcedemo.enumeration.LeaveViolationCode;
-import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.repository.AttendanceRepository;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.LeaveRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
 import com.lql.humanresourcedemo.service.mail.MailService;
@@ -18,25 +15,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.scheduling.annotation.Scheduled;
 
-import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import static com.lql.humanresourcedemo.enumeration.LeaveViolationCode.ON_TIME;
-import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
-import static com.lql.humanresourcedemo.utility.HelperUtility.buildEmployeeWeeklyReport;
-import static com.lql.humanresourcedemo.utility.HelperUtility.buildLeaveWarningMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

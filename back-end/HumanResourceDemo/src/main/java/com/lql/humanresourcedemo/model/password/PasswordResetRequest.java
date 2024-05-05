@@ -1,7 +1,6 @@
 package com.lql.humanresourcedemo.model.password;
 
 import com.lql.humanresourcedemo.model.employee.Employee;
-import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

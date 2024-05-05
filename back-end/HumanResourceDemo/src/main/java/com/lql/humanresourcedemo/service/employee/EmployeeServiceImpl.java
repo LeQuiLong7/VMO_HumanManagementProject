@@ -16,15 +16,17 @@ import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.repository.*;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
 import com.lql.humanresourcedemo.utility.FileUtility;
-import com.lql.humanresourcedemo.utility.HelperUtility;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,14 +34,15 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
-import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPageRequest;
 import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 
 @Service
 @RequiredArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
+//    private final EmployeeTechRepository employeeTechRepository;
     private final EmployeeTechRepository employeeTechRepository;
+//    private final EmployeeProjectRepository employeeProjectRepository;
     private final EmployeeProjectRepository employeeProjectRepository;
     private final AttendanceRepository attendanceRepository;
     private final SalaryRaiseRequestRepository salaryRepository;
@@ -153,11 +156,40 @@ public class EmployeeServiceImpl implements EmployeeService {
     public Page<ProjectDetail> getAllProjects(Long employeeId, Pageable pageRequest) {
         requireExists(employeeId);
 
-        return employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageRequest)
-                .map(employeeProject ->
-                        new ProjectDetail(employeeProject.getId().getProject(),
-                                employeeProjectRepository.getAssignHistoryByProjectId(employeeProject.getId().getProject().getId())
-                        ));
+
+        Specification<Employee> specification1 = (root, query, criteriaBuilder) -> {
+            root.fetch("projects").fetch("project");
+            return criteriaBuilder.equal(root.get("id"), employeeId);
+        };
+        Employee employee = employeeRepository.findBy(specification1, p -> p.oneValue());
+        List<ProjectDetail> list = employee.getProjects().stream()
+                .map(project -> {
+                    Specification<EmployeeProject> specification = (root, query, criteriaBuilder) -> {
+                        root.fetch("employee");
+                        return criteriaBuilder.equal(root.get("id").get("projectId"), project.getProject().getId());
+                    };
+
+                    return new ProjectDetail(project.getProject(),
+                            employeeProjectRepository.findAll(specification)
+                                    .stream().map(ep ->
+                                            new AssignHistory(ep.getEmployee().getId(),
+                                                    ep.getEmployee().getLastName() + " " + ep.getEmployee().getFirstName(),
+                                                    ep.getEmployee().getAvatarUrl(),
+                                                    ep.getEmployee().getRole(),
+                                                    ep.getCreatedAt(),
+                                                    ep.getCreatedBy())).toList()
+
+
+                    );
+                }).toList();
+
+        return new PageImpl<>(list);
+//
+//        return employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageRequest)
+//                .map(employeeProject ->
+//                        new ProjectDetail(employeeProject.getId().getProject(),
+//                                employeeProjectRepository.getAssignHistoryByProjectId(employeeProject.getId().getProject().getId())
+//                        ));
     }
 
     private void requireExists(Long employeeId) {
