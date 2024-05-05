@@ -3,6 +3,7 @@ package com.lql.humanresourcedemo.service.search;
 import com.lql.humanresourcedemo.dto.request.search.Logic;
 import com.lql.humanresourcedemo.dto.request.search.LogicOperator;
 import com.lql.humanresourcedemo.dto.request.search.SearchRequest;
+import com.lql.humanresourcedemo.enumeration.ProjectState;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -14,9 +15,34 @@ public class SpecificationService {
     public static <T> Specification<T> toSpecification(SearchRequest searchRequest, Class<T> clazz) {
 
         return (root, query, criteriaBuilder) -> {
+//            query.distinct(true);
+
+            Subquery<Long> subquery = query.subquery(Long.class);
+
+            Root<T> rootSub = subquery.from(clazz);
+            subquery.select(root.get("id"));
+            Join<Object, Object> join = rootSub.join("projects").join("project");
+
+            subquery.groupBy(rootSub.get("id"))
+                            .having(criteriaBuilder.lt(
+                                    criteriaBuilder.sum(
+                                            criteriaBuilder.selectCase()
+                                                            .when(
+                                                                    criteriaBuilder.equal(join.get("state"), ProjectState.FINISHED), 1)
+                                                                    .otherwise(0).as(Integer.class)), 2
+                                    )
+                            );
+            CriteriaBuilder.In<Object> id = criteriaBuilder.in(root.get("id")).value(subquery);
+
+//            query.groupBy(root.get("id"));
+//            query.having(criteriaBuilder.lt(criteriaBuilder.count(
+//                    criteriaBuilder.equal(root.get("projects").get("project").get("state"), ProjectState.ON_GOING)), 2));
             List<Predicate> predicates = new ArrayList<>();
             processLogic(searchRequest.logics(), root, query, criteriaBuilder, predicates);
-            return combineLogicByOperator(criteriaBuilder, searchRequest.logicOperator(), predicates);
+            Predicate predicate = combineLogicByOperator(criteriaBuilder, searchRequest.logicOperator(), predicates);
+
+
+            return criteriaBuilder.and(predicate, id);
         };
     }
 
@@ -69,6 +95,7 @@ public class SpecificationService {
             case GTE -> criteriaBuilder.greaterThanOrEqualTo(objectPath, logic.value());
             case LTE -> criteriaBuilder.lessThanOrEqualTo(objectPath, logic.value());
             case IN -> {
+
                 CriteriaBuilder.In<String> in = criteriaBuilder.in(objectPath);
                 logic.values().forEach(in::value);
                 yield in;
