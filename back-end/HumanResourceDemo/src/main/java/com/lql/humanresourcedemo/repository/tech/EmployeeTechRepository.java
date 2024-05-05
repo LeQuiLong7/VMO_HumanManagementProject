@@ -1,4 +1,4 @@
-package com.lql.humanresourcedemo.repository;
+package com.lql.humanresourcedemo.repository.tech;
 
 import com.lql.humanresourcedemo.dto.response.TechInfo;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;

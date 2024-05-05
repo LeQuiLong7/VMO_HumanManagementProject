@@ -7,7 +7,7 @@ import com.lql.humanresourcedemo.exception.model.resetpassword.ResetPasswordExce
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.password.PasswordResetRequest;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.PasswordResetRepository;
+import com.lql.humanresourcedemo.repository.passwordreset.PasswordResetRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @NoArgsConstructor
@@ -20,18 +21,24 @@ public class PasswordResetRequest {
     private PasswordResetRequestId id;
     private LocalDateTime validUntil;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("employeeId")
+    private Employee employee;
+
+    public PasswordResetRequest(Employee employee, String token,LocalDateTime validUntil) {
+        this.id = new PasswordResetRequestId(employee.getId(), token);
+        this.validUntil = validUntil;
+        this.employee = employee;
+    }
+
     @Embeddable
     @NoArgsConstructor
     @AllArgsConstructor
     @Getter
     @Setter
     public static class PasswordResetRequestId implements Serializable {
-        @ManyToOne
-        @JoinColumn(name = "employeeId")
-        private Employee employee;
+        private Long employeeId;
         private String token;
-
-
 
         @Override
         public boolean equals(Object o) {
@@ -40,14 +47,13 @@ public class PasswordResetRequest {
 
             PasswordResetRequestId that = (PasswordResetRequestId) o;
 
-
-            return employee.getId().equals(that.employee.getId())
-                    && token.equals(that.token);
+            if (!Objects.equals(employeeId, that.employeeId)) return false;
+            return Objects.equals(token, that.token);
         }
 
         @Override
         public int hashCode() {
-            int result = employee != null ? employee.hashCode() : 0;
+            int result = employeeId != null ? employeeId.hashCode() : 0;
             result = 31 * result + (token != null ? token.hashCode() : 0);
             return result;
         }

@@ -1,4 +1,4 @@
-package com.lql.humanresourcedemo.repository;
+package com.lql.humanresourcedemo.repository.project;
 
 import com.lql.humanresourcedemo.dto.response.AssignHistory;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;

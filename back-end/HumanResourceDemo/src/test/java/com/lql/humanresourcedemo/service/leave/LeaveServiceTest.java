@@ -10,7 +10,7 @@ import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestExcept
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.LeaveRepository;
+import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

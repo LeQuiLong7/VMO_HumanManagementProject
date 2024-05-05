@@ -16,8 +16,11 @@ import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;
 import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
-import com.lql.humanresourcedemo.repository.*;
+import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
+import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
+import com.lql.humanresourcedemo.repository.tech.EmployeeTechRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +56,7 @@ class EmployeeServiceTest {
     @Mock
     private EmployeeProjectRepository employeeProjectRepository;
     @Mock
-    private  SalaryRaiseRequestRepository salaryRepository;
+    private SalaryRaiseRequestRepository salaryRepository;
     @Mock
     private  PasswordEncoder passwordEncoder;
     @Mock
