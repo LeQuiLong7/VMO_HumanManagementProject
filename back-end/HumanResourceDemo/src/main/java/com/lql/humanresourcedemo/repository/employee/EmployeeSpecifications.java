@@ -20,8 +20,4 @@ public class EmployeeSpecifications {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("managedBy").get("id"), pmId);
     }
-    public static interface ProjectsOnly{
-        List<EmployeeProject> getProjects();
-    }
-
 }

@@ -21,7 +21,7 @@ import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPa
 public class SearchController {
     private final SearchService searchService;
 
-    @GetMapping("/employees")
+    @PostMapping("/employees")
     public Page<SearchResponse> getAllEmployee(@RequestParam(required = false, defaultValue = "0") String page,
                                                @RequestParam(required = false, defaultValue = "10") String size,
                                                @RequestParam(required = false, defaultValue = "id") List<String> p,
