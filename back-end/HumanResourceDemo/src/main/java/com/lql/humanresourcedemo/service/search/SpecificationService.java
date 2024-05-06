@@ -9,39 +9,49 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SpecificationService {
 
     public static <T> Specification<T> toSpecification(SearchRequest searchRequest, Class<T> clazz) {
 
         return (root, query, criteriaBuilder) -> {
-//            root.fetch("techs").fetch("tech");
             if(searchRequest.logicOperator().equals(LogicOperator.FIND_ALL)) {
                 return criteriaBuilder.isTrue(criteriaBuilder.literal(true));
             }
-//            Subquery<Long> subquery = query.subquery(Long.class);
-//
-//            Root<T> rootSub = subquery.from(clazz);
-//            subquery.select(root.get("id"));
-//            Join<Object, Object> join = rootSub.join("projects").join("project");
-//
-//            subquery.groupBy(rootSub.get("id"))
-//                            .having(criteriaBuilder.lt(
-//                                    criteriaBuilder.sum(
-//                                            criteriaBuilder.selectCase()
-//                                                            .when(
-//                                                                    criteriaBuilder.equal(join.get("state"), ProjectState.FINISHED), 1)
-//                                                                    .otherwise(0).as(Integer.class)), 2
-//                                    )
-//                            );
-//            CriteriaBuilder.In<Object> id = criteriaBuilder.in(root.get("id")).value(subquery);
+
+            CriteriaBuilder.In<Object> id = null;
+            Optional<Logic> numberOfOnGoingProjects = searchRequest.logics().stream().filter(logic -> logic.column().equals("numberOfOnGoingProjects")).findFirst();
+            if(numberOfOnGoingProjects.isPresent()) {
+                searchRequest.logics().removeIf(logic -> logic.column().equals("numberOfOnGoingProjects"));
+
+                    Subquery<Long> subquery = query.subquery(Long.class);
+
+                    Root<T> rootSub = subquery.from(clazz);
+                    subquery.select(root.get("id"));
+                    Join<Object, Object> join = rootSub.join("projects").join("project");
+
+                    subquery.groupBy(rootSub.get("id"))
+                                    .having(criteriaBuilder.lt(
+                                            criteriaBuilder.sum(
+                                                    criteriaBuilder.selectCase()
+                                                                    .when(
+                                                                            criteriaBuilder.equal(join.get("state"), ProjectState.FINISHED), 1)
+                                                                            .otherwise(0).as(Integer.class)), Integer.parseInt(numberOfOnGoingProjects.get().value())
+                                            )
+                                    );
+                     id = criteriaBuilder.in(root.get("id")).value(subquery);
+            }
+
+
 
             List<Predicate> predicates = new ArrayList<>();
             processLogic(searchRequest.logics(), root, query, criteriaBuilder, predicates);
             Predicate predicate = combineLogicByOperator(criteriaBuilder, searchRequest.logicOperator(), predicates);
 
+            if(id != null )
+                return criteriaBuilder.and(predicate, id);
             return predicate;
-//            return criteriaBuilder.and(predicate, id);
         };
     }
 

@@ -22,7 +22,7 @@ public class SearchServiceImpl implements SearchService{
     public Page<SearchResponse> search(SearchRequest searchRequest, Pageable pageRequest) {
 
         Specification<Employee> specification = SpecificationService.toSpecification(searchRequest, Employee.class);
-        return employeeRepository.findBy(specification, p -> p.project("projects.project").page(pageRequest)).map(
+        return employeeRepository.findBy(specification, p -> p.project("techs.tech").page(pageRequest)).map(
                 employee ->
                         new SearchResponse(
                                 MappingUtility.employeeToProfileResponse(employee),
