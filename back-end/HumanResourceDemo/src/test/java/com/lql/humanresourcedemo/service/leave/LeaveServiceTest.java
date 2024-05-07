@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -109,7 +110,7 @@ class LeaveServiceTest {
         Employee employee = Employee.builder().id(1L).build();
         LeaveRequest leaveRequest = new LeaveRequest(1L, employee, null, null, null, null, null);
 
-        when(leaveRepository.findAllByEmployeeId(any(Long.class), any(Pageable.class)))
+        when(leaveRepository.findBy(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(leaveRequest)));
 
 
@@ -127,7 +128,7 @@ class LeaveServiceTest {
     void testGetLeaveRequestByEmployeeIdAndDate_NotFound() {
         Long employeeId = 1L;
         LocalDate date = LocalDate.now();
-        when(leaveRepository.findByEmployeeIdAndDate(employeeId, date))
+        when(leaveRepository.findBy(any(Specification.class), any()))
                 .thenReturn(Optional.empty());
 
 
@@ -147,7 +148,7 @@ class LeaveServiceTest {
         LeaveRequest leaveRequest = new LeaveRequest(1L, employee, date, null, null, null, null);
 
 
-        when(leaveRepository.findByEmployeeIdAndDate(employeeId, date))
+        when(leaveRepository.findBy(any(Specification.class), any()))
                 .thenReturn(Optional.of(leaveRequest));
 
 

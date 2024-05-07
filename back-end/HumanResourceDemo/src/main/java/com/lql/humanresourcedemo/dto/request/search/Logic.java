@@ -7,7 +7,6 @@ public record Logic(
         String value,
         List<String> values,
         QueryOperator queryOperator,
-
         LogicOperator logicOperator,
         List<Logic> logics
 

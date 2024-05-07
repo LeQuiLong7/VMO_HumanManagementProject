@@ -78,6 +78,6 @@ class LoginServiceTest {
         when(passwordEncoder.matches(loginRequest.password(), employee.password())).thenReturn(false);
 
         LoginException exception = assertThrows(LoginException.class, () -> loginService.login(loginRequest));
-        assertEquals("password %s is not correct for %s".formatted(loginRequest.password(), loginRequest.email()), exception.getMessage());
+        assertEquals("Password is not correct", exception.getMessage());
     }
 }

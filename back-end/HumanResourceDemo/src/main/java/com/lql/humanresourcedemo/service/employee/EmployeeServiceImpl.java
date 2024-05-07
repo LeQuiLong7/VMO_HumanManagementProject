@@ -18,6 +18,7 @@ import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceSpecifications;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
+import com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications;
 import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
 import com.lql.humanresourcedemo.repository.tech.EmployeeTechRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
@@ -148,25 +149,23 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Page<Attendance> getAllAttendanceHistory(Long employeeId,Pageable pageRequest) {
         requireExists(employeeId);
-        return attendanceRepository.findBy(AttendanceSpecifications.byEmployeeId(employeeId), p -> p.page(pageRequest));
+        return attendanceRepository.findBy(AttendanceSpecifications.byEmployeeId(employeeId), p -> p.sortBy(pageRequest.getSort()).page(pageRequest));
     }
 
     @Override
     public Page<ProjectDetail> getAllProjects(Long employeeId, Pageable pageRequest) {
 
-        Employee employee = employeeRepository.findBy(byId(employeeId), p -> p.project("projects.project").first())
-                .orElseThrow(() -> new EmployeeException("Could not find employee " + employeeId));
+        requireExists(employeeId);
+        Page<EmployeeProject> projects = employeeProjectRepository.findBy(EmployeeProjectSpecifications.byEmployeeId(employeeId), p -> p.project("project").sortBy(pageRequest.getSort()).page(pageRequest));
 
-        List<ProjectDetail> list = employee.getProjects().stream()
+        return  projects
                 .map(project -> new ProjectDetail(
                         project.getProject(),
                         employeeProjectRepository.findBy(byProjectId(project.getId().getProjectId()), p -> p.project("employee").all())
                                 .stream()
                                 .map(AssignHistory::of)
                                 .toList()
-                )).toList();
-
-        return new PageImpl<>(list);
+                ));
     }
 
     private void requireExists(Long employeeId) {

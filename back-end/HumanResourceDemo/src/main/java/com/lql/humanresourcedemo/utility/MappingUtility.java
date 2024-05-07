@@ -60,11 +60,13 @@ public class MappingUtility {
     }
 
 
-    public static Employee toEmployee(CreateNewEmployeeRequest request) {
+    public static Employee toEmployee(CreateNewEmployeeRequest request, Employee managedBy, String email, String password) {
 
         return Employee.builder()
                 .firstName(request.firstName())
                 .lastName(request.lastName())
+                .email(email)
+                .password(password)
                 .birthDate(request.birthDate())
                 .phoneNumber(request.phoneNumber())
                 .personalEmail(request.personalEmail())
@@ -73,6 +75,7 @@ public class MappingUtility {
                 .leaveDays((byte) 0)
                 .quit(false)
                 .lastUpdatedAt(LocalDateTime.now())
+                .managedBy(managedBy)
                 .build();
     }
     public static Attendance toAttendance(CheckAttendanceRequest.AttendanceDetail attendanceDetail, LocalDate date, Employee e) {

@@ -331,7 +331,7 @@ class EmployeeServiceTest {
 
 
         when(employeeRepository.existsById(employeeId)).thenReturn(true);
-        when(attendanceRepository.findAllByEmployeeId(employeeId, pageable))
+        when(attendanceRepository.findBy(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(Mockito.mock(Attendance.class))));
 
         Page<Attendance> response = employeeService.getAllAttendanceHistory(employeeId, pageable);
@@ -352,7 +352,7 @@ class EmployeeServiceTest {
                 .employee(employee).build();
 
         when(employeeRepository.existsById(employeeId)).thenReturn(true);
-        when(salaryRepository.findAllByEmployeeId(employeeId, pageable))
+        when(salaryRepository.findBy(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(salaryRaiseRequest)));
 
         Page<SalaryRaiseResponse> response = employeeService.getAllSalaryRaiseRequest(employeeId, pageable);
@@ -380,10 +380,10 @@ class EmployeeServiceTest {
 
         when(employeeRepository.existsById(employeeId)).thenReturn(true);
 
-        when(employeeProjectRepository.findAll(any(Specification.class)))
-                .thenReturn(List.of(ep));
-        when(employeeRepository.findBy(any(Specification.class), any()))
-                .thenReturn(employee);
+        when(employeeProjectRepository.findBy(any(Specification.class), any()))
+                .thenReturn(new PageImpl<>(List.of(ep)));
+//        when(employeeProjectRepository.findBy(any(Specification.class), any()))
+//                .thenReturn(List.of(ep));
 
         Page<ProjectDetail> response = employeeService.getAllProjects(employeeId, pageable);
         assertAll(

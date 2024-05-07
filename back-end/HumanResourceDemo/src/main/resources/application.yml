@@ -45,3 +45,6 @@ mail:
 jwt:
   expiration:
     duration: 60000000
+springdoc:
+  swagger-ui:
+    tagsSorter: alpha

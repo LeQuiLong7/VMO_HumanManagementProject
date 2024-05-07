@@ -9,6 +9,7 @@ import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.service.pm.PMService;
 import com.lql.humanresourcedemo.utility.ContextUtility;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPa
 @RequestMapping("/pm")
 @PreAuthorize("hasRole('PM')")
 @RequiredArgsConstructor
+@Tag(name="7. PM controller")
 public class PMController {
 
     private final PMService pmService;
@@ -39,7 +41,7 @@ public class PMController {
     @GetMapping("/leave")
     public Page<LeaveResponse> getAllLeaveRequest(@RequestParam(required = false, defaultValue = "0") String page,
                                                    @RequestParam(required = false, defaultValue = "10") String size,
-                                                   @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                   @RequestParam(required = false, defaultValue = "createdAt") List<String> p,
                                                    @RequestParam(required = false, defaultValue = "desc") List<String> o) {
         return pmService.getAllLeaveRequest(getCurrentEmployeeId(),  validateAndBuildPageRequest(page, size, p, o, LeaveRequest.class));
     }

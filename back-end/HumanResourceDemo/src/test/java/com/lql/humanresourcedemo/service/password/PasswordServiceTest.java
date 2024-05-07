@@ -78,9 +78,8 @@ class PasswordServiceTest {
         ResetPasswordRequest request = new ResetPasswordRequest(token, "newPassword", "newPassword");
 
         PasswordResetRequest passwordResetRequest = new PasswordResetRequest(
-                new PasswordResetRequest.PasswordResetRequestId(
                         Employee.builder().id(1L).build(), token
-                ), LocalDateTime.now().plusHours(1)
+                , LocalDateTime.now().plusHours(1)
         );
 
         when(passwordResetRepository.findByToken(token))
@@ -126,9 +125,8 @@ class PasswordServiceTest {
         String token = UUID.randomUUID().toString();
         ResetPasswordRequest request = new ResetPasswordRequest(token, "newPassword", "newPassword");
         PasswordResetRequest passwordResetRequest = new PasswordResetRequest(
-                new PasswordResetRequest.PasswordResetRequestId(
                         Employee.builder().id(1L).build(), token
-                ), LocalDateTime.now().minusHours(1)
+                , LocalDateTime.now().minusHours(1)
         );
 
         when(passwordResetRepository.findByToken(token))

@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class SearchServiceImpl implements SearchService {
     private final EmployeeRepository employeeRepository;
-
     @Override
     @Transactional
     public Page<SearchResponse> search(SearchRequest searchRequest, Pageable pageRequest) {

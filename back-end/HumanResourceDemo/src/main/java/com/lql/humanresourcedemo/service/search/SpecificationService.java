@@ -22,33 +22,32 @@ public class SpecificationService {
             CriteriaBuilder.In<Object> id = null;
             Optional<Logic> numberOfOnGoingProjects = searchRequest.logics().stream().
                     filter(logic -> logic.column().equals("numberOfOnGoingProjects")).findFirst();
-            if(numberOfOnGoingProjects.isPresent()) {
-                    Subquery<Long> subquery = query.subquery(Long.class);
 
-                    Root<T> rootSub = subquery.from(clazz);
-                    subquery.select(rootSub.get("id"));
-                    Join<Object, Object> join = rootSub.join("projects").join("project");
+            if (numberOfOnGoingProjects.isPresent()) {
+                Subquery<Long> subquery = query.subquery(Long.class);
 
-                    subquery.groupBy(rootSub.get("id"))
-                                    .having(criteriaBuilder.lessThanOrEqualTo(
-                                            criteriaBuilder.sum(
-                                                    criteriaBuilder.selectCase()
-                                                                    .when(
-                                                                            criteriaBuilder.equal(join.get("state"), ProjectState.ON_GOING), 1)
-                                                                            .otherwise(0).as(Integer.class)),
-                                            Integer.parseInt(numberOfOnGoingProjects.get().value())
-                                            )
-                                    );
-                     id = criteriaBuilder.in(root.get("id")).value(subquery);
+                Root<T> rootSub = subquery.from(clazz);
+                subquery.select(rootSub.get("id"));
+                Join<Object, Object> join = rootSub.join("projects").join("project");
+
+                subquery.groupBy(rootSub.get("id"))
+                        .having(criteriaBuilder.lessThanOrEqualTo(
+                                        criteriaBuilder.sum(
+                                                criteriaBuilder.selectCase()
+                                                        .when( criteriaBuilder.equal(join.get("state"), ProjectState.ON_GOING), 1)
+                                                        .otherwise(0).as(Integer.class)),
+                                                Integer.parseInt(numberOfOnGoingProjects.get().value())
+                                )
+                        );
+                id = criteriaBuilder.in(root.get("id")).value(subquery);
             }
-
 
 
             List<Predicate> predicates = new ArrayList<>();
             processLogic(searchRequest.logics().stream().filter(logic -> !logic.column().equals("numberOfOnGoingProjects")).toList(), root, query, criteriaBuilder, predicates);
             Predicate predicate = combineLogicByOperator(criteriaBuilder, searchRequest.logicOperator(), predicates);
 
-            if(id != null )
+            if (id != null)
                 return criteriaBuilder.and(predicate, id);
             return predicate;
         };
@@ -63,7 +62,7 @@ public class SpecificationService {
     ) {
 
         for (Logic logic : logics) {
-            if(logic.queryOperator() != null)
+            if (logic.queryOperator() != null)
                 predicates.add(createPredicate(logic, root, criteriaBuilder));
 
             if (logic.logicOperator() != null && logic.logics() != null && !logic.logics().isEmpty()) {
@@ -80,7 +79,6 @@ public class SpecificationService {
         return switch (logicOperator) {
             case AND -> criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             case OR -> criteriaBuilder.or(predicates.toArray(new Predicate[0]));
-            case FIND_ALL -> null;
         };
     }
 
@@ -89,12 +87,11 @@ public class SpecificationService {
 
         Path<String> objectPath = root.get(splitPath[0]);
 
-        if(splitPath.length > 1) {
-            for(int i = 1; i < splitPath.length; i++) {
+        if (splitPath.length > 1) {
+            for (int i = 1; i < splitPath.length; i++) {
                 objectPath = objectPath.get(splitPath[i]);
             }
         }
-
 
 
         return switch (logic.queryOperator()) {
@@ -114,7 +111,8 @@ public class SpecificationService {
                 logic.values().forEach(in::value);
                 yield criteriaBuilder.not(in);
             }
-            case BT -> criteriaBuilder.between(objectPath, logic.values().get(0), logic.values().get(logic.values().size() - 1));
+            case BT ->
+                    criteriaBuilder.between(objectPath, logic.values().get(0), logic.values().get(logic.values().size() - 1));
             case NEQ -> criteriaBuilder.notEqual(objectPath, logic.value());
         };
     }
