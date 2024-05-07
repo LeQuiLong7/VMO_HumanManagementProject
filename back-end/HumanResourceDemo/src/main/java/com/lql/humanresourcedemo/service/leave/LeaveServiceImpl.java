@@ -8,21 +8,24 @@ import com.lql.humanresourcedemo.enumeration.LeaveType;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.LeaveRepository;
+import com.lql.humanresourcedemo.model.employee.Employee;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
+import com.lql.humanresourcedemo.repository.leave.LeaveSpecifications;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
-import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPageRequest;
+import static com.lql.humanresourcedemo.repository.leave.LeaveSpecifications.*;
 import static com.lql.humanresourcedemo.utility.MappingUtility.leaveRequestToResponse;
+import static com.lql.humanresourcedemo.utility.MappingUtility.toLeaveRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -44,26 +47,19 @@ public class LeaveServiceImpl implements LeaveService{
             throw new LeaveRequestException("Requesting a paid leave day but not enough leave day left");
         }
 
-        LeaveRequest leaveRequest = LeaveRequest.builder()
-                .employee(employeeRepository.getReferenceById(employeeId))
-                .date(request.leaveDate())
-                .type(request.type())
-                .status(LeaveStatus.PROCESSING)
-                .reason(request.reason())
-                .build();
+        LeaveRequest leaveRequest = toLeaveRequest(employeeRepository.getReferenceById(employeeId), request);
 
         return leaveRequestToResponse(leaveRepository.save(leaveRequest));
-
-
     }
+
 
     @Override
     public Page<LeaveResponse> getAllLeaveRequest(Long employeeId, Pageable pageRequest) {
-        return leaveRepository.findAllByEmployeeId(employeeId, pageRequest).map(MappingUtility::leaveRequestToResponse);
+        return leaveRepository.findBy(byEmployeeId(employeeId), p -> p.sortBy(pageRequest.getSort()).page(pageRequest)).map(MappingUtility::leaveRequestToResponse);
     }
 
     @Override
     public Optional<LeaveResponse> getLeaveRequestByDateAndEmployeeId(Long employeeId, LocalDate date) {
-        return leaveRepository.findByEmployeeIdAndDate(employeeId,date).map(MappingUtility::leaveRequestToResponse);
+        return leaveRepository.findBy(byEmployeeId(employeeId).and(byDate(date)), FluentQuery.FetchableFluentQuery::first).map(MappingUtility::leaveRequestToResponse);
     }
 }

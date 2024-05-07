@@ -1,26 +1,30 @@
 package com.lql.humanresourcedemo.service.password;
 
 
+import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPersonalEmailAndFirstName;
+import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.dto.request.employee.ResetPasswordRequest;
 import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.resetpassword.ResetPasswordException;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.password.PasswordResetRequest;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.PasswordResetRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.passwordreset.PasswordResetRepository;
+import com.lql.humanresourcedemo.repository.passwordreset.PasswordResetSpecifications;
 import com.lql.humanresourcedemo.service.mail.MailService;
-import com.lql.humanresourcedemo.service.mail.MailServiceImpl;
-import com.lql.humanresourcedemo.utility.HelperUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static com.lql.humanresourcedemo.constant.PasswordResetConstants.*;
+import static com.lql.humanresourcedemo.constant.PasswordResetConstants.VALID_UNTIL_TEMPORAL_UNIT;
+import static com.lql.humanresourcedemo.constant.PasswordResetConstants.VALID_UNTIL_TIME_AMOUNT;
+import static com.lql.humanresourcedemo.repository.passwordreset.PasswordResetSpecifications.*;
 import static com.lql.humanresourcedemo.utility.HelperUtility.buildResetMailMessage;
 
 @Service
@@ -37,17 +41,16 @@ public class PasswordServiceImpl implements PasswordService{
     @Override
     @Transactional
     public ChangePasswordResponse createPasswordResetRequest(String email) {
-        Employee e = employeeRepository.findByEmail(email)
+
+        OnlyIdPersonalEmailAndFirstName e = employeeRepository.findByEmail(email, OnlyIdPersonalEmailAndFirstName.class)
                 .orElseThrow(() -> new EmployeeException("Email not found"));
 
         String token = UUID.randomUUID().toString();
         LocalDateTime validUntil = LocalDateTime.now().plus(VALID_UNTIL_TIME_AMOUNT, VALID_UNTIL_TEMPORAL_UNIT);
 
-        PasswordResetRequest passwordResetRequest = new PasswordResetRequest(new PasswordResetRequest.PasswordResetRequestId(e, token), validUntil);
+        passwordResetRepository.save(new PasswordResetRequest(employeeRepository.getReferenceById(e.id()), token, validUntil));
 
-        passwordResetRepository.save(passwordResetRequest);
-
-        mailService.sendEmail(e.getPersonalEmail(), "[COMPANY] - RESET PASSWORD REQUEST", buildResetMailMessage(e.getFirstName(), email, token, validUntil));
+        mailService.sendEmail(e.personalEmail(), "[COMPANY] - RESET PASSWORD REQUEST", buildResetMailMessage(e.firstName(), email, token, validUntil));
 
         return new ChangePasswordResponse("Success! Check your email for the token");
     }
@@ -61,7 +64,8 @@ public class PasswordServiceImpl implements PasswordService{
             throw new ResetPasswordException("Password and confirmation password do not match");
         }
 
-        PasswordResetRequest passwordResetRequest = passwordResetRepository.findByToken(request.token())
+        PasswordResetRequest passwordResetRequest = passwordResetRepository.findBy(
+                    byToken(request.token()), FluentQuery.FetchableFluentQuery::first)
                 .orElseThrow(() -> new ResetPasswordException("Token not found"));
 
 
@@ -70,12 +74,10 @@ public class PasswordServiceImpl implements PasswordService{
         }
 
 
-        Employee e = passwordResetRequest.getId().getEmployee();
-        e.setPassword(passwordEncoder.encode(request.newPassword()));
-        employeeRepository.save(e);
+        Employee e = passwordResetRequest.getEmployee();
+        employeeRepository.updatePasswordById(e.getId(), passwordEncoder.encode(request.newPassword()));
 
-        passwordResetRepository.deleteByEmployeeId(e.getId());
-
+        passwordResetRepository.delete(byEmployeeId(e.getId()));
 
         return new ChangePasswordResponse("Reset password successfully!");
     }

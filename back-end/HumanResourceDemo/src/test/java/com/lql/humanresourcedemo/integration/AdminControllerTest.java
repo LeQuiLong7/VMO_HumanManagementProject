@@ -7,7 +7,7 @@ import com.lql.humanresourcedemo.dto.request.employee.LoginRequest;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.LoginResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

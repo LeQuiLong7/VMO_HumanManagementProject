@@ -16,25 +16,33 @@ import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import com.lql.humanresourcedemo.model.tech.Tech;
-import com.lql.humanresourcedemo.repository.*;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
+import com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications;
+import com.lql.humanresourcedemo.repository.project.ProjectRepository;
+import com.lql.humanresourcedemo.repository.project.ProjectSpecifications;
+import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
+import com.lql.humanresourcedemo.repository.salary.SalaryRaiseSpecifications;
+import com.lql.humanresourcedemo.repository.tech.EmployeeTechRepository;
+import com.lql.humanresourcedemo.repository.tech.TechRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.lql.humanresourcedemo.enumeration.ProjectState.*;
+import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byRole;
+import static com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications.byProjectId;
+import static com.lql.humanresourcedemo.repository.tech.EmployeeTechSpecifications.byEmployeeId;
 import static com.lql.humanresourcedemo.utility.HelperUtility.*;
 import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 
@@ -49,107 +57,96 @@ public class AdminServiceImpl implements AdminService {
     private final EmployeeProjectRepository employeeProjectRepository;
     private final TechRepository techRepository;
     private final ProjectRepository projectRepository;
-    private final ApplicationContext applicationContext;
 
     @Override
     public Page<GetProfileResponse> getAllEmployee(Pageable pageRequest) {
-        return getAll(Employee.class, EmployeeRepository.class, MappingUtility::employeeToProfileResponse, pageRequest);
+        return employeeRepository.findAll(pageRequest).map(MappingUtility::employeeToProfileResponse);
 
     }
 
     @Override
     public Page<GetProfileResponse> getAllPM(Pageable pageRequest) {
-        return employeeRepository.findAllByRole(Role.PM, pageRequest).map(MappingUtility::employeeToProfileResponse);
-
+        return employeeRepository.findBy(byRole(Role.PM), p -> p.sortBy(pageRequest.getSort()).page(pageRequest))
+                .map(MappingUtility::employeeToProfileResponse);
     }
 
     @Override
     public Page<ProjectResponse> getAllProject(Pageable pageRequest) {
-        return getAll(Project.class, ProjectRepository.class, MappingUtility::projectToProjectResponse, pageRequest);
+        return projectRepository.findAll(pageRequest).map(MappingUtility::projectToProjectResponse);
 
     }
 
     @Override
     public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Pageable pageRequest) {
-        return getAll(SalaryRaiseRequest.class, SalaryRaiseRequestRepository.class, MappingUtility::salaryRaiseRequestToResponse, pageRequest);
+        return salaryRepository.findAll(pageRequest).map(MappingUtility::salaryRaiseRequestToResponse);
 
     }
-
 
     @Override
     public Page<Tech> getAllTech(Pageable pageRequest) {
-        return getAll(Tech.class, TechRepository.class, Function.identity(), pageRequest);
-
+        return techRepository.findAll(pageRequest);
     }
-
 
     @Override
     public TechStackResponse getTechStackByEmployeeId(Long empId) throws EmployeeException {
         requiredExistsEmployee(empId);
+
+        List<EmployeeTech> tech = employeeTechRepository.findBy(byEmployeeId(empId), p -> p.project("tech").all());
+
         return new TechStackResponse(
                 empId,
-                employeeTechRepository.findTechInfoByEmployeeId(empId)
+                tech.stream()
+                        .map(TechInfo::of)
+                        .toList()
         );
     }
 
 
     @Override
     public Page<GetProfileResponse> getAllEmployeeInsideProject(Long projectId, Pageable pageRequest) {
-        return employeeProjectRepository.findAllByIdProjectId(projectId, pageRequest)
-                .map(employeeProject -> employeeProject.getId().getEmployee())
+        requiredExistsProject(projectId);
+        return employeeProjectRepository.findBy(
+                        byProjectId(projectId),
+                        p -> p.project("employee")
+                                .sortBy(pageRequest.getSort())
+                                .page(pageRequest))
+                .map(EmployeeProject::getEmployee)
                 .map(MappingUtility::employeeToProfileResponse);
     }
 
 
     @Override
+    @Transactional
     public Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, Pageable pageRequest) throws EmployeeException {
 
         requiredExistsEmployee(employeeId);
-        return employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageRequest)
-                .map(employeeProject ->
-                        new ProjectDetail(employeeProject.getId().getProject(),
-                                employeeProjectRepository.getAssignHistoryByProjectId(employeeProject.getId().getProject().getId())
-                        ));
+        Page<EmployeeProject> projects = employeeProjectRepository.findBy(EmployeeProjectSpecifications.byEmployeeId(employeeId), p -> p.project("project").sortBy(pageRequest.getSort()).page(pageRequest));
+
+        return  projects
+                .map(project -> new ProjectDetail(
+                        project.getProject(),
+                        employeeProjectRepository.findBy(byProjectId(project.getId().getProjectId()), p -> p.project("employee").all())
+                                .stream()
+                                .map(AssignHistory::of)
+                                .toList()
+                ));
     }
-
-
-    private <T, R extends PagingAndSortingRepository<T, ?>, V> Page<V> getAll(Class<T> clazz, Class<R> repoClass, Function<T, V> mappingFunction, Pageable pageRequest) {
-
-        try {
-            Method findAll = repoClass.getMethod("findAll", Pageable.class);
-
-            return ((Page<T>) findAll.invoke(applicationContext.getBean(repoClass), pageRequest)).map(mappingFunction);
-
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 
     @Override
     @Transactional
     public GetProfileResponse createNewEmployee(CreateNewEmployeeRequest request) {
-        validateCreateNewEmployeeRequest(request);
 
-        Employee e = createNewEmployeeRequestToEmployee(request);
-
-        e.setManagedBy(employeeRepository.getReferenceById(request.managedBy()));
 
         String email = buildEmail(request.firstName(), request.lastName());
         if (employeeRepository.existsByEmail(email)) {
             int count = employeeRepository.countByEmailLike(buildEmailWithWildcard(email));
             email = emailWithIdentityNumber(email, count);
-
         }
-        e.setEmail(email);
         String password = UUID.randomUUID().toString();
-        e.setPassword(passwordEncoder.encode(password));
-        employeeRepository.save(e);
 
+        Employee e = toEmployee(request, employeeRepository.getReferenceById(request.managedBy()),  email,  password);
+
+        employeeRepository.save(e);
 
         mailService.sendEmail(e.getPersonalEmail(), "[COMPANY] - WELCOME NEW EMPLOYEE", buildWelcomeMailMessage(e.getFirstName() + " " + e.getLastName(), e.getEmail(), password));
 
@@ -160,11 +157,14 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest) throws SalaryRaiseException {
 
-        SalaryRaiseRequest raiseRequest = salaryRepository.findById(handleRequest.requestId())
-                .orElseThrow(() -> new SalaryRaiseException("Raise request doesn't exists"));
+        SalaryRaiseRequest raiseRequest = salaryRepository.findBy(SalaryRaiseSpecifications.byId(handleRequest.requestId()), p -> p.project("employee").first())
+                .orElseThrow(() -> new SalaryRaiseException("Raise request not found"));
 
         if (raiseRequest.getStatus() != SalaryRaiseRequestStatus.PROCESSING) {
             throw new SalaryRaiseException("Raise request already handled");
+        }
+        if (handleRequest.status() == SalaryRaiseRequestStatus.PARTIALLY_ACCEPTED && handleRequest.newSalary() == null) {
+            throw new SalaryRaiseException("New salary is required");
         }
 
         Double newSalary = switch (handleRequest.status()) {
@@ -193,40 +193,34 @@ public class AdminServiceImpl implements AdminService {
     public TechStackResponse updateEmployeeTechStack(UpdateEmployeeTechStackRequest request) {
 
         requiredExistsEmployee(request.employeeId());
+        request.techStacks()
+                .forEach(t -> {
+                            if (!techRepository.existsById(t.techId()))
+                                throw new TechException("Tech id %s not found".formatted(t.techId()));
+                        }
+                );
 
-        for (var s : request.techStacks()) {
-            if (!techRepository.existsById(s.techId())) {
-                throw new TechException("Tech id %s not found".formatted(s.techId()));
-            }
+        request.techStacks().forEach(s -> {
             if (employeeTechRepository.existsByIdEmployeeIdAndIdTechId(request.employeeId(), s.techId())) {
                 employeeTechRepository.updateYearOfExperienceByEmployeeIdAndTechId(request.employeeId(), s.techId(), s.yearOfExperience());
             } else {
                 employeeTechRepository.save(
-                        new EmployeeTech(
-                                new EmployeeTech.EmployeeTechId(
-                                        employeeRepository.getReferenceById(request.employeeId()),
-                                        techRepository.getReferenceById(s.techId())),
-                                s.yearOfExperience())
+                        new EmployeeTech(employeeRepository.getReferenceById(request.employeeId()), techRepository.getReferenceById(s.techId()), s.yearOfExperience())
                 );
             }
+        });
 
-        }
         return new TechStackResponse(
                 request.employeeId(),
-                employeeTechRepository.findTechInfoByEmployeeId(request.employeeId()));
+                employeeTechRepository.findTechInfoByEmployeeId(request.employeeId())
+        );
+
     }
 
     @Override
     @Transactional
     public ProjectResponse createNewProject(CreateNewProjectRequest request) {
-        Project project = Project.builder()
-                .name(request.name())
-                .description(request.description())
-                .expectedStartDate(request.expectedStartDate())
-                .expectedFinishDate(request.expectedFinishDate())
-                .state(INITIATION)
-//                .client(clientRepository.getReferenceById(request.clientId()))
-                .build();
+        Project project = MappingUtility.toProject(request);
 
         return projectToProjectResponse(projectRepository.save(project));
     }
@@ -235,9 +229,8 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public ProjectResponse updateProject(UpdateProjectStatusRequest request) {
 
-        Project p = projectRepository.findById(request.id()).orElseThrow(
-                () -> new ProjectException("Could not find project " + request.id())
-        );
+        Project p = projectRepository.findById(request.id())
+                .orElseThrow(() -> new ProjectException("Could not find project " + request.id()));
 
 
         if (p.getState().equals(FINISHED)) {
@@ -247,7 +240,6 @@ public class AdminServiceImpl implements AdminService {
         if (request.newState().equals(p.getState())) {
             throw new ProjectException("New state is not valid, project already in that state ");
         }
-
 
         if (request.newState().equals(INITIATION)) {
             throw new ProjectException("New state %s id not valid, project already in %s".formatted(request.newState(), p.getState()));
@@ -268,28 +260,38 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public AssignEmployeeToProjectRequest assignEmployeeToProject(AssignEmployeeToProjectRequest request) {
-        requiredExistsProject(request.projectId());
+
         request.employeeIds().forEach(this::requiredExistsEmployee);
 
-        assignEmployeesToProject(request.projectId(), request.employeeIds());
+        Project project = projectRepository.findBy(ProjectSpecifications.byProjectId(request.projectId()), p -> p.project("employees").first())
+                .orElseThrow(() -> new ProjectException("Could not find project " + request.projectId()));
 
-        return new AssignEmployeeToProjectRequest(request.projectId(), employeeProjectRepository.getAllEmployeesAssignedByProjectId(request.projectId()));
-    }
+        Set<Long> employeeList = project.getEmployees().stream()
+                .map(ep -> ep.getId().getEmployeeId())
+                .collect(Collectors.toSet());
 
-    public void assignEmployeesToProject(Long projectId, List<Long> employeeIds) {
-        employeeIds.forEach(employeeId -> employeeProjectRepository.save(new EmployeeProject(new EmployeeProject.EmployeeProjectId(employeeRepository.getReferenceById(employeeId), projectRepository.getReferenceById(projectId)))));
-    }
+        request.employeeIds()
+                .stream()
+                .filter(employeeId -> !employeeList.contains(employeeId))
+                .forEach(employeeId ->
+                        employeeProjectRepository.save(new EmployeeProject(employeeRepository.getReferenceById(employeeId), project)));
 
-    private void requiredExistsProject(Long projectId) {
-        if (!projectRepository.existsById(projectId)) {
-            throw new ProjectException("Could not find project " + projectId);
+        employeeList.addAll(request.employeeIds());
+        return new AssignEmployeeToProjectRequest(
+                request.projectId(),
+                employeeList);
 
-        }
     }
 
     private void requiredExistsEmployee(Long employeeId) {
         if (!employeeRepository.existsById(employeeId)) {
             throw new EmployeeException("Could not find employee " + employeeId);
+
+        }
+    }
+    private void requiredExistsProject(Long projectId) {
+        if (!projectRepository.existsById(projectId)) {
+            throw new ProjectException("Could not find project " + projectId);
 
         }
     }

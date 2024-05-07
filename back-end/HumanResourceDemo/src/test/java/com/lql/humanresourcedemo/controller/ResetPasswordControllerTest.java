@@ -114,7 +114,7 @@ class ResetPasswordControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         ).andExpectAll(
-                status().isOk(),
+                status().isCreated(),
                 jsonPath("$.message").exists(),
                 jsonPath("$.message").value(SUCCESS_MESSAGE)
         );

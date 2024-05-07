@@ -16,11 +16,12 @@ import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;
 import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
-import com.lql.humanresourcedemo.repository.*;
+import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
+import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
+import com.lql.humanresourcedemo.repository.tech.EmployeeTechRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
-import com.lql.humanresourcedemo.service.validate.ValidateService;
-import com.lql.humanresourcedemo.utility.FileUtility;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,8 +41,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
-import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -50,13 +50,13 @@ class EmployeeServiceTest {
 
 
     @Mock
-    private  EmployeeRepository employeeRepository;
+    private EmployeeRepository employeeRepository;
     @Mock
-    private  EmployeeTechRepository employeeTechRepository;
+    private EmployeeTechRepository employeeTechRepository;
     @Mock
     private EmployeeProjectRepository employeeProjectRepository;
     @Mock
-    private  SalaryRaiseRequestRepository salaryRepository;
+    private SalaryRaiseRequestRepository salaryRepository;
     @Mock
     private  PasswordEncoder passwordEncoder;
     @Mock
@@ -331,7 +331,7 @@ class EmployeeServiceTest {
 
 
         when(employeeRepository.existsById(employeeId)).thenReturn(true);
-        when(attendanceRepository.findAllByEmployeeId(employeeId, pageable))
+        when(attendanceRepository.findBy(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(Mockito.mock(Attendance.class))));
 
         Page<Attendance> response = employeeService.getAllAttendanceHistory(employeeId, pageable);
@@ -352,7 +352,7 @@ class EmployeeServiceTest {
                 .employee(employee).build();
 
         when(employeeRepository.existsById(employeeId)).thenReturn(true);
-        when(salaryRepository.findAllByEmployeeId(employeeId, pageable))
+        when(salaryRepository.findBy(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(salaryRaiseRequest)));
 
         Page<SalaryRaiseResponse> response = employeeService.getAllSalaryRaiseRequest(employeeId, pageable);
@@ -372,17 +372,18 @@ class EmployeeServiceTest {
                 .build();
 
         EmployeeProject ep = new EmployeeProject(
-                new EmployeeProject.EmployeeProjectId(
                         employee,
                         project
-                )
         );
+
+        employee.setProjects(List.of(ep));
+
         when(employeeRepository.existsById(employeeId)).thenReturn(true);
 
-        when(employeeProjectRepository.findAllByIdEmployeeId(employeeId, pageable))
+        when(employeeProjectRepository.findBy(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(ep)));
-        when(employeeProjectRepository.getAssignHistoryByProjectId(employeeId))
-                .thenReturn(List.of(Mockito.mock(AssignHistory.class)));
+//        when(employeeProjectRepository.findBy(any(Specification.class), any()))
+//                .thenReturn(List.of(ep));
 
         Page<ProjectDetail> response = employeeService.getAllProjects(employeeId, pageable);
         assertAll(

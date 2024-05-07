@@ -7,6 +7,7 @@ import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.service.employee.EmployeeService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmploye
 @RequestMapping("/profile")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name="3. Profile controller")
 public class ProfileController {
 
     private final EmployeeService employeeService;

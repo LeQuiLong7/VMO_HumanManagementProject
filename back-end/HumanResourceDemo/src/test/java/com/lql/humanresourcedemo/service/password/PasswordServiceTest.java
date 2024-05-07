@@ -6,8 +6,8 @@ import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.resetpassword.ResetPasswordException;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.password.PasswordResetRequest;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.PasswordResetRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.passwordreset.PasswordResetRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.testcontainers.shaded.org.bouncycastle.openssl.PasswordException;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -79,9 +78,8 @@ class PasswordServiceTest {
         ResetPasswordRequest request = new ResetPasswordRequest(token, "newPassword", "newPassword");
 
         PasswordResetRequest passwordResetRequest = new PasswordResetRequest(
-                new PasswordResetRequest.PasswordResetRequestId(
                         Employee.builder().id(1L).build(), token
-                ), LocalDateTime.now().plusHours(1)
+                , LocalDateTime.now().plusHours(1)
         );
 
         when(passwordResetRepository.findByToken(token))
@@ -127,9 +125,8 @@ class PasswordServiceTest {
         String token = UUID.randomUUID().toString();
         ResetPasswordRequest request = new ResetPasswordRequest(token, "newPassword", "newPassword");
         PasswordResetRequest passwordResetRequest = new PasswordResetRequest(
-                new PasswordResetRequest.PasswordResetRequestId(
                         Employee.builder().id(1L).build(), token
-                ), LocalDateTime.now().minusHours(1)
+                , LocalDateTime.now().minusHours(1)
         );
 
         when(passwordResetRepository.findByToken(token))

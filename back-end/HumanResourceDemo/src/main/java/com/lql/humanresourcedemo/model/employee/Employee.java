@@ -2,17 +2,18 @@ package com.lql.humanresourcedemo.model.employee;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.model.Auditable;
+import com.lql.humanresourcedemo.model.project.EmployeeProject;
+import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -44,6 +45,14 @@ public class Employee extends Auditable {
     private Byte leaveDays;
     private Double currentSalary;
     private LocalDateTime lastUpdatedAt;
+
+    @JsonIgnore
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    private List<EmployeeProject> projects;
+    @JsonIgnore
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    private List<EmployeeTech> techs;
 
     @PreUpdate
     private void preUpdate() {

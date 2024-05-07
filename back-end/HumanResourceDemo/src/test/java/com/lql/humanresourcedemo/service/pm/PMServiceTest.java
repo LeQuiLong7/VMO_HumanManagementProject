@@ -12,11 +12,10 @@ import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestExcept
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.employee.Employee;
-import com.lql.humanresourcedemo.repository.AttendanceRepository;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.LeaveRepository;
+import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
-import com.lql.humanresourcedemo.service.validate.ValidateService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +26,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalTime;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;

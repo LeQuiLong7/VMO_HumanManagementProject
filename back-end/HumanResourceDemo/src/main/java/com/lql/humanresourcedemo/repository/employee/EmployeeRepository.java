@@ -1,4 +1,4 @@
-package com.lql.humanresourcedemo.repository;
+package com.lql.humanresourcedemo.repository.employee;
 
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.model.employee.Employee;
@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface EmployeeRepository extends JpaRepository<Employee, Long> {
+public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSpecificationExecutor<Employee> {
 
     <T> Optional<T> findById(Long id, Class<T> clazz);
 
@@ -61,4 +62,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query("update Employee e set e.password = :newPassword where e.id = :employeeId")
     void updatePasswordById(Long employeeId, String newPassword);
     int countByEmailLike(String email);
+
+
 }
