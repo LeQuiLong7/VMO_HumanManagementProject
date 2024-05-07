@@ -55,7 +55,7 @@ public class LeaveServiceImpl implements LeaveService{
 
     @Override
     public Page<LeaveResponse> getAllLeaveRequest(Long employeeId, Pageable pageRequest) {
-        return leaveRepository.findBy(byEmployeeId(employeeId), p -> p.page(pageRequest)).map(MappingUtility::leaveRequestToResponse);
+        return leaveRepository.findBy(byEmployeeId(employeeId), p -> p.sortBy(pageRequest.getSort()).page(pageRequest)).map(MappingUtility::leaveRequestToResponse);
     }
 
     @Override

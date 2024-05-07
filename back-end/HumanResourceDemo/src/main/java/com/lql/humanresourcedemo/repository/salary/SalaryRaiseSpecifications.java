@@ -8,4 +8,7 @@ public class SalaryRaiseSpecifications {
     public static Specification<SalaryRaiseRequest> byEmployeeId(Long employeeId) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("employee").get("id"), employeeId);
     }
+    public static Specification<SalaryRaiseRequest> byId(Long id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
+    }
 }

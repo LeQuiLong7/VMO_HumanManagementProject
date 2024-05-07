@@ -4,6 +4,7 @@ import com.lql.humanresourcedemo.dto.request.employee.LeaveRequestt;
 import com.lql.humanresourcedemo.dto.response.LeaveResponse;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.service.leave.LeaveService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPa
 @RestController
 @RequestMapping("/leave")
 @RequiredArgsConstructor
+@Tag(name="4. Leave controller")
 public class LeaveController {
     private final LeaveService leaveService;
 
@@ -30,7 +32,7 @@ public class LeaveController {
     @GetMapping
     public Page<LeaveResponse> getAllLeaveRequestByEmployeeId(@RequestParam(required = false, defaultValue = "0") String page,
                                                               @RequestParam(required = false, defaultValue = "10") String size,
-                                                              @RequestParam(required = false, defaultValue = "id") List<String> p,
+                                                              @RequestParam(required = false, defaultValue = "createdAt") List<String> p,
                                                               @RequestParam(required = false, defaultValue = "desc") List<String> o) {
         return leaveService.getAllLeaveRequest(getCurrentEmployeeId(), validateAndBuildPageRequest(page, size, p, o, LeaveRequest.class));
     }

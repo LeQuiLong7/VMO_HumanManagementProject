@@ -24,6 +24,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -77,7 +78,7 @@ public class PMServiceImpl implements PMService {
         }
 
         LeaveRequest l = leaveRepository.findById(request.requestId())
-                .orElseThrow(() -> new LeaveRequestException("Leave request %s can not be found".formatted(request.requestId())));
+                .orElseThrow(() -> new LeaveRequestException("Leave request could not be found"));
 
         if (l.getStatus() != LeaveStatus.PROCESSING) {
             throw new LeaveRequestException("Cannot change already handle request");
@@ -116,14 +117,15 @@ public class PMServiceImpl implements PMService {
     @Override
     public Page<GetProfileResponse> getAllEmployee(Long pmId, Pageable pageRequest) {
         requireExists(pmId);
-        return employeeRepository.findBy(byPmId(pmId), p -> p.page(pageRequest))
+        return employeeRepository.findBy(byPmId(pmId), p -> p.sortBy(pageRequest.getSort()).page(pageRequest))
                 .map(MappingUtility::employeeToProfileResponse);
     }
 
     @Override
     public Page<LeaveResponse> getAllLeaveRequest(Long pmId, Pageable pageRequest) {
         requireExists(pmId);
-        return leaveRepository.findBy(LeaveSpecifications.byPmId(pmId), p -> p.page(pageRequest))
+
+        return leaveRepository.findBy(LeaveSpecifications.byPmId(pmId), p -> p.project("employee").sortBy(pageRequest.getSort()).page(pageRequest))
                 .map(MappingUtility::leaveRequestToResponse);
     }
 

@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import static com.lql.humanresourcedemo.constant.JWTConstants.ROLE;
 import static com.lql.humanresourcedemo.constant.SecurityConstants.*;
@@ -30,10 +32,9 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String requestURI = request.getRequestURI();
 
 
-        if (!PUBLIC_URI.contains(requestURI)) {
+        if (!isPublicUrl(request.getRequestURI())) {
 
             final String bearerToken = request.getHeader(AUTHORIZATION);
 
@@ -67,5 +68,20 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(request, response);
+    }
+
+
+    boolean isPublicUrl(String url) {
+
+        return PUBLIC_URI
+                .stream()
+                .anyMatch(publicUrl -> {
+                            if(publicUrl.endsWith("/**")) {
+                                String regex = "^%s(?:/.*?)?$".formatted(publicUrl.substring(0, publicUrl.length() - 3));
+                                return Pattern.matches(regex, url);
+
+                            }
+                            return url.equals(publicUrl);
+                        });
     }
 }

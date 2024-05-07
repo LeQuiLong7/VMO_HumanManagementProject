@@ -1,6 +1,8 @@
 package com.lql.humanresourcedemo.service.password;
 
 
+import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPersonalEmailAndFirstName;
+import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.dto.request.employee.ResetPasswordRequest;
 import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
@@ -40,17 +42,15 @@ public class PasswordServiceImpl implements PasswordService{
     @Transactional
     public ChangePasswordResponse createPasswordResetRequest(String email) {
 
-        Employee e = employeeRepository.findByEmail(email)
+        OnlyIdPersonalEmailAndFirstName e = employeeRepository.findByEmail(email, OnlyIdPersonalEmailAndFirstName.class)
                 .orElseThrow(() -> new EmployeeException("Email not found"));
 
         String token = UUID.randomUUID().toString();
         LocalDateTime validUntil = LocalDateTime.now().plus(VALID_UNTIL_TIME_AMOUNT, VALID_UNTIL_TEMPORAL_UNIT);
 
-        PasswordResetRequest passwordResetRequest = new PasswordResetRequest(e, token, validUntil);
+        passwordResetRepository.save(new PasswordResetRequest(employeeRepository.getReferenceById(e.id()), token, validUntil));
 
-        passwordResetRepository.save(passwordResetRequest);
-
-        mailService.sendEmail(e.getPersonalEmail(), "[COMPANY] - RESET PASSWORD REQUEST", buildResetMailMessage(e.getFirstName(), email, token, validUntil));
+        mailService.sendEmail(e.personalEmail(), "[COMPANY] - RESET PASSWORD REQUEST", buildResetMailMessage(e.firstName(), email, token, validUntil));
 
         return new ChangePasswordResponse("Success! Check your email for the token");
     }

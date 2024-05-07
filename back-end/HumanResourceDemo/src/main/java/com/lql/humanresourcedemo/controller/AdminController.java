@@ -10,6 +10,7 @@ import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.service.admin.AdminService;
 import com.lql.humanresourcedemo.utility.ContextUtility;
 import com.lql.humanresourcedemo.utility.HelperUtility;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,7 @@ import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPa
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
+@Tag(name="6. Admin controller")
 public class AdminController {
 
     private final AdminService adminService;

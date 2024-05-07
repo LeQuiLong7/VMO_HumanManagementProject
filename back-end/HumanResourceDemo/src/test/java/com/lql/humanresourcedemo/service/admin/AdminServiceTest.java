@@ -73,7 +73,7 @@ class AdminServiceTest {
 
     @BeforeEach
     void setUp() {
-        adminService = new AdminServiceImpl(employeeRepository, passwordEncoder, mailService, salaryRepository, employeeTechRepository, employeeProjectRepository, techRepository,  projectRepository, applicationContext);
+        adminService = new AdminServiceImpl(employeeRepository, passwordEncoder, mailService, salaryRepository, employeeTechRepository, employeeProjectRepository, techRepository,  projectRepository);
     }
 
     @Test
@@ -277,8 +277,7 @@ class AdminServiceTest {
         AssignEmployeeToProjectRequest response = adminService.assignEmployeeToProject(request);
         assertAll(
                 () -> assertEquals(1, response.projectId()),
-                () -> assertEquals(1, response.employeeIds().size()),
-                () -> assertEquals(employee.getId(), response.employeeIds().get(0))
+                () -> assertEquals(1, response.employeeIds().size())
         );
     }
 

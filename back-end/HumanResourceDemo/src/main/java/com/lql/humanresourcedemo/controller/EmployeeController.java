@@ -8,6 +8,7 @@ import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.service.employee.EmployeeService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPa
 @RestController
 @RequestMapping("/employee")
 @RequiredArgsConstructor
+@Tag(name="5. Employee controller")
 public class EmployeeController {
 
     private final EmployeeService employeeService;

@@ -44,4 +44,7 @@ mail:
 #    org.hibernate: DEBUG
 jwt:
   expiration:
-    duration: 600000
+    duration: 60000000
+springdoc:
+  swagger-ui:
+    tagsSorter: alpha

@@ -27,7 +27,7 @@ public class LoginServiceImpl implements LoginService {
                 .orElseThrow(() -> new LoginException("%s doesn't exists".formatted(loginRequest.email())));
 
         if (!passwordEncoder.matches(loginRequest.password(), employee.password())) {
-            throw new LoginException("password %s is not correct for %s".formatted(loginRequest.password(), loginRequest.email()));
+            throw new LoginException("Password is not correct");
         }
 
         String token = jwtService.generateToken(employee);
