@@ -15,14 +15,16 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-public class SearchServiceImpl implements SearchService{
+public class SearchServiceImpl implements SearchService {
     private final EmployeeRepository employeeRepository;
+
     @Override
     @Transactional
     public Page<SearchResponse> search(SearchRequest searchRequest, Pageable pageRequest) {
 
         Specification<Employee> specification = SpecificationService.toSpecification(searchRequest, Employee.class);
-        return employeeRepository.findBy(specification, p -> p.project("techs.tech").page(pageRequest)).map(
+        Page<Employee> by = employeeRepository.findAll(specification, pageRequest);
+        return by.map(
                 employee ->
                         new SearchResponse(
                                 MappingUtility.employeeToProfileResponse(employee),
@@ -35,39 +37,5 @@ public class SearchServiceImpl implements SearchService{
                         )
         );
 
-
-
-
-
-//
-////        System.out.println(map.getTotalElements());
-//
-//
-//        Specification<Employee> specification2 = (root, query, criteriaBuilder) -> {
-//
-//            query.select(root.get("firstName"));
-//            return criteriaBuilder.equal(root.get("id"), "1");
-//        };
-
-//
-//
-//        Specification<String> specification3 = (root, query, criteriaBuilder) -> {
-//
-//            query.select(root.get("firstName"));
-//            return criteriaBuilder.equal(root.get("id"), "1");
-//        };
-//
-//        List<Employee> all = employeeRepository.findAll(specification2);
-//
-//
-//        System.out.println(all.size());
-
-
-//        System.out.println();
-//        return null;
     }
-}
-
-interface FistNameOnly {
-    String getFirstName();
 }

@@ -11,33 +11,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.springframework.data.repository.query.parser.Part.Type.NOT_IN;
+
 public class SpecificationService {
 
     public static <T> Specification<T> toSpecification(SearchRequest searchRequest, Class<T> clazz) {
 
         return (root, query, criteriaBuilder) -> {
-            if(searchRequest.logicOperator().equals(LogicOperator.FIND_ALL)) {
-                return criteriaBuilder.isTrue(criteriaBuilder.literal(true));
-            }
 
             CriteriaBuilder.In<Object> id = null;
-            Optional<Logic> numberOfOnGoingProjects = searchRequest.logics().stream().filter(logic -> logic.column().equals("numberOfOnGoingProjects")).findFirst();
+            Optional<Logic> numberOfOnGoingProjects = searchRequest.logics().stream().
+                    filter(logic -> logic.column().equals("numberOfOnGoingProjects")).findFirst();
             if(numberOfOnGoingProjects.isPresent()) {
-                searchRequest.logics().removeIf(logic -> logic.column().equals("numberOfOnGoingProjects"));
-
                     Subquery<Long> subquery = query.subquery(Long.class);
 
                     Root<T> rootSub = subquery.from(clazz);
-                    subquery.select(root.get("id"));
+                    subquery.select(rootSub.get("id"));
                     Join<Object, Object> join = rootSub.join("projects").join("project");
 
                     subquery.groupBy(rootSub.get("id"))
-                                    .having(criteriaBuilder.lt(
+                                    .having(criteriaBuilder.lessThanOrEqualTo(
                                             criteriaBuilder.sum(
                                                     criteriaBuilder.selectCase()
                                                                     .when(
-                                                                            criteriaBuilder.equal(join.get("state"), ProjectState.FINISHED), 1)
-                                                                            .otherwise(0).as(Integer.class)), Integer.parseInt(numberOfOnGoingProjects.get().value())
+                                                                            criteriaBuilder.equal(join.get("state"), ProjectState.ON_GOING), 1)
+                                                                            .otherwise(0).as(Integer.class)),
+                                            Integer.parseInt(numberOfOnGoingProjects.get().value())
                                             )
                                     );
                      id = criteriaBuilder.in(root.get("id")).value(subquery);
@@ -46,7 +45,7 @@ public class SpecificationService {
 
 
             List<Predicate> predicates = new ArrayList<>();
-            processLogic(searchRequest.logics(), root, query, criteriaBuilder, predicates);
+            processLogic(searchRequest.logics().stream().filter(logic -> !logic.column().equals("numberOfOnGoingProjects")).toList(), root, query, criteriaBuilder, predicates);
             Predicate predicate = combineLogicByOperator(criteriaBuilder, searchRequest.logicOperator(), predicates);
 
             if(id != null )
@@ -109,6 +108,11 @@ public class SpecificationService {
                 CriteriaBuilder.In<String> in = criteriaBuilder.in(objectPath);
                 logic.values().forEach(in::value);
                 yield in;
+            }
+            case NOT_IN -> {
+                CriteriaBuilder.In<String> in = criteriaBuilder.in(objectPath);
+                logic.values().forEach(in::value);
+                yield criteriaBuilder.not(in);
             }
             case BT -> criteriaBuilder.between(objectPath, logic.values().get(0), logic.values().get(logic.values().size() - 1));
             case NEQ -> criteriaBuilder.notEqual(objectPath, logic.value());
