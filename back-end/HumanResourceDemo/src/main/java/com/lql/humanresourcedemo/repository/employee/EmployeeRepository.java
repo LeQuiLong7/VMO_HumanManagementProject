@@ -50,6 +50,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
     @Transactional
     @Query("update Employee  e set e.currentSalary = :newSalary where e.id = :employeeId")
     void updateSalaryById(Long employeeId, Double newSalary);
+    @Modifying
+    @Transactional
+    @Query("update Employee  e set e.currentEffort =  (e.currentEffort + :effort) where e.id = :employeeId")
+    void updateCurrentEffortById(Long employeeId, Integer effort);
 
     @Modifying
     @Transactional

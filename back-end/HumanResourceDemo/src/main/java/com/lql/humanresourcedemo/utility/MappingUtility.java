@@ -35,6 +35,7 @@ public class MappingUtility {
                 e.getPersonalEmail(),
                 e.getLeaveDays(),
                 e.getCurrentSalary(),
+                e.getCurrentEffort(),
                 e.getCreatedAt(),
                 e.getCreatedBy(),
                 e.getManagedBy() != null ? e.getManagedBy().getId() : null,

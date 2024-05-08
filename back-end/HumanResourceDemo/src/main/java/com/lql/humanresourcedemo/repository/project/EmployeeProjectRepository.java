@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -16,8 +17,8 @@ public interface EmployeeProjectRepository extends JpaRepository<EmployeeProject
 
 
 
-    @Query(value = "select e.id.employeeId from EmployeeProject e where e.id.projectId = :projectId")
-    List<Long> getAllEmployeesAssignedByProjectId(Long projectId);
+//    @Query(value = "select e.id.employeeId from EmployeeProject e where e.id.projectId = :projectId")
+//    List<Long> getAllEmployeesAssignedByProjectId(Long projectId);
 
 
 

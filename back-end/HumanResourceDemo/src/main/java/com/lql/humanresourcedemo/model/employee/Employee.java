@@ -46,8 +46,11 @@ public class Employee extends Auditable {
     private Double currentSalary;
     private LocalDateTime lastUpdatedAt;
 
-    @JsonIgnore
+    private Integer currentEffort;
 
+
+
+    @JsonIgnore
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
     private List<EmployeeProject> projects;
     @JsonIgnore

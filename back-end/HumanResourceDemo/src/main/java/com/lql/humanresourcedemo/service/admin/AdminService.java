@@ -2,6 +2,7 @@ package com.lql.humanresourcedemo.service.admin;
 
 import com.lql.humanresourcedemo.dto.request.admin.*;
 import com.lql.humanresourcedemo.dto.response.*;
+import com.lql.humanresourcedemo.dto.response.admin.EmployeeProjectResponse;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.model.project.Project;
@@ -25,7 +26,7 @@ public interface AdminService {
 
     ProjectResponse updateProject(UpdateProjectStatusRequest request);
 
-    AssignEmployeeToProjectRequest assignEmployeeToProject(AssignEmployeeToProjectRequest request);
+    List<EmployeeProjectResponse> assignEmployeeToProject(AssignEmployeeToProjectRequest request);
 //    AssignEmployeeToProjectRequest assignEmployeeToProject(AssignEmployeeToProjectRequest request);
 
     Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Pageable pageRequest);
@@ -34,7 +35,7 @@ public interface AdminService {
 
     TechStackResponse getTechStackByEmployeeId(Long empId) throws EmployeeException;
 
-    Page<GetProfileResponse> getAllEmployeeInsideProject(Long projectId, Pageable pageRequest);
+    List<EmployeeProjectResponse> getAllEmployeeInsideProject(Long projectId);
 
     Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, Pageable pageRequest);
 }
