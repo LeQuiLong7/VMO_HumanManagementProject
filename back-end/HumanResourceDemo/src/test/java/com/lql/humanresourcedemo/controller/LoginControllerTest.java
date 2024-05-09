@@ -1,24 +1,19 @@
 package com.lql.humanresourcedemo.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lql.humanresourcedemo.dto.request.employee.LoginRequest;
+import com.lql.humanresourcedemo.dto.request.login.LoginRequest;
 import com.lql.humanresourcedemo.dto.response.LoginResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.exception.model.login.LoginException;
 import com.lql.humanresourcedemo.filter.JWTAuthenticationFilter;
-import com.lql.humanresourcedemo.security.MyAuthentication;
 import com.lql.humanresourcedemo.service.login.LoginService;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 

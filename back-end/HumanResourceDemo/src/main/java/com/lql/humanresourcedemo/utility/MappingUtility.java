@@ -17,11 +17,19 @@ import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 import static com.lql.humanresourcedemo.enumeration.ProjectState.INITIATION;
 
 public class MappingUtility {
+
+
+    public static Date toDate(LocalDateTime dateToConvert) {
+        return java.util.Date
+                .from(dateToConvert.atZone(ZoneId.systemDefault())
+                        .toInstant());
+    }
 
     public static GetProfileResponse employeeToProfileResponse(Employee e) {
         return new GetProfileResponse(
@@ -68,6 +76,7 @@ public class MappingUtility {
                 .lastName(request.lastName())
                 .email(email)
                 .password(password)
+                .currentEffort(0)
                 .birthDate(request.birthDate())
                 .phoneNumber(request.phoneNumber())
                 .personalEmail(request.personalEmail())

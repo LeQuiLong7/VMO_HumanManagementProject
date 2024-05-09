@@ -3,7 +3,7 @@ package com.lql.humanresourcedemo.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lql.humanresourcedemo.dto.request.admin.CreateNewEmployeeRequest;
-import com.lql.humanresourcedemo.dto.request.employee.LoginRequest;
+import com.lql.humanresourcedemo.dto.request.login.LoginRequest;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.LoginResponse;
 import com.lql.humanresourcedemo.enumeration.Role;

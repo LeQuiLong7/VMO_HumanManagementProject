@@ -4,6 +4,7 @@ import com.lql.humanresourcedemo.dto.request.search.Logic;
 import com.lql.humanresourcedemo.dto.request.search.LogicOperator;
 import com.lql.humanresourcedemo.dto.request.search.SearchRequest;
 import com.lql.humanresourcedemo.enumeration.ProjectState;
+import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -21,7 +22,7 @@ public class SpecificationService {
 
             CriteriaBuilder.In<Object> id = null;
             Optional<Logic> numberOfOnGoingProjects = searchRequest.logics().stream().
-                    filter(logic -> logic.column().equals("numberOfOnGoingProjects")).findFirst();
+                    filter(logic -> logic.column() != null && logic.column().equals("numberOfOnGoingProjects")).findFirst();
 
             if (numberOfOnGoingProjects.isPresent()) {
                 Subquery<Long> subquery = query.subquery(Long.class);
@@ -29,7 +30,6 @@ public class SpecificationService {
                 Root<T> rootSub = subquery.from(clazz);
                 subquery.select(rootSub.get("id"));
                 Join<Object, Object> join = rootSub.join("projects").join("project");
-
                 subquery.groupBy(rootSub.get("id"))
                         .having(criteriaBuilder.lessThanOrEqualTo(
                                         criteriaBuilder.sum(
@@ -41,10 +41,9 @@ public class SpecificationService {
                         );
                 id = criteriaBuilder.in(root.get("id")).value(subquery);
             }
-
-
+            query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
-            processLogic(searchRequest.logics().stream().filter(logic -> !logic.column().equals("numberOfOnGoingProjects")).toList(), root, query, criteriaBuilder, predicates);
+            processLogic(searchRequest.logics().stream().filter(logic -> logic.column() == null || !logic.column().equals("numberOfOnGoingProjects")).toList(), root, query, criteriaBuilder, predicates);
             Predicate predicate = combineLogicByOperator(criteriaBuilder, searchRequest.logicOperator(), predicates);
 
             if (id != null)

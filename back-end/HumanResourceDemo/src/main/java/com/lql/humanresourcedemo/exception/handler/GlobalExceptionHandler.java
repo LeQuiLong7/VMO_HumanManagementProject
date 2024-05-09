@@ -127,6 +127,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Object> httpMessageNotReadableExceptionHandler(HttpMessageNotReadableException ex, HttpServletRequest request) {
 
+        ex.printStackTrace();
         Object value = ((InvalidFormatException) ex.getCause()).getValue();
         Object fieldName = ((InvalidFormatException) ex.getCause()).getPath().get(0).getFieldName();
 
