@@ -47,10 +47,8 @@ class LoginControllerTest {
             when(loginService.login(any(LoginRequest.class)))
                     .thenThrow(new LoginException(""));
 
-
-            String url = LoginController.class.getAnnotation(RequestMapping.class).value()[0];
             try {
-                mockMvc.perform(post(url)
+                mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest))
                 ).andExpectAll(
@@ -74,8 +72,7 @@ class LoginControllerTest {
                 .thenReturn(new LoginResponse("", "", Role.EMPLOYEE));
 
 
-        String url = LoginController.class.getAnnotation(RequestMapping.class).value()[0];
-        mockMvc.perform(post(url)
+        mockMvc.perform(post("/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest))
         ).andExpectAll(

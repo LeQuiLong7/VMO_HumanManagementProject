@@ -146,7 +146,7 @@ public class AdminServiceImpl implements AdminService {
         }
         String password = UUID.randomUUID().toString();
 
-        Employee e = toEmployee(request, employeeRepository.getReferenceById(request.managedBy()), email, password);
+        Employee e = toEmployee(request, employeeRepository.getReferenceById(request.managedBy()), email, passwordEncoder.encode(password));
 
         employeeRepository.save(e);
 

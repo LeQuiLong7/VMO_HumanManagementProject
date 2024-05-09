@@ -31,7 +31,7 @@ class JwtServiceTest {
     void setUp() {
         jwtBuilder = Jwts.builder().signWith(getSecretKey(), SignatureAlgorithm.HS256);
         jwtParser = Jwts.parserBuilder().setSigningKey(getSecretKey()).build();
-        jwtService = new JWTServiceImpl(jwtBuilder, jwtParser, 60000);
+        jwtService = new JWTServiceImpl(jwtBuilder, jwtParser, 60000, "MINUTES");
     }
 
 
@@ -81,7 +81,7 @@ class JwtServiceTest {
     @Test
     public void expiredTokenTest() {
 
-        jwtService = new JWTServiceImpl(jwtBuilder, jwtParser, -60000);
+        jwtService = new JWTServiceImpl(jwtBuilder, jwtParser, -60000, "MINUTES");
 
         OnlyIdPasswordAndRole employee = new OnlyIdPasswordAndRole(1L, "", Role.ADMIN);
 

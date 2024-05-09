@@ -3,6 +3,7 @@ package com.lql.humanresourcedemo.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lql.humanresourcedemo.dto.request.login.LoginRequest;
+import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -14,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -35,7 +37,10 @@ public class LoginControllerTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:16.2");
+    static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer<>("postgres:16.2-alpine");
+    @Container
+    @ServiceConnection
+    static RedisContainer redis  = new RedisContainer(DockerImageName.parse("redis:7.2.4-alpine"));
     private String email = "admin@company.com";
     private String password = "admin";
 

@@ -9,6 +9,7 @@ import com.lql.humanresourcedemo.dto.response.LoginResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
+import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.time.LocalDate;
 
@@ -55,7 +57,10 @@ public class AdminControllerTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:16.2");
+    static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer<>("postgres:16.2-alpine");
+    @Container
+    @ServiceConnection
+    static RedisContainer redis  = new RedisContainer(DockerImageName.parse("redis:7.2.4-alpine"));
     private String email = "admin@company.com";
     private String password = "admin";
 

@@ -62,7 +62,7 @@ public class JWTServiceImpl implements JwtService {
 
         return  jwtBuilder
                 .setClaims(buildClaims(e))
-                .setExpiration(MappingUtility.toDate(now))
+                .setIssuedAt(MappingUtility.toDate(now))
                 .setExpiration(MappingUtility.toDate(expirationTime))
                 .compact();
     }
