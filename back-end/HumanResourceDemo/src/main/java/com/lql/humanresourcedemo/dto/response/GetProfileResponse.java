@@ -17,6 +17,7 @@ public record GetProfileResponse(
         String personalEmail,
         Byte leaveDays,
         Double currentSalary,
+        Integer currentEffort,
         LocalDateTime createdAt,
         Long createdBy,
         Long managedById,

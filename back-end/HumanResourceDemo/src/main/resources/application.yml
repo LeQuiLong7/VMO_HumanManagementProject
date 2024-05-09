@@ -38,13 +38,11 @@ spring:
 mail:
   username: ${MAIL_USERNAME}
   password: ${MAIL_PASSWORD}
-#logging:
-#  level:
-#    org.springframework.data: DEBUG
-#    org.hibernate: DEBUG
+
 jwt:
   expiration:
-    duration: 60000000
+    duration: 30
+    time-unit: MINUTES
 springdoc:
   swagger-ui:
     tagsSorter: alpha

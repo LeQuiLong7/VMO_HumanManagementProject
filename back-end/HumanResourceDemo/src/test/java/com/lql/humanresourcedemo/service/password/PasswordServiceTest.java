@@ -1,5 +1,6 @@
 package com.lql.humanresourcedemo.service.password;
 
+import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.dto.request.employee.ResetPasswordRequest;
 import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
@@ -13,7 +14,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -48,7 +51,7 @@ class PasswordServiceTest {
     @Test
     void createPasswordResetRequest_CouldNotFoundEmployee() {
         String email = "test@example.com";
-        when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
+        when(employeeRepository.findByEmail(email, OnlyIdPersonalEmailAndFirstName.class)).thenReturn(Optional.empty());
 
 
         assertThrows(EmployeeException.class,
@@ -60,16 +63,17 @@ class PasswordServiceTest {
     @Test
     void createPasswordResetRequest_Success() {
         String email = "test@example.com";
-        Employee employee = new Employee();
-        employee.setPersonalEmail(email);
+//        Employee employee = new Employee();
+//        employee.setPersonalEmail(email);
 
-        when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
+        when(employeeRepository.findByEmail(email, OnlyIdPersonalEmailAndFirstName.class)).thenReturn(Optional.of(Mockito.mock(OnlyIdPersonalEmailAndFirstName.class)));
+        when(employeeRepository.getReferenceById(anyLong())).thenReturn(Mockito.mock(Employee.class));
 
         ChangePasswordResponse response = passwordService.createPasswordResetRequest(email);
 
         assertEquals("Success! Check your email for the token", response.message());
         verify(passwordResetRepository, times(1)).save(any(PasswordResetRequest.class));
-        verify(mailService, times(1)).sendEmail(eq(email), anyString(), anyString());
+        verify(mailService, times(1)).sendEmail(any(), anyString(), anyString());
     }
 
     @Test
@@ -82,16 +86,15 @@ class PasswordServiceTest {
                 , LocalDateTime.now().plusHours(1)
         );
 
-        when(passwordResetRepository.findByToken(token))
+        when(passwordResetRepository.findBy(any(Specification.class), any()))
                 .thenReturn(Optional.of(passwordResetRequest));
 
         ChangePasswordResponse response = passwordService.resetPassword(request);
 
         assertEquals("Reset password successfully!", response.message());
-        verify(passwordResetRepository, times(1)).findByToken(eq(token));
-        verify(passwordResetRepository, times(1)).deleteByEmployeeId(anyLong());
+        verify(passwordResetRepository, times(1)).delete(any(Specification.class));
         verify(passwordEncoder, times(1)).encode(anyString());
-        verify(employeeRepository, times(1)).save(any(Employee.class));
+        verify(employeeRepository, times(1)).updatePasswordById(any(), any());
     }
 
     @Test
@@ -99,7 +102,7 @@ class PasswordServiceTest {
         String token = UUID.randomUUID().toString();
         ResetPasswordRequest request = new ResetPasswordRequest(token, "newPassword", "newPassword");
 
-        when(passwordResetRepository.findByToken(token))
+        when(passwordResetRepository.findBy(any(Specification.class), any()))
                 .thenReturn(Optional.empty());
 
         assertThrows(ResetPasswordException.class,
@@ -129,7 +132,7 @@ class PasswordServiceTest {
                 , LocalDateTime.now().minusHours(1)
         );
 
-        when(passwordResetRepository.findByToken(token))
+        when(passwordResetRepository.findBy(any(Specification.class), any()))
                 .thenReturn(Optional.of(passwordResetRequest));
 
         assertThrows(ResetPasswordException.class,

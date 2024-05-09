@@ -17,6 +17,7 @@ import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceSpecifications;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications;
 import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
 import com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications;
 import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
@@ -30,6 +31,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,7 +62,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public GetProfileResponse getProfile(Long employeeId) {
-        return employeeRepository.findById(employeeId, GetProfileResponse.class)
+        return employeeRepository.findBy(EmployeeSpecifications.byId(employeeId), FluentQuery.FetchableFluentQuery::first)
+                .map(MappingUtility::employeeToProfileResponse)
                 .orElseThrow(() -> new EmployeeException(employeeId));
     }
 

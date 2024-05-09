@@ -28,10 +28,13 @@ public class EmployeeProject extends Auditable {
     @MapsId("projectId")
     private Project project;
 
+    private Integer effort;
 
-    public EmployeeProject(Employee employee, Project project) {
+
+    public EmployeeProject(Employee employee, Project project, Integer effort) {
         this.employee = employee;
         this.project = project;
+        this.effort = effort;
     }
 
     @Embeddable

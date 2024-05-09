@@ -3,6 +3,7 @@ package com.lql.humanresourcedemo.service.admin;
 
 import com.lql.humanresourcedemo.dto.request.admin.*;
 import com.lql.humanresourcedemo.dto.response.*;
+import com.lql.humanresourcedemo.dto.response.admin.EmployeeProjectResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
@@ -35,10 +36,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.lql.humanresourcedemo.dto.request.admin.AssignEmployeeToProjectRequest.*;
 import static com.lql.humanresourcedemo.enumeration.ProjectState.*;
 import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byRole;
 import static com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications.byProjectId;
@@ -103,15 +106,14 @@ public class AdminServiceImpl implements AdminService {
 
 
     @Override
-    public Page<GetProfileResponse> getAllEmployeeInsideProject(Long projectId, Pageable pageRequest) {
+    public List<EmployeeProjectResponse> getAllEmployeeInsideProject(Long projectId) {
         requiredExistsProject(projectId);
         return employeeProjectRepository.findBy(
                         byProjectId(projectId),
-                        p -> p.project("employee")
-                                .sortBy(pageRequest.getSort())
-                                .page(pageRequest))
-                .map(EmployeeProject::getEmployee)
-                .map(MappingUtility::employeeToProfileResponse);
+                        p -> p.project("employee").all())
+                .stream()
+                .map(EmployeeProjectResponse::toEmployeeProjectResponse)
+                .toList();
     }
 
 
@@ -122,7 +124,7 @@ public class AdminServiceImpl implements AdminService {
         requiredExistsEmployee(employeeId);
         Page<EmployeeProject> projects = employeeProjectRepository.findBy(EmployeeProjectSpecifications.byEmployeeId(employeeId), p -> p.project("project").sortBy(pageRequest.getSort()).page(pageRequest));
 
-        return  projects
+        return projects
                 .map(project -> new ProjectDetail(
                         project.getProject(),
                         employeeProjectRepository.findBy(byProjectId(project.getId().getProjectId()), p -> p.project("employee").all())
@@ -144,7 +146,7 @@ public class AdminServiceImpl implements AdminService {
         }
         String password = UUID.randomUUID().toString();
 
-        Employee e = toEmployee(request, employeeRepository.getReferenceById(request.managedBy()),  email,  password);
+        Employee e = toEmployee(request, employeeRepository.getReferenceById(request.managedBy()), email, passwordEncoder.encode(password));
 
         employeeRepository.save(e);
 
@@ -229,58 +231,63 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public ProjectResponse updateProject(UpdateProjectStatusRequest request) {
 
-        Project p = projectRepository.findById(request.id())
+        Project project = projectRepository.findBy(ProjectSpecifications.byProjectId(request.id()), p -> p.project("employees").first())
                 .orElseThrow(() -> new ProjectException("Could not find project " + request.id()));
 
 
-        if (p.getState().equals(FINISHED)) {
+        if (project.getState().equals(FINISHED)) {
             throw new ProjectException("Could not update project, project already finished ");
         }
 
-        if (request.newState().equals(p.getState())) {
+        if (request.newState().equals(project.getState())) {
             throw new ProjectException("New state is not valid, project already in that state ");
         }
 
         if (request.newState().equals(INITIATION)) {
-            throw new ProjectException("New state %s id not valid, project already in %s".formatted(request.newState(), p.getState()));
+            throw new ProjectException("New state %s id not valid, project already in %s".formatted(request.newState(), project.getState()));
         } else if (request.newState().equals(ON_GOING)) {
             if (request.actualStartDate() == null)
                 throw new ProjectException("Actual start date is required");
-            p.setActualStartDate(request.actualStartDate());
+            project.setActualStartDate(request.actualStartDate());
         } else if (request.newState().equals(FINISHED)) {
             if (request.actualFinishDate() == null)
                 throw new ProjectException("Actual finished date is required");
-            p.setActualFinishDate(request.actualFinishDate());
+            project.setActualFinishDate(request.actualFinishDate());
         }
-        p.setState(request.newState());
-
-        return projectToProjectResponse(projectRepository.save(p));
+        project.setState(request.newState());
+        if(request.newState().equals(FINISHED)) {
+            project.getEmployees()
+                    .forEach(e -> employeeRepository.updateCurrentEffortById(e.getId().getEmployeeId(), (-e.getEffort())));
+        }
+        return projectToProjectResponse(projectRepository.save(project));
     }
 
     @Override
     @Transactional
-    public AssignEmployeeToProjectRequest assignEmployeeToProject(AssignEmployeeToProjectRequest request) {
+    public List<EmployeeProjectResponse> assignEmployeeToProject(AssignEmployeeToProjectRequest request) {
 
-        request.employeeIds().forEach(this::requiredExistsEmployee);
-
-        Project project = projectRepository.findBy(ProjectSpecifications.byProjectId(request.projectId()), p -> p.project("employees").first())
+        Project project = projectRepository.findBy(ProjectSpecifications.byProjectId(request.projectId()), p -> p.project("employees.employee").first())
                 .orElseThrow(() -> new ProjectException("Could not find project " + request.projectId()));
 
-        Set<Long> employeeList = project.getEmployees().stream()
-                .map(ep -> ep.getId().getEmployeeId())
-                .collect(Collectors.toSet());
+        request.assignList().stream().map(EmployeeEffort::employeeId).forEach(this::requiredExistsEmployee);
 
-        request.employeeIds()
+        List<EmployeeProjectResponse> employeeList = project.getEmployees().stream()
+                .map(EmployeeProjectResponse::toEmployeeProjectResponse)
+                .collect(Collectors.toList());
+
+        List<EmployeeProjectResponse> list = request.assignList()
                 .stream()
-                .filter(employeeId -> !employeeList.contains(employeeId))
-                .forEach(employeeId ->
-                        employeeProjectRepository.save(new EmployeeProject(employeeRepository.getReferenceById(employeeId), project)));
+                .filter(ep -> employeeList.stream().noneMatch(e -> e.employeeId().equals(ep.employeeId())))
+                .map(ep -> {
+                    EmployeeProject saved = employeeProjectRepository.save(new EmployeeProject(employeeRepository.getReferenceById(ep.employeeId()), projectRepository.getReferenceById(project.getId()), ep.effort()));
+                    employeeRepository.updateCurrentEffortById(ep.employeeId(), ep.effort());
+                    return saved;
+                })
+                .map(EmployeeProjectResponse::toEmployeeProjectResponse).toList();
 
-        employeeList.addAll(request.employeeIds());
-        return new AssignEmployeeToProjectRequest(
-                request.projectId(),
-                employeeList);
+        employeeList.addAll(list);
 
+        return employeeList;
     }
 
     private void requiredExistsEmployee(Long employeeId) {
@@ -289,6 +296,7 @@ public class AdminServiceImpl implements AdminService {
 
         }
     }
+
     private void requiredExistsProject(Long projectId) {
         if (!projectRepository.existsById(projectId)) {
             throw new ProjectException("Could not find project " + projectId);

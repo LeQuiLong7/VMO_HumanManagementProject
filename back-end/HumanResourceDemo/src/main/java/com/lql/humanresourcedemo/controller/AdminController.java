@@ -3,6 +3,7 @@ package com.lql.humanresourcedemo.controller;
 
 import com.lql.humanresourcedemo.dto.request.admin.*;
 import com.lql.humanresourcedemo.dto.response.*;
+import com.lql.humanresourcedemo.dto.response.admin.EmployeeProjectResponse;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
@@ -109,12 +110,8 @@ public class AdminController {
     }
 
     @GetMapping("/project/{projectId}/employees")
-    public Page<GetProfileResponse> getAllEmployeesInsideProjects(@RequestParam(required = false, defaultValue = "0") String page,
-                                                                  @RequestParam(required = false, defaultValue = "10") String size,
-                                                                  @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                                                  @RequestParam(required = false, defaultValue = "desc") List<String> o,
-                                                                  @PathVariable Long projectId) {
-        return adminService.getAllEmployeeInsideProject(projectId, validateAndBuildPageRequest(page, size, p, o, Employee.class));
+    public List<EmployeeProjectResponse> getAllEmployeesInsideProjects(@PathVariable Long projectId) {
+        return adminService.getAllEmployeeInsideProject(projectId);
     }
 
     @PostMapping("/project")
@@ -129,7 +126,7 @@ public class AdminController {
     }
 
     @PutMapping("/project/assign")
-    public AssignEmployeeToProjectRequest assignEmployeeToProject(@RequestBody @Valid AssignEmployeeToProjectRequest assignEmployeeToProjectRequest) {
+    public List<EmployeeProjectResponse> assignEmployeeToProject(@RequestBody @Valid AssignEmployeeToProjectRequest assignEmployeeToProjectRequest) {
         return adminService.assignEmployeeToProject(assignEmployeeToProjectRequest);
     }
 

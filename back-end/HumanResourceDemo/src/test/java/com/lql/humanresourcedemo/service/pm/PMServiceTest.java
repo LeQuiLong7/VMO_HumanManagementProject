@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalTime;
 import java.util.Collections;
@@ -237,7 +238,8 @@ class PMServiceTest {
         when(employeeRepository.existsById(pmId))
                 .thenReturn(true);
 
-        when(employeeRepository.findAllIdByManagedById(pmId, pageable))
+//        when(employeeRepository.findAllIdByManagedById(pmId, pageable))
+        when(employeeRepository.findBy(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(employee)));
 
         Page<GetProfileResponse> response = pmService.getAllEmployee(pmId, pageable);
@@ -265,7 +267,8 @@ class PMServiceTest {
         when(employeeRepository.existsById(pmId))
                 .thenReturn(true);
 
-        when(leaveRepository.findAllByEmployeeManagedById(pmId, pageable))
+//        when(leaveRepository.findAllByEmployeeManagedById(pmId, pageable))
+        when(leaveRepository.findBy(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(leaveRequest)));
 
         Page<LeaveResponse> response = pmService.getAllLeaveRequest(pmId, pageable);

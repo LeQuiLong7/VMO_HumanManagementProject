@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import static com.lql.humanresourcedemo.service.search.SpecificationService.*;
+
 @RequiredArgsConstructor
 @Service
 public class SearchServiceImpl implements SearchService {
@@ -21,7 +23,7 @@ public class SearchServiceImpl implements SearchService {
     @Transactional
     public Page<SearchResponse> search(SearchRequest searchRequest, Pageable pageRequest) {
 
-        Specification<Employee> specification = SpecificationService.toSpecification(searchRequest, Employee.class);
+        Specification<Employee> specification = toSpecification(searchRequest, Employee.class);
         Page<Employee> by = employeeRepository.findAll(specification, pageRequest);
         return by.map(
                 employee ->
