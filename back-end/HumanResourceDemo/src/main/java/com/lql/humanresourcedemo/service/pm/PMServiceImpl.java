@@ -117,7 +117,7 @@ public class PMServiceImpl implements PMService {
     @Override
     public Page<GetProfileResponse> getAllEmployee(Long pmId, Pageable pageRequest) {
         requireExists(pmId);
-        return employeeRepository.findBy(byPmId(pmId), p -> p.sortBy(pageRequest.getSort()).page(pageRequest))
+        return employeeRepository.findBy(byPmId(pmId).or(byId(pmId)), p -> p.sortBy(pageRequest.getSort()).page(pageRequest))
                 .map(MappingUtility::employeeToProfileResponse);
     }
 
