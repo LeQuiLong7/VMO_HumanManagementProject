@@ -38,3 +38,11 @@ spring:
 mail:
   username: ${MAIL_USERNAME}
   password: ${MAIL_PASSWORD}
+
+jwt:
+  expiration:
+    duration: 30
+    time-unit: MINUTES
+springdoc:
+  swagger-ui:
+    tagsSorter: alpha

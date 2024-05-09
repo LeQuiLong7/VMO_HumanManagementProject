@@ -2,19 +2,20 @@ package com.lql.humanresourcedemo.service.login;
 
 import com.lql.humanresourcedemo.constant.JWTConstants;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPasswordAndRole;
-import com.lql.humanresourcedemo.dto.request.employee.LoginRequest;
+import com.lql.humanresourcedemo.dto.request.login.LoginRequest;
 import com.lql.humanresourcedemo.dto.response.LoginResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.exception.model.login.LoginException;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.service.jwt.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -30,12 +31,13 @@ class LoginServiceTest {
     private EmployeeRepository employeeRepository;
     @Mock
     private JwtService jwtService;
-
+    @Mock
+    private RedisTemplate<Long, String> redisTemplate;
     private LoginService loginService;
 
     @BeforeEach
     void setUp() {
-        loginService = new LoginServiceImpl(employeeRepository, jwtService, passwordEncoder);
+        loginService = new LoginServiceImpl(employeeRepository, redisTemplate, jwtService, passwordEncoder, 5, "MINUTES");
     }
 
     @Test
@@ -50,6 +52,7 @@ class LoginServiceTest {
         when(passwordEncoder.matches(loginRequest.password(), employee.password())).thenReturn(true);
 
         when(jwtService.generateToken(employee)).thenReturn(mockToken);
+        when(redisTemplate.opsForValue()).thenReturn(Mockito.mock(ValueOperations.class));
 
 
         LoginResponse loginResponse = loginService.login(loginRequest);
@@ -80,6 +83,6 @@ class LoginServiceTest {
         when(passwordEncoder.matches(loginRequest.password(), employee.password())).thenReturn(false);
 
         LoginException exception = assertThrows(LoginException.class, () -> loginService.login(loginRequest));
-        assertEquals("password %s is not correct for %s".formatted(loginRequest.password(), loginRequest.email()), exception.getMessage());
+        assertEquals("Password is not correct", exception.getMessage());
     }
 }

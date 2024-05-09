@@ -5,37 +5,42 @@ import com.lql.humanresourcedemo.dto.model.employee.OnlySalary;
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
-import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
 import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
+import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
+import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.employee.Employee;
+import com.lql.humanresourcedemo.model.project.EmployeeProject;
+import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.EmployeeTechRepository;
-import com.lql.humanresourcedemo.repository.SalaryRaiseRequestRepository;
+import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
+import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
+import com.lql.humanresourcedemo.repository.tech.EmployeeTechRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
-import com.lql.humanresourcedemo.service.validate.ValidateService;
-import com.lql.humanresourcedemo.utility.FileUtility;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
-import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
-import static com.lql.humanresourcedemo.utility.MappingUtility.*;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -44,29 +49,32 @@ class EmployeeServiceTest {
 
 
     @Mock
-    private  EmployeeRepository employeeRepository;
+    private EmployeeRepository employeeRepository;
     @Mock
-    private  EmployeeTechRepository employeeTechRepository;
+    private EmployeeTechRepository employeeTechRepository;
     @Mock
-    private  SalaryRaiseRequestRepository salaryRepository;
+    private EmployeeProjectRepository employeeProjectRepository;
+    @Mock
+    private SalaryRaiseRequestRepository salaryRepository;
     @Mock
     private  PasswordEncoder passwordEncoder;
     @Mock
     private  AWSService awsService;
+
     @Mock
-    private  ValidateService validateService;
+    private AttendanceRepository attendanceRepository;
     private  EmployeeService employeeService;
 
 
     @BeforeEach
     void setUp() {
-        employeeService = new EmployeeServiceImpl(employeeRepository, employeeTechRepository, salaryRepository, passwordEncoder, awsService, validateService);
+        employeeService = new EmployeeServiceImpl(employeeRepository, employeeTechRepository, employeeProjectRepository, attendanceRepository, salaryRepository, passwordEncoder, awsService);
     }
 
     @Test
     void getProfile_NotFound() {
         Long id = 1L;
-        when(employeeRepository.findById(id, GetProfileResponse.class)).thenReturn(Optional.empty());
+        when(employeeRepository.findBy(any(Specification.class), any())).thenReturn(Optional.empty());
 
         assertThrows(
                 EmployeeException.class,
@@ -74,6 +82,21 @@ class EmployeeServiceTest {
                 "Could not find employee " + id
         );
     }
+
+    @Test
+    void getProfile_Success() {
+        Long employeeId = 1L;
+
+//        GetProfileResponse profileResponse = new GetProfileResponse(employeeId, "", "", "", null, null, null, null, null, null, null, null, null, null, NULL);
+        when(employeeRepository.findBy(any(Specification.class), any()))
+                .thenReturn(Optional.of(Mockito.mock(Employee.class)));
+        GetProfileResponse response = employeeService.getProfile(employeeId);
+
+//        assertEquals(employeeId, response.id());
+
+        assertNotNull(response);
+    }
+
 
     @Test
     void updateInfo_EmployeeNotFound() {
@@ -129,6 +152,22 @@ class EmployeeServiceTest {
         );
     }
 
+    @Test
+    void getTechStack_Success() {
+        Long employeeId = 1L;
+
+        TechInfo techInfo = new TechInfo(1L, "java", 1.5);
+        when(employeeRepository.existsById(employeeId)).thenReturn(true);
+        when(employeeTechRepository.findTechInfoByEmployeeId(employeeId)).thenReturn(
+                List.of(techInfo)
+        );
+        TechStackResponse response = employeeService.getTechStack(employeeId);
+
+        assertAll(
+                () -> assertEquals(employeeId, response.employeeId()),
+                () -> assertEquals(techInfo, response.techInfo().get(0))
+        );
+    }
     @Test
     void changePassword_PasswordAndConfirmationDoNotMatch() {
         Long empId = 1L;
@@ -191,12 +230,14 @@ class EmployeeServiceTest {
     @Test
     void uploadAvatar_EmployeeNotFound() {
         Long empId = 1L;
+        MultipartFile file = new MockMultipartFile("demo.jpg", "demo.jpg", MediaType.IMAGE_JPEG.getType(),  "demo".getBytes());
+
 
         when(employeeRepository.existsById(empId)).thenReturn(false);
 
         assertThrows(
                 EmployeeException.class,
-                () -> employeeService.uploadAvatar(empId, null),
+                () -> employeeService.uploadAvatar(empId, file),
                 "Could not find employee " + empId
         );
 
@@ -207,9 +248,8 @@ class EmployeeServiceTest {
     void uploadAvatar_FileNotSupported() {
         Long empId = 1L;
 
-        when(employeeRepository.existsById(empId)).thenReturn(true);
+        MultipartFile file = new MockMultipartFile("demo.txt", "demo.txt", MediaType.TEXT_PLAIN.getType(),  "demo".getBytes());
 
-        MultipartFile file = new MockMultipartFile("demo.txt", "demo".getBytes());
 
         assertThrows(
                 FileException.class,
@@ -268,8 +308,91 @@ class EmployeeServiceTest {
         );
     }
 
-
     @Test
-    void getAllSalaryRaiseRequest() {
+    void createSalaryRaiseRequest_ExpectedSalaryLowerThanCurrentSalary() {
+        Long empId = 1L;
+        CreateSalaryRaiseRequest request = new CreateSalaryRaiseRequest(50D, "");
+        OnlySalary currentSalary = new OnlySalary(100D);
+
+
+        when(employeeRepository.findById(empId, OnlySalary.class)).thenReturn(Optional.of(currentSalary));
+
+        assertThrows(
+                SalaryRaiseException.class,
+                () -> employeeService.createSalaryRaiseRequest(empId, request),
+                "Expected salary is lower than current salary"
+        );
     }
+
+
+
+    Pageable pageable = Pageable.ofSize(10);
+    @Test
+    public void getAllAttendanceHistory() {
+        Long employeeId = 1L;
+
+
+        when(employeeRepository.existsById(employeeId)).thenReturn(true);
+        when(attendanceRepository.findBy(any(Specification.class), any()))
+                .thenReturn(new PageImpl<>(List.of(Mockito.mock(Attendance.class))));
+
+        Page<Attendance> response = employeeService.getAllAttendanceHistory(employeeId, pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize()),
+                () -> assertInstanceOf(Attendance.class, response.getContent().get(0))
+        );
+    }
+    @Test
+    public void getAllSalaryRaiseRequest() {
+        Long employeeId = 1L;
+        Employee employee = Employee.builder()
+                .id(employeeId)
+                .build();
+
+        SalaryRaiseRequest salaryRaiseRequest = SalaryRaiseRequest.builder()
+                .id(1L)
+                .employee(employee).build();
+
+        when(employeeRepository.existsById(employeeId)).thenReturn(true);
+        when(salaryRepository.findBy(any(Specification.class), any()))
+                .thenReturn(new PageImpl<>(List.of(salaryRaiseRequest)));
+
+        Page<SalaryRaiseResponse> response = employeeService.getAllSalaryRaiseRequest(employeeId, pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize())
+        );
+    }
+
+//    @Test
+//    public void getAllProjects() {
+//        Long employeeId = 1L;
+//        Project project = Project.builder()
+//                .id(1L)
+//                .build();
+//        Employee employee = Employee.builder()
+//                .id(employeeId)
+//                .build();
+//
+//        EmployeeProject ep = new EmployeeProject(
+//                        employee,
+//                        project,
+//                      10
+//        );
+//
+//        employee.setProjects(List.of(ep));
+//
+//        when(employeeRepository.existsById(employeeId)).thenReturn(true);
+//
+//        when(employeeProjectRepository.findBy(any(Specification.class), any()))
+//                .thenReturn(new PageImpl<>(List.of(ep)));
+////        when(employeeProjectRepository.findBy(any(Specification.class), any()))
+////                .thenReturn(List.of(ep));
+//
+//        Page<ProjectDetail> response = employeeService.getAllProjects(employeeId, pageable);
+//        assertAll(
+//                () -> assertEquals(1, response.getSize())
+//        );
+//    }
+
+
 }

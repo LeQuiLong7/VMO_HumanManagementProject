@@ -7,14 +7,11 @@ import com.lql.humanresourcedemo.enumeration.LeaveViolationCode;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
-import com.lql.humanresourcedemo.repository.AttendanceRepository;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.LeaveRepository;
+import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
-import com.lql.humanresourcedemo.service.aws.AWSServiceImpl;
 import com.lql.humanresourcedemo.service.mail.MailService;
-import com.lql.humanresourcedemo.service.mail.MailServiceImpl;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,6 +24,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_ARRIVAL_TIME;
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_LEAVE_TIME;
@@ -36,7 +34,6 @@ import static com.lql.humanresourcedemo.utility.HelperUtility.*;
 import static com.lql.humanresourcedemo.utility.HelperUtility.buildLeaveWarningMessage;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class ScheduleServiceImpl implements ScheduleService {
 
@@ -48,8 +45,16 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 
     @Value("${spring.cloud.aws.region.static}")
-    private String region;
+    private  String region;
 
+    public ScheduleServiceImpl(EmployeeRepository employeeRepository, AttendanceRepository attendanceRepository, LeaveRepository leaveRepository, MailService mailService, AWSService awsService, @Value("${spring.cloud.aws.region.static}") String region) {
+        this.employeeRepository = employeeRepository;
+        this.attendanceRepository = attendanceRepository;
+        this.leaveRepository = leaveRepository;
+        this.mailService = mailService;
+        this.awsService = awsService;
+        this.region = region;
+    }
 
     @Scheduled(cron = "0 0 0 1 * *") // Run at midnight on the first day of each month
     public void updateEmployeeLeaveDaysMonthly() {
@@ -97,6 +102,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 mailService.sendEmail(i.personalEmail(), "[COMPANY] - WEEKLY REPORT", buildEmployeeWeeklyReport(i.firstName(), startDate, endDate, agg, reportUrl));
 
            } catch (IOException e) {
+                log.warn("Error creating report file");
                 e.printStackTrace();
             }
 
@@ -125,8 +131,9 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     private LeaveViolationCode of(Attendance attendance) {
         if(attendance.getTimeIn() == null && attendance.getTimeOut() == null){
-            LeaveRequest leaveRequest = leaveRepository.findByEmployeeIdAndDate(attendance.getEmployee().getId(), attendance.getDate());
-            if(leaveRequest == null || !leaveRequest.getStatus().equals(LeaveStatus.ACCEPTED)) {
+            Optional<LeaveRequest> leaveRequest = leaveRepository.findByEmployeeIdAndDate(attendance.getEmployee().getId(), attendance.getDate());
+
+            if(leaveRequest.isEmpty() || !leaveRequest.get().getStatus().equals(LeaveStatus.ACCEPTED)) {
                 return ABSENCE;
             }
             return ON_TIME;

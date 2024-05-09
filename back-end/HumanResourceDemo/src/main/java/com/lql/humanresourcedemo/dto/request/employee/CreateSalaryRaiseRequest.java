@@ -1,4 +1,6 @@
 package com.lql.humanresourcedemo.dto.request.employee;
 
-public record CreateSalaryRaiseRequest (Double expectedSalary, String description){
+import jakarta.validation.constraints.Min;
+
+public record CreateSalaryRaiseRequest (@Min(0) Double expectedSalary, String description){
 }

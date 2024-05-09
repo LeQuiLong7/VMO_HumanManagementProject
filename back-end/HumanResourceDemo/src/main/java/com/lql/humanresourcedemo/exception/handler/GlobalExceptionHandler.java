@@ -1,6 +1,7 @@
 package com.lql.humanresourcedemo.exception.handler;
 
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.lql.humanresourcedemo.exception.model.aws.AWSException;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
@@ -18,6 +19,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mail.MailException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -47,7 +50,7 @@ public class GlobalExceptionHandler {
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .toList();
         log.warn(buildLogMessage("Method argument", "Someone provide not valid arguments to an endpoint " + ex.getMessage(), request));
-        return createResponseDetail("Provide valid argument!", HttpStatus.BAD_REQUEST, errors);
+        return createResponseDetail(errors.toString().substring(1, errors.toString().length() - 1), HttpStatus.BAD_REQUEST);
     }
 
 
@@ -61,7 +64,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FileException.class)
     public ResponseEntity<Object> fileNotSupportExceptionHandler(FileException ex, HttpServletRequest request) {
         log.warn(buildLogMessage("File upload", ex.getMessage(), request));
-        return createResponseDetail(ex.getMessage() + " - support types: " + FileUtility.supportImageExtension.toString(), HttpStatus.BAD_REQUEST);
+        return createResponseDetail(ex.getMessage() , HttpStatus.BAD_REQUEST);
     }
 
 
@@ -121,6 +124,39 @@ public class GlobalExceptionHandler {
         return createResponseDetail(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> httpMessageNotReadableExceptionHandler(HttpMessageNotReadableException ex, HttpServletRequest request) {
+
+        ex.printStackTrace();
+        Object value = ((InvalidFormatException) ex.getCause()).getValue();
+        Object fieldName = ((InvalidFormatException) ex.getCause()).getPath().get(0).getFieldName();
+
+        log.warn(buildLogMessage(" ", ex.getMessage(), request));
+        return createResponseDetail(String.format("%s is not a valid value for %s", value, convertCamelCaseToNormalWords(((String) fieldName))), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MailException.class)
+    public ResponseEntity<Object> MailExceptionHandler(MailException ex, HttpServletRequest request) {
+        log.warn(buildLogMessage("Mail ", ex.getMessage(), request));
+        return createResponseDetail(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    public static String convertCamelCaseToNormalWords(String camelCase) {
+        StringBuilder normalWords = new StringBuilder();
+
+        for (int i = 0; i < camelCase.length(); i++) {
+            char currentChar = camelCase.charAt(i);
+
+            if (Character.isUpperCase(currentChar) && i > 0) {
+                normalWords.append(" " + Character.toLowerCase(currentChar));
+            }else {
+                normalWords.append(currentChar);
+            }
+        }
+
+        return normalWords.toString();
+    }
 
 
 
@@ -128,14 +164,6 @@ public class GlobalExceptionHandler {
         Map<String, String> detail = new HashMap<>();
         detail.put("error", message);
         detail.put("time_stamp", LocalDateTime.now().toString());
-
-        return new ResponseEntity<>(detail, status);
-    }
-    private ResponseEntity<Object> createResponseDetail(String message, HttpStatus status, List<String> errors) {
-        Map<String, String> detail = new HashMap<>();
-        detail.put("error", message);
-        detail.put("time_stamp", LocalDateTime.now().toString());
-        detail.put("details", errors.toString());
 
         return new ResponseEntity<>(detail, status);
     }

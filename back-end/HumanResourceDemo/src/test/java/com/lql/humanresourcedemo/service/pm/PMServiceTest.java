@@ -3,6 +3,8 @@ package com.lql.humanresourcedemo.service.pm;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.dto.request.pm.CheckAttendanceRequest;
 import com.lql.humanresourcedemo.dto.request.pm.HandleLeaveRequest;
+import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.LeaveResponse;
 import com.lql.humanresourcedemo.enumeration.LeaveStatus;
 import com.lql.humanresourcedemo.enumeration.LeaveType;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
@@ -10,19 +12,21 @@ import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestExcept
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.employee.Employee;
-import com.lql.humanresourcedemo.repository.AttendanceRepository;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.LeaveRepository;
+import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
-import com.lql.humanresourcedemo.service.validate.ValidateService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalTime;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -42,14 +46,12 @@ class PMServiceTest {
     private LeaveRepository leaveRepository;
     @Mock
     private MailService mailService;
-    @Mock
-    private ValidateService validateService;
 
     private PMService pmService;
 
     @BeforeEach
     void setUp() {
-        pmService = new PMServiceImpl(attendanceRepository, employeeRepository, leaveRepository, mailService, validateService);
+        pmService = new PMServiceImpl(attendanceRepository, employeeRepository, leaveRepository, mailService);
     }
 
     @Test
@@ -134,12 +136,10 @@ class PMServiceTest {
     void handleLeaveRequest_StatusProcessingIsNotValid() {
         HandleLeaveRequest handleRequest = new HandleLeaveRequest(1L, LeaveStatus.PROCESSING);
 
-        when(leaveRepository.findById(handleRequest.requestId())).thenReturn(Optional.of(new LeaveRequest()));
-
         assertThrows(
                 LeaveRequestException.class,
                 () -> pmService.handleLeaveRequest(1L, List.of(handleRequest)),
-                "Status " + handleRequest.status() + " is not valid for leave request %s".formatted(handleRequest.requestId())
+                "Status " + handleRequest.status() + " is not valid"
         );
     }
 
@@ -150,10 +150,13 @@ class PMServiceTest {
 
         Employee employee = Employee.builder()
                 .id(1L)
+                .managedBy(Employee.builder().id(2L).build())
                 .build();
         LeaveRequest leaveRequest = LeaveRequest.builder()
                 .id(1L)
+                .status(LeaveStatus.PROCESSING)
                 .employee(employee)
+                .type(LeaveType.UNPAID)
                 .build();
 
         when(leaveRepository.findById(handleRequest.requestId()))
@@ -161,7 +164,7 @@ class PMServiceTest {
 
         when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
-        pmService.handleLeaveRequest(1L, List.of(handleRequest));
+        pmService.handleLeaveRequest(2L, List.of(handleRequest));
 
         verify(employeeRepository, times(0)).decreaseLeaveDaysBy1(any());
         verify(mailService, times(1)).sendEmail(any(), any(), any());
@@ -175,9 +178,11 @@ class PMServiceTest {
 
         Employee employee = Employee.builder()
                 .id(1L)
+                .managedBy(Employee.builder().id(2L).build())
                 .build();
         LeaveRequest leaveRequest = LeaveRequest.builder()
                 .id(1L)
+                .status(LeaveStatus.PROCESSING)
                 .employee(employee)
                 .type(LeaveType.UNPAID)
                 .build();
@@ -187,7 +192,7 @@ class PMServiceTest {
 
         when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
-        pmService.handleLeaveRequest(1L, List.of(handleRequest));
+        pmService.handleLeaveRequest(2L, List.of(handleRequest));
 
         verify(employeeRepository, times(0)).decreaseLeaveDaysBy1(any());
         verify(mailService, times(1)).sendEmail(any(), any(), any());
@@ -202,23 +207,74 @@ class PMServiceTest {
 
         Employee employee = Employee.builder()
                 .id(1L)
+                .managedBy(Employee.builder().id(2L).build())
                 .build();
+
         LeaveRequest leaveRequest = LeaveRequest.builder()
                 .id(1L)
+                .status(LeaveStatus.PROCESSING)
                 .employee(employee)
                 .type(LeaveType.PAID)
                 .build();
 
         when(leaveRepository.findById(handleRequest.requestId()))
                 .thenReturn(Optional.of(leaveRequest));
+        when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class)))
+                .thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
-        when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
-
-        pmService.handleLeaveRequest(1L, List.of(handleRequest));
+        pmService.handleLeaveRequest(2L, List.of(handleRequest));
 
         verify(employeeRepository, times(1)).decreaseLeaveDaysBy1(any());
         verify(mailService, times(1)).sendEmail(any(), any(), any());
         verify(leaveRepository, times(1)).save(any());
+    }
+    Pageable pageable = Pageable.ofSize(10);
+
+
+    @Test
+    void getAllEmployeeTest() {
+        Long pmId = 2L;
+        Employee employee = Employee.builder().id(1L).build();
+        when(employeeRepository.existsById(pmId))
+                .thenReturn(true);
+
+//        when(employeeRepository.findAllIdByManagedById(pmId, pageable))
+        when(employeeRepository.findBy(any(Specification.class), any()))
+                .thenReturn(new PageImpl<>(List.of(employee)));
+
+        Page<GetProfileResponse> response = pmService.getAllEmployee(pmId, pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize()),
+                () -> assertEquals(1L, response.getContent().get(0).id())
+        );
+    }
+    @Test
+    void getAllEmployeeTest_AdminIdNotFound() {
+        Long pmId = 2L;
+        when(employeeRepository.existsById(pmId))
+                .thenReturn(false);
+
+        assertThrows(EmployeeException.class,
+                () -> pmService.getAllEmployee(pmId, pageable));
+    }
+    @Test
+    void getAllLeaveRequest() {
+        Long pmId = 2L;
+        LeaveRequest leaveRequest = LeaveRequest.builder()
+                .employee(Employee.builder().id(1L).build())
+                .id(1L)
+                .build();
+        when(employeeRepository.existsById(pmId))
+                .thenReturn(true);
+
+//        when(leaveRepository.findAllByEmployeeManagedById(pmId, pageable))
+        when(leaveRepository.findBy(any(Specification.class), any()))
+                .thenReturn(new PageImpl<>(List.of(leaveRequest)));
+
+        Page<LeaveResponse> response = pmService.getAllLeaveRequest(pmId, pageable);
+        assertAll(
+                () -> assertEquals(1, response.getSize())
+        );
     }
 
 }

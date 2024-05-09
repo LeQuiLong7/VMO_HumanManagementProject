@@ -1,5 +1,7 @@
 package com.lql.humanresourcedemo.service.aws;
 
+import com.lql.humanresourcedemo.exception.model.aws.AWSException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,18 +16,25 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.File;
 import java.io.IOException;
 
+import static jakarta.servlet.RequestDispatcher.ERROR_MESSAGE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
+import static org.postgresql.hostchooser.HostRequirement.any;
 
 @ExtendWith(MockitoExtension.class)
 class AWSServiceTest {
 
+    private final String MOCK_BUCKET_NAME = "mock-bucket-name";
+    private final String MOCK_KEY = "mock-key";
+    private final String MOCK_REGION = "mock-region";
+
+
     @Mock
     private S3Client s3Client;
 
+//    @Mock
     private AWSService awsService;
 
     @BeforeEach
@@ -33,35 +42,64 @@ class AWSServiceTest {
         awsService = new AWSServiceImpl(s3Client);
     }
 
+    public AWSServiceTest() {
+        awsService = new AWSServiceImpl(s3Client);
+    }
+
     @Test
     void getUrlForObjectTest() {
-        String bucketName = "mock-bucket-name";
-        String key = "mock-key";
-        String region = "mock-region";
 
-        assertEquals(String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key), awsService.getUrlForObject(bucketName, region, key));
+
+        assertEquals(String.format("https://%s.s3.%s.amazonaws.com/%s", MOCK_BUCKET_NAME, MOCK_REGION, MOCK_KEY),
+                awsService.getUrlForObject(MOCK_BUCKET_NAME, MOCK_REGION, MOCK_KEY));
 
     }
 
     @Test
-    void testUploadMultipartFile() {
-        String bucketName = "mock-bucket-name";
-        String key = "mock-key";
+    void testUploadMultipartFile_Success() {
+
         MultipartFile file = new MockMultipartFile("demo.txt", "demo".getBytes());
 
-        assertEquals(key, awsService.uploadFile(file, bucketName, key));
+        assertEquals(MOCK_KEY, awsService.uploadFile(file, MOCK_BUCKET_NAME, MOCK_KEY));
 
         verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     }
 
     @Test
-    void testUploadFile() throws IOException {
-        String bucketName = "mock-bucket-name";
-        String key = "mock-key";
+    void testUploadMultipartFile_Fail() {
+        MultipartFile file = new MockMultipartFile("demo.txt", "demo".getBytes());
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenThrow(new AWSException(ERROR_MESSAGE));
+        assertThrows(
+                AWSException.class,
+                () -> awsService.uploadFile(file, MOCK_BUCKET_NAME, MOCK_KEY),
+                ERROR_MESSAGE
+        );
+    }
+
+    @Test
+    void testUploadFile_Success() throws IOException {
+
         File file = File.createTempFile("demo", "txt");
 
-        assertEquals(key, awsService.uploadFile(file, bucketName, key));
+        assertEquals(MOCK_KEY, awsService.uploadFile(file, MOCK_BUCKET_NAME, MOCK_KEY));
 
         verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     }
+
+    @Test
+    void testUploadFile_Fail() throws Exception{
+
+        File file = File.createTempFile("demo", "txt");
+
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .thenThrow(new AWSException(ERROR_MESSAGE));
+
+        assertThrows(
+                AWSException.class,
+                () -> awsService.uploadFile(file, MOCK_BUCKET_NAME, MOCK_KEY),
+                ERROR_MESSAGE
+        );
+    }
+
 }

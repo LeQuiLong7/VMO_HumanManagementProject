@@ -6,7 +6,6 @@ import com.lql.humanresourcedemo.enumeration.ProjectState;
 import java.time.LocalDate;
 
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public record ProjectResponse(
         Long id,
         String name,

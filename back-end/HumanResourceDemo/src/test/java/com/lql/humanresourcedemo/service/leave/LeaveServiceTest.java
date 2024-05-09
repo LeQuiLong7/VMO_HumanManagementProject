@@ -9,16 +9,20 @@ import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.employee.Employee;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.LeaveRepository;
-import com.lql.humanresourcedemo.service.validate.ValidateService;
-import org.junit.jupiter.api.Assertions;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
@@ -33,13 +37,11 @@ class LeaveServiceTest {
     private EmployeeRepository employeeRepository;
     @Mock
     private LeaveRepository leaveRepository;
-    @Mock
-    private ValidateService validateService;
     private LeaveService leaveService;
 
     @BeforeEach
     void setUp() {
-        leaveService = new LeaveServiceImpl(employeeRepository, leaveRepository, validateService);
+        leaveService = new LeaveServiceImpl(employeeRepository, leaveRepository);
     }
 
     @Test
@@ -102,4 +104,61 @@ class LeaveServiceTest {
 
     }
 
+    @Test
+    void testGetAllLeaveRequest() {
+        Long employeeId = 1L;
+        Employee employee = Employee.builder().id(1L).build();
+        LeaveRequest leaveRequest = new LeaveRequest(1L, employee, null, null, null, null, null);
+
+        when(leaveRepository.findBy(any(Specification.class), any()))
+                .thenReturn(new PageImpl<>(List.of(leaveRequest)));
+
+
+        Page<LeaveResponse> response = leaveService.getAllLeaveRequest(employeeId, Pageable.unpaged());
+
+        assertAll(
+                () -> assertEquals(1, response.getTotalElements()),
+                () -> assertEquals(1, response.getContent().size())
+        );
+
+    }
+
+
+    @Test
+    void testGetLeaveRequestByEmployeeIdAndDate_NotFound() {
+        Long employeeId = 1L;
+        LocalDate date = LocalDate.now();
+        when(leaveRepository.findBy(any(Specification.class), any()))
+                .thenReturn(Optional.empty());
+
+
+        Optional<LeaveResponse> response = leaveService.getLeaveRequestByDateAndEmployeeId(employeeId, date);
+
+        assertAll(
+                () -> assertFalse(response.isPresent())
+        );
+
+    }
+
+    @Test
+    void testGetLeaveRequestByEmployeeIdAndDate_Found() {
+        Long employeeId = 1L;
+        LocalDate date = LocalDate.now();
+        Employee employee = Employee.builder().id(1L).build();
+        LeaveRequest leaveRequest = new LeaveRequest(1L, employee, date, null, null, null, null);
+
+
+        when(leaveRepository.findBy(any(Specification.class), any()))
+                .thenReturn(Optional.of(leaveRequest));
+
+
+        Optional<LeaveResponse> response = leaveService.getLeaveRequestByDateAndEmployeeId(employeeId, date);
+
+        assertAll(
+                () -> assertTrue(response.isPresent()),
+                () -> assertEquals(leaveRequest.getEmployee().getId(), response.get().employeeId()),
+                () -> assertEquals(leaveRequest.getDate(), response.get().date())
+        );
+
+    }
 }

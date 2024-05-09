@@ -13,13 +13,29 @@ import java.util.Objects;
 
 @Entity
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 public class EmployeeProject extends Auditable {
 
     @EmbeddedId
-    private EmployeeProjectId id;
+    private EmployeeProjectId id = new EmployeeProjectId();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("employeeId")
+    private Employee employee;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("projectId")
+    private Project project;
+
+    private Integer effort;
+
+
+    public EmployeeProject(Employee employee, Project project, Integer effort) {
+        this.employee = employee;
+        this.project = project;
+        this.effort = effort;
+    }
 
     @Embeddable
     @NoArgsConstructor
@@ -27,12 +43,9 @@ public class EmployeeProject extends Auditable {
     @Getter
     @Setter
     public static class EmployeeProjectId implements Serializable {
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "employeeId")
-        private Employee employee;
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "projectId")
-        private Project project;
+
+        private Long employeeId;
+        private Long projectId;
 
         @Override
         public boolean equals(Object o) {
@@ -41,15 +54,16 @@ public class EmployeeProject extends Auditable {
 
             EmployeeProjectId that = (EmployeeProjectId) o;
 
-            return employee.getId().equals(that.employee.getId())
-                    && project.getId().equals(that.project.getId());
+            if (!Objects.equals(employeeId, that.employeeId)) return false;
+            return Objects.equals(projectId, that.projectId);
         }
 
         @Override
         public int hashCode() {
-            int result = employee != null ? employee.hashCode() : 0;
-            result = 31 * result + (project != null ? project.hashCode() : 0);
+            int result = employeeId != null ? employeeId.hashCode() : 0;
+            result = 31 * result + (projectId != null ? projectId.hashCode() : 0);
             return result;
         }
     }
+
 }

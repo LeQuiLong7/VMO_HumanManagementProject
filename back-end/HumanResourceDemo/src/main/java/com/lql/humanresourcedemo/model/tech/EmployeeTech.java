@@ -2,21 +2,40 @@ package com.lql.humanresourcedemo.model.tech;
 
 import com.lql.humanresourcedemo.model.employee.Employee;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 @Entity
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-@ToString
 public class EmployeeTech {
 
     @EmbeddedId
-    private EmployeeTechId id;
+    private EmployeeTechId id = new EmployeeTechId();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("employeeId")
+    private Employee employee;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("techId")
+    private Tech tech;
+
+
     private Double yearOfExperience;
+
+
+    public EmployeeTech(Employee employee, Tech tech, Double yearOfExperience) {
+        this.employee = employee;
+        this.tech = tech;
+        this.yearOfExperience = yearOfExperience;
+    }
 
     @Embeddable
     @NoArgsConstructor
@@ -25,13 +44,8 @@ public class EmployeeTech {
     @Setter
     public static class EmployeeTechId implements Serializable {
 
-
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "employeeId")
-        private Employee employee;
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "techId")
-        private Tech tech;
+        private Long employeeId;
+        private Long techId;
 
         @Override
         public boolean equals(Object o) {
@@ -40,17 +54,16 @@ public class EmployeeTech {
 
             EmployeeTechId that = (EmployeeTechId) o;
 
-
-            return employee.getId().equals(that.employee.getId())
-                    && tech.getId().equals(that.tech.getId());
+            if (!Objects.equals(employeeId, that.employeeId)) return false;
+            return Objects.equals(techId, that.techId);
         }
 
         @Override
         public int hashCode() {
-            int result = employee != null ? employee.hashCode() : 0;
-            result = 31 * result + (tech != null ? tech.hashCode() : 0);
+            int result = employeeId != null ? employeeId.hashCode() : 0;
+            result = 31 * result + (techId != null ? techId.hashCode() : 0);
             return result;
         }
     }
-}
 
+}

@@ -5,39 +5,44 @@ import com.lql.humanresourcedemo.dto.model.employee.OnlySalary;
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
-import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
-import com.lql.humanresourcedemo.dto.response.TechStackResponse;
-import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
+import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
 import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
+import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
+import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.employee.Employee;
+import com.lql.humanresourcedemo.model.project.EmployeeProject;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.EmployeeTechRepository;
-import com.lql.humanresourcedemo.repository.SalaryRaiseRequestRepository;
+import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
+import com.lql.humanresourcedemo.repository.attendance.AttendanceSpecifications;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications;
+import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
+import com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications;
+import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
+import com.lql.humanresourcedemo.repository.tech.EmployeeTechRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
-import com.lql.humanresourcedemo.service.aws.AWSServiceImpl;
-import com.lql.humanresourcedemo.service.validate.ValidateService;
-import com.lql.humanresourcedemo.utility.FileUtility;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
+import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byId;
+import static com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications.byProjectId;
+import static com.lql.humanresourcedemo.repository.salary.SalaryRaiseSpecifications.byEmployeeId;
 import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
-import static com.lql.humanresourcedemo.utility.HelperUtility.buildPageRequest;
+import static com.lql.humanresourcedemo.utility.FileUtility.*;
 import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 
 @Service
@@ -45,10 +50,11 @@ import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeTechRepository employeeTechRepository;
+    private final EmployeeProjectRepository employeeProjectRepository;
+    private final AttendanceRepository attendanceRepository;
     private final SalaryRaiseRequestRepository salaryRepository;
     private final PasswordEncoder passwordEncoder;
     private final AWSService awsService;
-    private final ValidateService validateService;
 
     @Value("${spring.cloud.aws.region.static}")
     private String region;
@@ -56,19 +62,17 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public GetProfileResponse getProfile(Long employeeId) {
-        return employeeRepository.findById(employeeId, GetProfileResponse.class)
+        return employeeRepository.findBy(EmployeeSpecifications.byId(employeeId), FluentQuery.FetchableFluentQuery::first)
+                .map(MappingUtility::employeeToProfileResponse)
                 .orElseThrow(() -> new EmployeeException(employeeId));
     }
 
     @Override
-    public TechStackResponse getTechStack(Long id) {
-        requireExists(id);
+    public TechStackResponse getTechStack(Long employeeId) {
+        requireExists(employeeId);
         return new TechStackResponse(
-                id,
-                employeeTechRepository.findTechInfoByEmployeeId(id)
-                        .stream()
-                        .map(MappingUtility::employeeTechDTOtoTechInfo)
-                        .toList()
+                employeeId,
+                employeeTechRepository.findTechInfoByEmployeeId(employeeId)
         );
     }
 
@@ -76,11 +80,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     public GetProfileResponse updateInfo(Long employeeId, UpdateProfileRequest request) {
 
-        Employee updated = employeeRepository.findById(employeeId)
+        return employeeRepository.findById(employeeId)
                 .map(employee -> newInfo(employee, request))
+                .map(employeeRepository::save)
+                .map(MappingUtility::employeeToProfileResponse)
                 .orElseThrow(() -> new EmployeeException(employeeId));
 
-        return employeeToProfileResponse(employeeRepository.save(updated));
     }
 
     @Override
@@ -106,19 +111,16 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional
     public String uploadAvatar(Long employeeId, MultipartFile file) {
+        String fileExtension = getFileExtension(file.getOriginalFilename()).toLowerCase();
+        if (!supportAvatarExtension(fileExtension)) {
+            throw new FileException("Not support " + fileExtension + " file for avatar - supported types: "  + supportImageExtension.toString());
+        }
         requireExists(employeeId);
 
-        String fileExtension = FileUtility.getFileExtension(file.getOriginalFilename()).toLowerCase();
-
-        if (!FileUtility.supportAvatarExtension(fileExtension)) {
-            throw new FileException("Not support " + fileExtension + " file for avatar");
-        }
-
         String objectKey = String.format("image/%s.%s", employeeId, fileExtension);
+
         awsService.uploadFile(file, BUCKET_NAME, objectKey);
-
         String avatarUrl = awsService.getUrlForObject(BUCKET_NAME, region, objectKey);
-
         employeeRepository.updateAvatarURLById(employeeId, avatarUrl);
 
         return avatarUrl;
@@ -131,24 +133,42 @@ public class EmployeeServiceImpl implements EmployeeService {
         OnlySalary currentSalary = employeeRepository.findById(employeeId, OnlySalary.class)
                 .orElseThrow(() -> new EmployeeException(employeeId));
 
-        SalaryRaiseRequest salaryRaiseRequest = SalaryRaiseRequest.builder()
-                .employee(employeeRepository.getReferenceById(employeeId))
-                .currentSalary(currentSalary.currentSalary())
-                .expectedSalary(request.expectedSalary())
-                .description(request.description())
-                .status(SalaryRaiseRequestStatus.PROCESSING)
-                .build();
+        if (request.expectedSalary() <= currentSalary.currentSalary()) {
+            throw new SalaryRaiseException("Expected salary is lower than current salary");
+        }
+        SalaryRaiseRequest raiseRequest = toSalaryRaiseRequest(request, currentSalary.currentSalary());
+        raiseRequest.setEmployee(employeeRepository.getReferenceById(employeeId));
 
-        return salaryRaiseRequestToResponse(salaryRepository.save(salaryRaiseRequest));
+        return salaryRaiseRequestToResponse(salaryRepository.save(raiseRequest));
     }
 
     @Override
-    public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long employeeId, String page, String pageSize, List<String> properties, List<String> orders) {
-        validateService.validatePageRequest(page, pageSize, properties, orders, SalaryRaiseRequest.class);
+    public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long employeeId, Pageable pageRequest) {
+        requireExists(employeeId);
+        return salaryRepository.findBy(byEmployeeId(employeeId), p -> p.page(pageRequest))
+                .map(MappingUtility::salaryRaiseRequestToResponse);
+    }
 
-        Pageable pageRequest = buildPageRequest(Integer.parseInt(page), Integer.parseInt(pageSize), properties, orders, SalaryRaiseRequest.class);
+    @Override
+    public Page<Attendance> getAllAttendanceHistory(Long employeeId,Pageable pageRequest) {
+        requireExists(employeeId);
+        return attendanceRepository.findBy(AttendanceSpecifications.byEmployeeId(employeeId), p -> p.sortBy(pageRequest.getSort()).page(pageRequest));
+    }
 
-        return salaryRepository.findAllByEmployeeId(employeeId, pageRequest).map(MappingUtility::salaryRaiseRequestToResponse);
+    @Override
+    public Page<ProjectDetail> getAllProjects(Long employeeId, Pageable pageRequest) {
+
+        requireExists(employeeId);
+        Page<EmployeeProject> projects = employeeProjectRepository.findBy(EmployeeProjectSpecifications.byEmployeeId(employeeId), p -> p.project("project").sortBy(pageRequest.getSort()).page(pageRequest));
+
+        return  projects
+                .map(project -> new ProjectDetail(
+                        project.getProject(),
+                        employeeProjectRepository.findBy(byProjectId(project.getId().getProjectId()), p -> p.project("employee").all())
+                                .stream()
+                                .map(AssignHistory::of)
+                                .toList()
+                ));
     }
 
     private void requireExists(Long employeeId) {

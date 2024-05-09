@@ -3,12 +3,13 @@ package com.lql.humanresourcedemo.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lql.humanresourcedemo.dto.request.admin.CreateNewEmployeeRequest;
-import com.lql.humanresourcedemo.dto.request.employee.LoginRequest;
+import com.lql.humanresourcedemo.dto.request.login.LoginRequest;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.LoginResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
-import com.lql.humanresourcedemo.repository.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
+import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.time.LocalDate;
 
@@ -55,7 +57,10 @@ public class AdminControllerTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:16.2");
+    static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer<>("postgres:16.2-alpine");
+    @Container
+    @ServiceConnection
+    static RedisContainer redis  = new RedisContainer(DockerImageName.parse("redis:7.2.4-alpine"));
     private String email = "admin@company.com";
     private String password = "admin";
 
@@ -72,13 +77,13 @@ public class AdminControllerTest {
         LoginResponse loginResponse = objectMapper.readValue(loginResponseString, LoginResponse.class);
 
 
-        CreateNewEmployeeRequest createNewEmployeeRequest = new CreateNewEmployeeRequest("long", "le qui", LocalDate.now().minusYears(2), "", "abc@gmai.com", 100D, Role.EMPLOYEE, 1L, null);
+        CreateNewEmployeeRequest createNewEmployeeRequest = new CreateNewEmployeeRequest("long", "le qui", LocalDate.now().minusYears(2), "0123456789", "abc@gmail.com", 100D, Role.EMPLOYEE, 1L, null);
 
-        String createNewEmployeeResponeString = mockMvc.perform(post("/admin")
+        String createNewEmployeeResponeString = mockMvc.perform(post("/admin/employees")
                         .header("Authorization", loginResponse.type() + " " + loginResponse.token())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createNewEmployeeRequest)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
 
