@@ -6,5 +6,6 @@ import com.lql.humanresourcedemo.dto.response.LogoutResponse;
 
 public interface LoginService {
     LoginResponse login(LoginRequest loginRequest);
+    LoginResponse loginWithOauth2(String email);
     LogoutResponse logout(String token);
 }

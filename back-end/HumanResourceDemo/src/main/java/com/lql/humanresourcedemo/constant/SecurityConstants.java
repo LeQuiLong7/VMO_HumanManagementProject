@@ -15,6 +15,7 @@ public class SecurityConstants {
 
 
         PUBLIC_URI.addAll(List.of("/login", "/sign-out"));
+        PUBLIC_URI.add("/oauth2/authorization/google");
         PUBLIC_URI.add(ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0]);
         PUBLIC_URI.add("/swagger-ui/**");
         PUBLIC_URI.add("/swagger-ui.html");

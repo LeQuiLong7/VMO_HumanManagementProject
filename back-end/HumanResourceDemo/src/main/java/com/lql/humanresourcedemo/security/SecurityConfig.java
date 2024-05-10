@@ -2,7 +2,10 @@ package com.lql.humanresourcedemo.security;
 
 
 import com.lql.humanresourcedemo.constant.SecurityConstants;
+import com.lql.humanresourcedemo.dto.response.LoginResponse;
+import com.lql.humanresourcedemo.exception.model.login.LoginException;
 import com.lql.humanresourcedemo.filter.JWTAuthenticationFilter;
+import com.lql.humanresourcedemo.service.login.LoginService;
 import com.lql.humanresourcedemo.utility.ContextUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +18,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -32,6 +37,8 @@ import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmploye
 @Slf4j
 public class SecurityConfig {
     private final JWTAuthenticationFilter jwtAuthenticationFilter;
+    private final AuthenticationSuccessHandler authenticationSuccessHandler;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
@@ -42,6 +49,7 @@ public class SecurityConfig {
                 })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(login -> login.successHandler(authenticationSuccessHandler))
                 .exceptionHandling(handler -> handler.accessDeniedHandler(accessDeniedHandler()))
                 .build();
     }

@@ -7,6 +7,7 @@ import com.lql.humanresourcedemo.dto.response.LoginResponse;
 import com.lql.humanresourcedemo.dto.response.LogoutResponse;
 import com.lql.humanresourcedemo.exception.model.login.LoginException;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications;
 import com.lql.humanresourcedemo.service.jwt.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+
+import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byPersonalEmail;
 
 
 @Service
@@ -51,6 +54,17 @@ public class LoginServiceImpl implements LoginService {
         if (!passwordEncoder.matches(loginRequest.password(), employee.password())) {
             throw new LoginException("Password is not correct");
         }
+
+        String token = jwtService.generateToken(employee);
+        redisTemplate.opsForValue().set(employee.id(), token, Duration.of(EXPIRED_DURATION, ChronoUnit.valueOf(EXPIRED_TIME_UNIT)));
+        return new LoginResponse(JWTConstants.TOKEN_TYPE, token, employee.role());
+    }
+
+    @Override
+    public LoginResponse loginWithOauth2(String email) {
+
+        OnlyIdPasswordAndRole employee = employeeRepository.findByPersonalEmail(email, OnlyIdPasswordAndRole.class)
+                .orElseThrow(() -> new LoginException("Account doesn't exists"));
 
         String token = jwtService.generateToken(employee);
         redisTemplate.opsForValue().set(employee.id(), token, Duration.of(EXPIRED_DURATION, ChronoUnit.valueOf(EXPIRED_TIME_UNIT)));
