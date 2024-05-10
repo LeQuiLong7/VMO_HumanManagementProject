@@ -20,4 +20,8 @@ public class EmployeeSpecifications {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("managedBy").get("id"), pmId);
     }
+    public static Specification<Employee> byPersonalEmail(String personalEmail) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("personalEmail"), personalEmail);
+    }
 }

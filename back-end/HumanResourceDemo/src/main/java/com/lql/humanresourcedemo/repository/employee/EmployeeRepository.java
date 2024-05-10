@@ -20,11 +20,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
     <T> Optional<T> findById(Long id, Class<T> clazz);
 
     <T> Optional<T> findByEmail(String email, Class<T> clazz);
+    <T> Optional<T> findByPersonalEmail(String personalEmail, Class<T> clazz);
 
     Optional<Employee> findByEmail(String email);
-
-    Page<Employee> findAllIdByManagedById(Long managedBy, Pageable pageable);
-    Page<Employee> findAllByRole(Role role, Pageable pageable);
     @Query("select e.id from Employee e where e.managedBy.id = :managedBy or e.id = :managedBy ")
     List<Long> findAllIdByManagedById(Long managedBy);
 

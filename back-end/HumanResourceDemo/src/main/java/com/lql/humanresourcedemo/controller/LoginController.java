@@ -25,6 +25,7 @@ public class LoginController {
     }
     @PostMapping("/sign-out")
     public LogoutResponse logout(@RequestBody @Valid LogoutRequest logoutRequest) {
+        System.out.println(logoutRequest);
         return loginService.logout(logoutRequest.token());
     }
 }

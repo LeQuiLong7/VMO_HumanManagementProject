@@ -150,7 +150,12 @@ export default function Topbar() {
                                 </ListItemIcon>
                                 Change password
                             </MenuItem>
-                            <MenuItem onClick={e => {
+                            <MenuItem onClick={async (e) => { 
+                                const token = localStorage.getItem("access-token")
+                                const response = await axios.post("/sign-out", {
+                                    token: token.substring(token.indexOf(' ') + 1)
+                                });
+                                console.log(response.data);
                                 localStorage.removeItem('access-token');
                                 navigate('/login')
                             }}>
