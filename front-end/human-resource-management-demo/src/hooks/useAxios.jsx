@@ -1,5 +1,6 @@
 import axios from "axios";
  const useAxios = () => {
+    
     const axiosInstance = axios.create({
         baseURL: 'http://localhost:8080',
         headers: {
@@ -10,9 +11,14 @@ import axios from "axios";
     axiosInstance.interceptors.response.use(
         response => response,
         error => {
-            if (error.response && error.response.status == 403) 
-                if(window.location.pathname != '/' && window.location.pathname != '/login' )
+
+            if (error.response && error.response.status == 401) 
+                if(window.location.pathname != '/' && window.location.pathname != '/login' ) {
                     window.location.assign("/login")
+                }
+            if (error.response && error.response.status == 403) 
+                if(window.location.pathname != '/home/profile' )
+                    window.location.assign("/home/profile")
             
             return Promise.reject(error);
         }

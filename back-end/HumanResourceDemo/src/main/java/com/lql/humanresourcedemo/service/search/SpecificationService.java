@@ -4,15 +4,12 @@ import com.lql.humanresourcedemo.dto.request.search.Logic;
 import com.lql.humanresourcedemo.dto.request.search.LogicOperator;
 import com.lql.humanresourcedemo.dto.request.search.SearchRequest;
 import com.lql.humanresourcedemo.enumeration.ProjectState;
-import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import static org.springframework.data.repository.query.parser.Part.Type.NOT_IN;
 
 public class SpecificationService {
 

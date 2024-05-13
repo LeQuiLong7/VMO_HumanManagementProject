@@ -21,10 +21,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_ARRIVAL_TIME;
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_LEAVE_TIME;
@@ -90,7 +87,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             List<Attendance> weekAttendance = attendanceRepository.findByEmployeeIdAndDateBetween(i.id(), startDate, endDate);
 
             String key = "report/emp_%s/weekly_report_from_%s_to_%s.csv".formatted(i.id(), startDate, endDate);
-            Map<LeaveViolationCode, Integer> agg = new HashMap<>();
+            Map<LeaveViolationCode, Integer> agg = new EnumMap<>(LeaveViolationCode.class);
 
             try  {
                  File csvFile = createCsvFile(i.id(), weekAttendance, agg);

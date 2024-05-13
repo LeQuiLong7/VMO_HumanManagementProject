@@ -33,11 +33,12 @@ class LoginServiceTest {
     private JwtService jwtService;
     @Mock
     private RedisTemplate<Long, String> redisTemplate;
+    private RedisTemplate<String, LoginResponse> redisTemplate2;
     private LoginService loginService;
 
     @BeforeEach
     void setUp() {
-        loginService = new LoginServiceImpl(employeeRepository, redisTemplate, jwtService, passwordEncoder, 5, "MINUTES");
+        loginService = new LoginServiceImpl(employeeRepository, redisTemplate,redisTemplate2, jwtService, passwordEncoder, 5, "MINUTES");
     }
 
     @Test

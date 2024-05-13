@@ -1,25 +1,18 @@
 package com.lql.humanresourcedemo.service.jwt;
 
 
-import com.lql.humanresourcedemo.constant.JWTConstants;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPasswordAndRole;
-import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import io.jsonwebtoken.*;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-
-import static com.lql.humanresourcedemo.constant.JWTConstants.*;
 
 @Service
 //@RequiredArgsConstructor

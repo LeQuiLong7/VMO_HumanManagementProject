@@ -8,7 +8,6 @@ import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.service.pm.PMService;
-import com.lql.humanresourcedemo.utility.ContextUtility;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.lql.humanresourcedemo.utility.ContextUtility.*;
+import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
 import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPageRequest;
 
 @RestController

@@ -2,7 +2,6 @@ package com.lql.humanresourcedemo.controller;
 
 
 import com.lql.humanresourcedemo.dto.request.search.SearchRequest;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.SearchResponse;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.service.search.SearchService;

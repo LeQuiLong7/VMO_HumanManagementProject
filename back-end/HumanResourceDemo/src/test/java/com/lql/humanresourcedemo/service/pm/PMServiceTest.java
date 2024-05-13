@@ -122,7 +122,8 @@ class PMServiceTest {
     void handleLeaveRequest_RequestNotFound() {
         HandleLeaveRequest handleRequest = new HandleLeaveRequest(1L, LeaveStatus.ACCEPTED);
 
-        when(leaveRepository.findById(handleRequest.requestId())).thenReturn(Optional.empty());
+        when(leaveRepository.findBy(any(Specification.class), any()))
+                .thenReturn(Optional.empty());
 
 
         assertThrows(
@@ -146,7 +147,6 @@ class PMServiceTest {
     @Test
     void handleLeaveRequest_SuccessRejected() {
         HandleLeaveRequest handleRequest = new HandleLeaveRequest(1L, LeaveStatus.REJECTED);
-        OnlyPersonalEmailAndFirstName onlyPersonalEmailAndFirstName = new OnlyPersonalEmailAndFirstName("", "");
 
         Employee employee = Employee.builder()
                 .id(1L)
@@ -159,10 +159,8 @@ class PMServiceTest {
                 .type(LeaveType.UNPAID)
                 .build();
 
-        when(leaveRepository.findById(handleRequest.requestId()))
+        when(leaveRepository.findBy(any(Specification.class), any()))
                 .thenReturn(Optional.of(leaveRequest));
-
-        when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
         pmService.handleLeaveRequest(2L, List.of(handleRequest));
 
@@ -174,7 +172,6 @@ class PMServiceTest {
     @Test
     void handleLeaveRequest_SuccessAcceptedUnPaidLeave() {
         HandleLeaveRequest handleRequest = new HandleLeaveRequest(1L, LeaveStatus.ACCEPTED);
-        OnlyPersonalEmailAndFirstName onlyPersonalEmailAndFirstName = new OnlyPersonalEmailAndFirstName("", "");
 
         Employee employee = Employee.builder()
                 .id(1L)
@@ -187,10 +184,8 @@ class PMServiceTest {
                 .type(LeaveType.UNPAID)
                 .build();
 
-        when(leaveRepository.findById(handleRequest.requestId()))
+        when(leaveRepository.findBy(any(Specification.class), any()))
                 .thenReturn(Optional.of(leaveRequest));
-
-        when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class))).thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
         pmService.handleLeaveRequest(2L, List.of(handleRequest));
 
@@ -217,10 +212,8 @@ class PMServiceTest {
                 .type(LeaveType.PAID)
                 .build();
 
-        when(leaveRepository.findById(handleRequest.requestId()))
+        when(leaveRepository.findBy(any(Specification.class), any()))
                 .thenReturn(Optional.of(leaveRequest));
-        when(employeeRepository.findById(anyLong(), eq(OnlyPersonalEmailAndFirstName.class)))
-                .thenReturn(Optional.of(onlyPersonalEmailAndFirstName));
 
         pmService.handleLeaveRequest(2L, List.of(handleRequest));
 
@@ -238,7 +231,6 @@ class PMServiceTest {
         when(employeeRepository.existsById(pmId))
                 .thenReturn(true);
 
-//        when(employeeRepository.findAllIdByManagedById(pmId, pageable))
         when(employeeRepository.findBy(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(employee)));
 

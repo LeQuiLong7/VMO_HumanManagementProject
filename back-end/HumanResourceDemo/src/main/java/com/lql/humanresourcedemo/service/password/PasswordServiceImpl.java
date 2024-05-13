@@ -2,7 +2,6 @@ package com.lql.humanresourcedemo.service.password;
 
 
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPersonalEmailAndFirstName;
-import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.dto.request.employee.ResetPasswordRequest;
 import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
@@ -11,7 +10,6 @@ import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.password.PasswordResetRequest;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.passwordreset.PasswordResetRepository;
-import com.lql.humanresourcedemo.repository.passwordreset.PasswordResetSpecifications;
 import com.lql.humanresourcedemo.service.mail.MailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +22,8 @@ import java.util.UUID;
 
 import static com.lql.humanresourcedemo.constant.PasswordResetConstants.VALID_UNTIL_TEMPORAL_UNIT;
 import static com.lql.humanresourcedemo.constant.PasswordResetConstants.VALID_UNTIL_TIME_AMOUNT;
-import static com.lql.humanresourcedemo.repository.passwordreset.PasswordResetSpecifications.*;
+import static com.lql.humanresourcedemo.repository.passwordreset.PasswordResetSpecifications.byEmployeeId;
+import static com.lql.humanresourcedemo.repository.passwordreset.PasswordResetSpecifications.byToken;
 import static com.lql.humanresourcedemo.utility.HelperUtility.buildResetMailMessage;
 
 @Service

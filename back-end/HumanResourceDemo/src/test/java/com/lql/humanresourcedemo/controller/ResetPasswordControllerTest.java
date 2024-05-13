@@ -1,27 +1,18 @@
 package com.lql.humanresourcedemo.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lql.humanresourcedemo.dto.request.employee.CreateResetPasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.ResetPasswordRequest;
 import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
-import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.resetpassword.ResetPasswordException;
 import com.lql.humanresourcedemo.filter.JWTAuthenticationFilter;
-import com.lql.humanresourcedemo.security.MyAuthentication;
 import com.lql.humanresourcedemo.service.password.PasswordService;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -32,9 +23,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = ResetPasswordController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@UnsecuredWebMvcTest(ResetPasswordController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class ResetPasswordControllerTest {
+
+    private final String BASE_URL = ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0];
 
     @MockBean
     private PasswordService passwordService;
@@ -54,9 +47,8 @@ class ResetPasswordControllerTest {
             String email = "";
             CreateResetPasswordRequest request = new CreateResetPasswordRequest(email);
 
-            String url = ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0];
             try {
-                mockMvc.perform(post(url)
+                mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                 ).andExpectAll(
@@ -81,9 +73,8 @@ class ResetPasswordControllerTest {
             when(passwordService.createPasswordResetRequest(email))
                     .thenThrow(new EmployeeException(ERROR_MESSAGE));
 
-            String url = ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0];
             try {
-                mockMvc.perform(post(url)
+                mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                 ).andExpectAll(
@@ -108,9 +99,8 @@ class ResetPasswordControllerTest {
         when(passwordService.createPasswordResetRequest(email))
                 .thenReturn(new ChangePasswordResponse(SUCCESS_MESSAGE));
 
-        String url = ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0];
 
-        mockMvc.perform(post(url)
+        mockMvc.perform(post(BASE_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         ).andExpectAll(
@@ -130,9 +120,8 @@ class ResetPasswordControllerTest {
             when(passwordService.resetPassword(request))
                     .thenThrow(new ResetPasswordException(ERROR_MESSAGE));
 
-            String url = ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0];
             try {
-                mockMvc.perform(put(url)
+                mockMvc.perform(put(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                 ).andExpectAll(
@@ -156,8 +145,7 @@ class ResetPasswordControllerTest {
         when(passwordService.resetPassword(request))
                 .thenReturn(new ChangePasswordResponse(SUCCESS_MESSAGE));
 
-        String url = ResetPasswordController.class.getAnnotation(RequestMapping.class).value()[0];
-        mockMvc.perform(put(url)
+        mockMvc.perform(put(BASE_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         ).andExpectAll(

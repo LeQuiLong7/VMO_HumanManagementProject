@@ -8,10 +8,14 @@ import com.lql.humanresourcedemo.enumeration.LeaveStatus;
 import com.lql.humanresourcedemo.enumeration.LeaveType;
 import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.filter.JWTAuthenticationFilter;
+import com.lql.humanresourcedemo.filter.Oauth2AuthenticationSuccessHandler;
 import com.lql.humanresourcedemo.service.leave.LeaveService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -36,15 +40,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = LeaveController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@UnsecuredWebMvcTest(LeaveController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class LeaveControllerTest {
+    private final String BASE_URL = LeaveController.class.getAnnotation(RequestMapping.class).value()[0];
+    
     @MockBean
     private LeaveService leaveService;
 
     @MockBean
     private JWTAuthenticationFilter jwtAuthenticationFilter;
-
     @Autowired
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -59,10 +64,9 @@ class LeaveControllerTest {
                 when(leaveService.createLeaveRequest(anyLong(), any(LeaveRequestt.class)))
                         .thenThrow(new LeaveRequestException(ERROR_MESSAGE));
 
-                String url = LeaveController.class.getAnnotation(RequestMapping.class).value()[0];
 
                 try {
-                    mockMvc.perform(post(url)
+                    mockMvc.perform(post(BASE_URL)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request))
                     ).andExpectAll(
@@ -88,10 +92,9 @@ class LeaveControllerTest {
             when(leaveService.createLeaveRequest(anyLong(), any(LeaveRequestt.class)))
                     .thenReturn(new LeaveResponse(1L, 1L, "", "", LocalDate.now(), LocalDateTime.now(), LeaveType.UNPAID, "", LeaveStatus.PROCESSING, null));
 
-            String url = LeaveController.class.getAnnotation(RequestMapping.class).value()[0];
 
             try {
-                mockMvc.perform(post(url)
+                mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                 ).andExpectAll(
@@ -114,11 +117,8 @@ class LeaveControllerTest {
         mockSecurityContext(() -> {
             when(leaveService.getAllLeaveRequest(any(), any(Pageable.class)))
                     .thenReturn(Page.empty());
-
-            String url = LeaveController.class.getAnnotation(RequestMapping.class).value()[0];
-
             try {
-                mockMvc.perform(get(url)
+                mockMvc.perform(get(BASE_URL)
                 ).andExpectAll(
                         status().isOk(),
                         jsonPath("$.content").exists()
@@ -136,10 +136,9 @@ class LeaveControllerTest {
             when(leaveService.getLeaveRequestByDateAndEmployeeId(any(), any()))
                     .thenReturn(Optional.empty());
 
-            String url = LeaveController.class.getAnnotation(RequestMapping.class).value()[0];
             LocalDate now = LocalDate.now();
             try {
-                MvcResult result = mockMvc.perform(get(url + "/%s".formatted(now.toString())))
+                MvcResult result = mockMvc.perform(get(BASE_URL + "/%s".formatted(now.toString())))
                         .andExpect(status().isOk())
                         .andReturn();
                 assertEquals("null", result.getResponse().getContentAsString());

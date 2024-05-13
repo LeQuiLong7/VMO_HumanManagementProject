@@ -13,33 +13,53 @@ export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    function displayAlertt(data) {
+        if (displayAlert)
+            setDisplayAlert(false)
+        setResponseData(data)
+        setDisplayAlert(true)
+    }
+
     useEffect(() => {
-        if (window.location.search != ''){
+        if (window.location.search != '') {
             const params = new URLSearchParams(window.location.search);
             const errorParam = params.get('error');
             if (errorParam !== null) {
-                if (displayAlert)
-                    setDisplayAlert(false)
-                setResponseData({
+                displayAlertt({
                     success: false,
                     message: errorParam
                 })
-                setDisplayAlert(true)
                 return;
-            } else {
-                localStorage.setItem('access-token', params.get('type') + ' ' + params.get('token'))
-                localStorage.setItem('role', params.get('role'))
+            } else if (params.get('sessionId') != null) {
+                exchange(params.get('sessionId'));
+                return;
+            }
+        }
+        async function exchange(sessionId) {
+            try {
+                const response = await axios.post("/exchange", {
+                    sessionId: sessionId
+                })
+                localStorage.setItem('access-token', response.data.type + ' ' + response.data.token)
+                localStorage.setItem('role', response.data.role)
                 navigate('/home/profile')
+                displayAlertt({
+                    success: true,
+                    message: "Login successfully!"
+                })
                 return;
+
+            } catch (error) {
+                console.log(error);
+                displayAlertt({
+                    success: false,
+                    message: error.response.data.error
+                })
             }
         }
         async function loggedInCheck() {
             if (localStorage.getItem('access-token') != null) {
-                const response = await axios.get(`/profile`, {
-                    headers: {
-                        Authorization: localStorage.getItem('access-token')
-                    }
-                })
+                const response = await axios.get(`/profile`)
                 if (response.status == 200) {
                     navigate('/home/profile')
                 }
@@ -87,9 +107,9 @@ export default function Login() {
 
                     <MyLoadingButton text={'Login'} variant="contained" onClick={handleLogin}></MyLoadingButton>
                     <Stack alignItems={'center'}>
-                    <IconButton size="small" sx={{width: '50px'}}  component={Link} to='http://localhost:8080/oauth2/authorization/google'>
-                        <Avatar src={gg} sizes="small"></Avatar>
-                    </IconButton>
+                        <IconButton size="small" sx={{ width: '50px' }} component={Link} to='http://localhost:8080/oauth2/authorization/google'>
+                            <Avatar src={gg} sizes="small"></Avatar>
+                        </IconButton>
                     </Stack>
                 </Stack>
             </Paper>

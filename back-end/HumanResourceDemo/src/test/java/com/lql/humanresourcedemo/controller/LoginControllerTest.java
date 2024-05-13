@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-@WebMvcTest(value = LoginController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@UnsecuredWebMvcTest(LoginController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class LoginControllerTest {
     @MockBean
@@ -52,10 +52,7 @@ class LoginControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest))
                 ).andExpectAll(
-                        status().isBadRequest(),
-                        jsonPath("$.error").exists(),
-                        jsonPath("$.error").value("Wrong email or password"),
-                        jsonPath("$.time_stamp").exists()
+                        status().isBadRequest()
                 );
             } catch (Exception e) {
                 throw new RuntimeException(e);

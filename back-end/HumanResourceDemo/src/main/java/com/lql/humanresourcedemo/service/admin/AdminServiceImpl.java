@@ -7,7 +7,6 @@ import com.lql.humanresourcedemo.dto.response.admin.EmployeeProjectResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
-import com.lql.humanresourcedemo.exception.model.newaccount.NewAccountException;
 import com.lql.humanresourcedemo.exception.model.project.ProjectException;
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.exception.model.tech.TechException;
@@ -36,12 +35,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.lql.humanresourcedemo.dto.request.admin.AssignEmployeeToProjectRequest.*;
+import static com.lql.humanresourcedemo.dto.request.admin.AssignEmployeeToProjectRequest.EmployeeEffort;
 import static com.lql.humanresourcedemo.enumeration.ProjectState.*;
 import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byRole;
 import static com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications.byProjectId;
@@ -232,7 +229,7 @@ public class AdminServiceImpl implements AdminService {
     public ProjectResponse updateProject(UpdateProjectStatusRequest request) {
 
         Project project = projectRepository.findBy(ProjectSpecifications.byProjectId(request.id()), p -> p.project("employees").first())
-                .orElseThrow(() -> new ProjectException("Could not find project " + request.id()));
+                .orElseThrow(() -> new ProjectException(request.id()));
 
 
         if (project.getState().equals(FINISHED)) {
@@ -304,9 +301,9 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    private void validateCreateNewEmployeeRequest(CreateNewEmployeeRequest request) {
-        if (employeeRepository.existsByPersonalEmail(request.personalEmail())) {
-            throw new NewAccountException("Personal email %s already exists".formatted(request.personalEmail()));
-        }
-    }
+//    private void validateCreateNewEmployeeRequest(CreateNewEmployeeRequest request) {
+//        if (employeeRepository.existsByPersonalEmail(request.personalEmail())) {
+//            throw new NewAccountException("Personal email %s already exists".formatted(request.personalEmail()));
+//        }
+//    }
 }

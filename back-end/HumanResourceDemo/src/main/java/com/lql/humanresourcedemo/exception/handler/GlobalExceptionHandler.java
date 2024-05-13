@@ -14,7 +14,6 @@ import com.lql.humanresourcedemo.exception.model.project.ProjectException;
 import com.lql.humanresourcedemo.exception.model.resetpassword.ResetPasswordException;
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.exception.model.tech.TechException;
-import com.lql.humanresourcedemo.utility.FileUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,7 +28,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
 
@@ -39,7 +37,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(LoginException.class)
     public ResponseEntity<Object> loginExceptionHandler(LoginException ex, HttpServletRequest request) {
         log.warn(buildLogMessage("Login", ex.getMessage(), request));
-        return createResponseDetail("Wrong email or password", HttpStatus.BAD_REQUEST);
+        return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -107,13 +105,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(PagingException.class)
-    public ResponseEntity<Object> PagingExceptionHandler(PagingException ex, HttpServletRequest request) {
+    public ResponseEntity<Object> pagingExceptionHandler(PagingException ex, HttpServletRequest request) {
         log.warn(buildLogMessage("Paging ", ex.getMessage(), request));
         return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(TechException.class)
-    public ResponseEntity<Object> TechExceptionHandler(TechException ex, HttpServletRequest request) {
+    public ResponseEntity<Object> techExceptionHandler(TechException ex, HttpServletRequest request) {
         log.warn(buildLogMessage("Tech ", ex.getMessage(), request));
         return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
@@ -129,14 +127,14 @@ public class GlobalExceptionHandler {
 
         ex.printStackTrace();
         Object value = ((InvalidFormatException) ex.getCause()).getValue();
-        Object fieldName = ((InvalidFormatException) ex.getCause()).getPath().get(0).getFieldName();
+        String fieldName = ((InvalidFormatException) ex.getCause()).getPath().get(0).getFieldName();
 
         log.warn(buildLogMessage(" ", ex.getMessage(), request));
-        return createResponseDetail(String.format("%s is not a valid value for %s", value, convertCamelCaseToNormalWords(((String) fieldName))), HttpStatus.BAD_REQUEST);
+        return createResponseDetail(String.format("%s is not a valid value for %s", value, convertCamelCaseToNormalWords(fieldName)), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MailException.class)
-    public ResponseEntity<Object> MailExceptionHandler(MailException ex, HttpServletRequest request) {
+    public ResponseEntity<Object> mailExceptionHandler(MailException ex, HttpServletRequest request) {
         log.warn(buildLogMessage("Mail ", ex.getMessage(), request));
         return createResponseDetail(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }

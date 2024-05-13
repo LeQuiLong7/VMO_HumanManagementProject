@@ -43,7 +43,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
             if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
                 log.warn("Access denied: Someone trying to access {} Method: {} without a bearer token - IP address: {} ", request.getRequestURI(), request.getMethod(), request.getRemoteAddr());
-                response.setStatus(403);
+                response.setStatus(401);
                 response.getWriter().print("No bearer token");
                 return;
             }
@@ -53,18 +53,18 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 String storedToken = redisTemplate.opsForValue().get(employeeId);
                 if(storedToken == null || !storedToken.equals(token)) {
                     log.warn("Access denied: Someone trying to access {} Method: {} with a logged out token : {} - IP address: {} ", request.getRequestURI(), request.getMethod(), token, request.getRemoteAddr());
-                    response.setStatus(403);
+                    response.setStatus(401);
                     response.getWriter().print("Logged out token");
                     return;
                 }
             } catch (ExpiredJwtException e) {
                 log.warn("Access denied: Someone trying to access {} Method: {} with a expired token - IP address: {} ", request.getRequestURI(), request.getMethod(), request.getRemoteAddr());
-                response.setStatus(403);
+                response.setStatus(401);
                 response.getWriter().print("token expired");
                 return;
             } catch (JwtException e) {
                 log.warn("Access denied: Someone trying to access {} Method: {} with a invalid token : {} - IP address: {} ", request.getRequestURI(), request.getMethod(), token, request.getRemoteAddr());
-                response.setStatus(403);
+                response.setStatus(401);
                 response.getWriter().print("token is not valid");
                 return;
             }

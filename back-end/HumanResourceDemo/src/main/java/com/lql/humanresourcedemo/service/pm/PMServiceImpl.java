@@ -12,27 +12,26 @@ import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
+import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications;
 import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
 import com.lql.humanresourcedemo.repository.leave.LeaveSpecifications;
 import com.lql.humanresourcedemo.service.mail.MailService;
-//import com.lql.humanresourcedemo.service.validate.ValidateService;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.*;
-import static com.lql.humanresourcedemo.utility.HelperUtility.*;
+import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byId;
+import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byPmId;
+import static com.lql.humanresourcedemo.utility.HelperUtility.buildLeaveRequestProcessedMail;
 import static com.lql.humanresourcedemo.utility.MappingUtility.leaveRequestToResponse;
 
 @Service
@@ -77,7 +76,7 @@ public class PMServiceImpl implements PMService {
             throw new LeaveRequestException("Status " + request.status() + " is not valid");
         }
 
-        LeaveRequest l = leaveRepository.findById(request.requestId())
+        LeaveRequest l = leaveRepository.findBy(LeaveSpecifications.byId(request.requestId()), p -> p.project("employee").first())
                 .orElseThrow(() -> new LeaveRequestException("Leave request could not be found"));
 
         if (l.getStatus() != LeaveStatus.PROCESSING) {
@@ -96,10 +95,10 @@ public class PMServiceImpl implements PMService {
         if (request.status().equals(LeaveStatus.ACCEPTED) && l.getType().equals(LeaveType.PAID))
             employeeRepository.decreaseLeaveDaysBy1(l.getEmployee().getId());
 
-        OnlyPersonalEmailAndFirstName personalEmailAndFirstName = employeeRepository.findById(l.getEmployee().getId(), OnlyPersonalEmailAndFirstName.class).get();
-        mailService.sendEmail(personalEmailAndFirstName.personalEmail(),
+        Employee e = l.getEmployee();
+        mailService.sendEmail(e.getPersonalEmail(),
                 "[COMPANY] - YOUR LEAVE REQUEST HAS BEEN PROCESSED",
-                buildLeaveRequestProcessedMail(personalEmailAndFirstName.firstName(), l));
+                buildLeaveRequestProcessedMail(e.getFirstName(), l));
 
         return leaveRequestToResponse(l);
     }

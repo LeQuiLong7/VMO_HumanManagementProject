@@ -71,7 +71,7 @@ public class JWTFilterTest {
     public void noBearerTokenTest() throws Exception {
 
         MvcResult mvcResult = mockMvc.perform(get("/profile"))
-                .andExpect(status().isForbidden())
+                .andExpect(status().isUnauthorized())
                 .andReturn();
 
         assertEquals("No bearer token", mvcResult.getResponse().getContentAsString());
@@ -83,7 +83,7 @@ public class JWTFilterTest {
 
         MvcResult mvcResult = mockMvc.perform(get("/profile")
                         .header("Authorization", "Bearer abc"))
-                .andExpect(status().isForbidden())
+                .andExpect(status().isUnauthorized())
                 .andDo(print())
                 .andReturn();
 
@@ -98,7 +98,7 @@ public class JWTFilterTest {
 
         MvcResult mvcResult = mockMvc.perform(get("/profile")
                         .header("Authorization", "Bearer " + expiredToken))
-                .andExpect(status().isForbidden())
+                .andExpect(status().isUnauthorized())
                 .andDo(print())
                 .andReturn();
 
@@ -153,7 +153,7 @@ public class JWTFilterTest {
 
         MvcResult mvcResult = mockMvc.perform(get("/profile")
                         .header("Authorization", "Bearer " + loginResponse.token()))
-                .andExpect(status().isForbidden())
+                .andExpect(status().isUnauthorized())
                 .andDo(print())
                 .andReturn();
 

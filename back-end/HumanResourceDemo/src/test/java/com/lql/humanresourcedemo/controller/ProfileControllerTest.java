@@ -42,9 +42,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = ProfileController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@UnsecuredWebMvcTest(ProfileController.class)
+
 @AutoConfigureMockMvc(addFilters = false)
 class ProfileControllerTest {
+    private final String BASE_URL = ProfileController.class.getAnnotation(RequestMapping.class).value()[0];
+
     @MockBean
     private EmployeeService employeeService;
 
@@ -62,10 +65,9 @@ class ProfileControllerTest {
         mockSecurityContext(() -> {
             when(employeeService.getProfile(any()))
                     .thenReturn(Mockito.mock(GetProfileResponse.class));
-            String url = ProfileController.class.getAnnotation(RequestMapping.class).value()[0];
 
             try {
-                mockMvc.perform(get(url)
+                mockMvc.perform(get(BASE_URL)
                 ).andExpectAll(
                         status().isOk()
                 );
@@ -84,10 +86,7 @@ class ProfileControllerTest {
                     .thenReturn(Mockito.mock(TechStackResponse.class));
 
             try {
-                String url = ProfileController.class.getAnnotation(RequestMapping.class).value()[0];
-                String path = ProfileController.class.getMethod("getTechStack").getAnnotation(GetMapping.class).value()[0];
-
-                mockMvc.perform(get(url + path)
+                mockMvc.perform(get(BASE_URL + "/tech")
                 ).andExpectAll(
                         status().isOk()
                 );
@@ -107,10 +106,8 @@ class ProfileControllerTest {
             when(employeeService.updateInfo(any(), any()))
                     .thenReturn(Mockito.mock(GetProfileResponse.class));
 
-            String url = ProfileController.class.getAnnotation(RequestMapping.class).value()[0];
-
             try {
-                mockMvc.perform(put(url)
+                mockMvc.perform(put(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                 ).andExpectAll(
@@ -131,10 +128,8 @@ class ProfileControllerTest {
             when(employeeService.updateInfo(any(), any()))
                     .thenReturn(Mockito.mock(GetProfileResponse.class));
 
-            String url = ProfileController.class.getAnnotation(RequestMapping.class).value()[0];
-
             try {
-                mockMvc.perform(put(url)
+                mockMvc.perform(put(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                 ).andExpectAll(
@@ -151,16 +146,13 @@ class ProfileControllerTest {
     @Test
     void uploadAvatar_FileNotSupported()  {
 
-
         mockSecurityContext(() -> {
             MockMultipartFile file = new MockMultipartFile("file", "filename.pdf", MediaType.APPLICATION_PDF_VALUE, "file content".getBytes());
 
             when(employeeService.uploadAvatar(any(), any()))
                     .thenThrow(new FileException(ERROR_MESSAGE));
-
-            String url = ProfileController.class.getAnnotation(RequestMapping.class).value()[0];
             MockMultipartHttpServletRequestBuilder builder =
-                    MockMvcRequestBuilders.multipart(url + "/avatar");
+                    MockMvcRequestBuilders.multipart(BASE_URL + "/avatar");
 
             builder.with(request -> {
                 request.setMethod("PUT");
@@ -187,12 +179,8 @@ class ProfileControllerTest {
 
         mockSecurityContext(() -> {
             ChangePasswordRequest request = new ChangePasswordRequest("", null, null);
-
-            String url = ProfileController.class.getAnnotation(RequestMapping.class).value()[0];
-
-
             try {
-                mockMvc.perform(put(url + "/password")
+                mockMvc.perform(put(BASE_URL + "/password")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                         )
@@ -214,11 +202,8 @@ class ProfileControllerTest {
 
                 when(employeeService.changePassword(any(), any()))
                         .thenThrow(new ChangePasswordException(ERROR_MESSAGE));
-                String url = ProfileController.class.getAnnotation(RequestMapping.class).value()[0];
-
-
                 try {
-                    mockMvc.perform(put(url + "/password")
+                    mockMvc.perform(put(BASE_URL + "/password")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(request))
                             )

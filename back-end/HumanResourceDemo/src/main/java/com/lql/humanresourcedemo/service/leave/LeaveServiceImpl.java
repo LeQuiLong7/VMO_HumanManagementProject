@@ -3,15 +3,12 @@ package com.lql.humanresourcedemo.service.leave;
 import com.lql.humanresourcedemo.dto.model.employee.OnLyLeaveDays;
 import com.lql.humanresourcedemo.dto.request.employee.LeaveRequestt;
 import com.lql.humanresourcedemo.dto.response.LeaveResponse;
-import com.lql.humanresourcedemo.enumeration.LeaveStatus;
 import com.lql.humanresourcedemo.enumeration.LeaveType;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
-import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
-import com.lql.humanresourcedemo.repository.leave.LeaveSpecifications;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +20,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.Optional;
 
-import static com.lql.humanresourcedemo.repository.leave.LeaveSpecifications.*;
+import static com.lql.humanresourcedemo.repository.leave.LeaveSpecifications.byDate;
+import static com.lql.humanresourcedemo.repository.leave.LeaveSpecifications.byEmployeeId;
 import static com.lql.humanresourcedemo.utility.MappingUtility.leaveRequestToResponse;
 import static com.lql.humanresourcedemo.utility.MappingUtility.toLeaveRequest;
 

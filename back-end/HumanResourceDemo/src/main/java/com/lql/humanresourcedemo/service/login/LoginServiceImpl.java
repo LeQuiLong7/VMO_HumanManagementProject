@@ -7,7 +7,6 @@ import com.lql.humanresourcedemo.dto.response.LoginResponse;
 import com.lql.humanresourcedemo.dto.response.LogoutResponse;
 import com.lql.humanresourcedemo.exception.model.login.LoginException;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications;
 import com.lql.humanresourcedemo.service.jwt.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -19,13 +18,12 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byPersonalEmail;
-
 
 @Service
 public class LoginServiceImpl implements LoginService {
     private final EmployeeRepository employeeRepository;
     private final RedisTemplate<Long, String> redisTemplate;
+    private final RedisTemplate<String,  LoginResponse> redisTemplate2;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final long EXPIRED_DURATION;
@@ -33,12 +31,14 @@ public class LoginServiceImpl implements LoginService {
 
     public LoginServiceImpl(EmployeeRepository employeeRepository,
                             RedisTemplate<Long, String> redisTemplate,
+                            RedisTemplate<String, LoginResponse> redisTemplate2,
                             JwtService jwtService,
                             PasswordEncoder passwordEncoder,
                             @Value("${jwt.expiration.duration}") long EXPIRED_DURATION,
                             @Value("${jwt.expiration.time-unit}") String EXPIRED_TIME_UNIT) {
         this.employeeRepository = employeeRepository;
         this.redisTemplate = redisTemplate;
+        this.redisTemplate2 = redisTemplate2;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.EXPIRED_DURATION = EXPIRED_DURATION;
@@ -58,6 +58,15 @@ public class LoginServiceImpl implements LoginService {
         String token = jwtService.generateToken(employee);
         redisTemplate.opsForValue().set(employee.id(), token, Duration.of(EXPIRED_DURATION, ChronoUnit.valueOf(EXPIRED_TIME_UNIT)));
         return new LoginResponse(JWTConstants.TOKEN_TYPE, token, employee.role());
+    }
+
+    @Override
+    public LoginResponse exchangeToken(String token) {
+        LoginResponse loginResponse = redisTemplate2.opsForValue().get(token);
+        if(loginResponse == null) {
+            throw new LoginException("Session id does not exists");
+        }
+        return loginResponse;
     }
 
     @Override
