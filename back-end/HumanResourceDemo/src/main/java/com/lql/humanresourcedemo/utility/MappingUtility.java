@@ -1,12 +1,15 @@
 package com.lql.humanresourcedemo.utility;
 
+import com.lql.humanresourcedemo.dto.request.admin.CreateNewEmployeeRequest;
 import com.lql.humanresourcedemo.dto.request.admin.CreateNewProjectRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.request.employee.LeaveRequestt;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
-import com.lql.humanresourcedemo.dto.request.admin.CreateNewEmployeeRequest;
 import com.lql.humanresourcedemo.dto.request.pm.CheckAttendanceRequest;
-import com.lql.humanresourcedemo.dto.response.*;
+import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.LeaveResponse;
+import com.lql.humanresourcedemo.dto.response.ProjectResponse;
+import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.enumeration.LeaveStatus;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
@@ -116,9 +119,10 @@ public class MappingUtility {
 //                .client(clientRepository.getReferenceById(request.clientId()))
                 .build();
     }
-    public static SalaryRaiseRequest toSalaryRaiseRequest(CreateSalaryRaiseRequest request, Double currentSalary) {
+    public static SalaryRaiseRequest toSalaryRaiseRequest(CreateSalaryRaiseRequest request, Double currentSalary, Employee e) {
         return  SalaryRaiseRequest.builder()
                 .currentSalary(currentSalary)
+                .employee(e)
                 .expectedSalary(request.expectedSalary())
                 .description(request.description())
                 .status(SalaryRaiseRequestStatus.PROCESSING)

@@ -28,7 +28,7 @@ public class AdminController {
     private final AdminService adminService;
 
     @GetMapping("/employees")
-    public Page<GetProfileResponse> getAllEmployee(  Pageable page) {
+    public Page<GetProfileResponse> getAllEmployee(Pageable page) {
 
         return adminService.getAllEmployee(page);
     }
@@ -40,14 +40,12 @@ public class AdminController {
     }
 
     @GetMapping("/employee/{employeeId}/projects")
-    public Page<ProjectDetail> getAllProjectsByEmployeeId(
-             Pageable page,
-            @PathVariable Long employeeId) {
+    public Page<ProjectDetail> getAllProjectsByEmployeeId(Pageable page, @PathVariable Long employeeId) {
         return adminService.getAllProjectsByEmployeeId(employeeId, page);
     }
 
     @GetMapping("/pm")
-    public Page<GetProfileResponse> getAllPM( Pageable page) {
+    public Page<GetProfileResponse> getAllPM(Pageable page) {
         return adminService.getAllPM(page);
     }
 

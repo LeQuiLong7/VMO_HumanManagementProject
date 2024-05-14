@@ -5,7 +5,10 @@ import com.lql.humanresourcedemo.dto.model.employee.OnlySalary;
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
-import com.lql.humanresourcedemo.dto.response.*;
+import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.dto.response.TechInfo;
+import com.lql.humanresourcedemo.dto.response.TechStackResponse;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
@@ -13,9 +16,9 @@ import com.lql.humanresourcedemo.exception.model.password.ChangePasswordExceptio
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.employee.Employee;
-import com.lql.humanresourcedemo.model.project.EmployeeProject;
-import com.lql.humanresourcedemo.model.project.Project;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
+import com.lql.humanresourcedemo.model.tech.EmployeeTech;
+import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
@@ -155,17 +158,16 @@ class EmployeeServiceTest {
     @Test
     void getTechStack_Success() {
         Long employeeId = 1L;
-
-        TechInfo techInfo = new TechInfo(1L, "java", 1.5);
+        EmployeeTech ep = new EmployeeTech(Employee.builder().id(employeeId).build(), new Tech(1L, "a", null), 1D);
         when(employeeRepository.existsById(employeeId)).thenReturn(true);
-        when(employeeTechRepository.findTechInfoByEmployeeId(employeeId)).thenReturn(
-                List.of(techInfo)
+        when(employeeTechRepository.findBy(any(Specification.class), any())).thenReturn(
+                List.of(ep)
         );
         TechStackResponse response = employeeService.getTechStack(employeeId);
 
         assertAll(
                 () -> assertEquals(employeeId, response.employeeId()),
-                () -> assertEquals(techInfo, response.techInfo().get(0))
+                () -> assertEquals("a", response.techInfo().get(0).techName())
         );
     }
     @Test

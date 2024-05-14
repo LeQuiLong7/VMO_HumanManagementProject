@@ -2,10 +2,7 @@ package com.lql.humanresourcedemo.repository.employee;
 
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.model.employee.Employee;
-import com.lql.humanresourcedemo.model.project.EmployeeProject;
 import org.springframework.data.jpa.domain.Specification;
-
-import java.util.List;
 
 public class EmployeeSpecifications {
     public static Specification<Employee> byRole(Role role) {
@@ -19,6 +16,10 @@ public class EmployeeSpecifications {
     public static Specification<Employee> byPmId(Long pmId) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("managedBy").get("id"), pmId);
+    }
+    public static Specification<Employee> byCurrentEffortLessThanOrEqualTo(Integer currentEffort) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.lessThanOrEqualTo(root.get("currentEffort"), currentEffort);
     }
     public static Specification<Employee> byPersonalEmail(String personalEmail) {
         return (root, query, criteriaBuilder) ->

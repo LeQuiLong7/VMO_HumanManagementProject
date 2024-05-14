@@ -26,7 +26,7 @@ public class SpecificationService {
 
                 Root<T> rootSub = subquery.from(clazz);
                 subquery.select(rootSub.get("id"));
-                Join<Object, Object> join = rootSub.join("projects").join("project");
+                Join<Object, Object> join = rootSub.join("projects", JoinType.LEFT).join("project", JoinType.LEFT);
                 subquery.groupBy(rootSub.get("id"))
                         .having(criteriaBuilder.lessThanOrEqualTo(
                                         criteriaBuilder.sum(

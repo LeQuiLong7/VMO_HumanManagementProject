@@ -30,7 +30,7 @@ public class AWSServiceImpl implements AWSService {
                 .build();
         try {
             s3Client.putObject(build, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-
+            // TODO: delete old avatar on S3
         } catch (Exception ex) {
             throw new AWSException("Error uploading file");
         }

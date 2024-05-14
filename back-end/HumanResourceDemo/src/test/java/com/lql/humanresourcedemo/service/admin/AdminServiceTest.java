@@ -33,7 +33,6 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -578,16 +577,13 @@ class AdminServiceTest {
 
         when(employeeRepository.existsById(request.employeeId())).thenReturn(true);
         when(techRepository.existsById(techStack.techId())).thenReturn(true);
-        when(employeeTechRepository.existsByIdEmployeeIdAndIdTechId(request.employeeId(), techStack.techId())).thenReturn(false);
+        when(employeeTechRepository.exists(any(Specification.class))).thenReturn(false);
+        EmployeeTech ep = new EmployeeTech(Employee.builder().id(1L).build(), new Tech(1L, "a", null), 1D);
+        when(employeeTechRepository.findBy(any(Specification.class), any())).thenReturn(
+                List.of(ep)
+        );
+
         adminService.updateEmployeeTechStack(request);
-
         verify(employeeTechRepository, times(1)).save(any());
-    }
-
-
-    @Test
-    void getAllEmployees() {
-
-
     }
 }

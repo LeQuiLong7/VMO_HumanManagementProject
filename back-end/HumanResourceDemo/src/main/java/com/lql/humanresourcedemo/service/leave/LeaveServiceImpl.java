@@ -36,15 +36,18 @@ public class LeaveServiceImpl implements LeaveService{
     @Transactional
     public LeaveResponse createLeaveRequest(Long employeeId, LeaveRequestt request) {
 
-
-        OnLyLeaveDays leaveDays = employeeRepository.findById(employeeId, OnLyLeaveDays.class)
-                .orElseThrow(() -> new EmployeeException(employeeId));
-
-
-        if(request.type().equals(LeaveType.PAID) && leaveDays.leaveDays() < 1) {
-            throw new LeaveRequestException("Requesting a paid leave day but not enough leave day left");
+        if(!employeeRepository.existsById(employeeId)) {
+            throw new EmployeeException(employeeId);
         }
-
+        if(request.type().equals(LeaveType.PAID)) {
+            OnLyLeaveDays leaveDays = employeeRepository.findById(employeeId, OnLyLeaveDays.class)
+                    .orElseThrow(() -> new EmployeeException(employeeId));
+            if(leaveDays.leaveDays() < 1)
+                throw new LeaveRequestException("Requesting a paid leave day but not enough leave day left");
+        }
+        if(leaveRepository.exists(byEmployeeId(employeeId).and(byDate(request.leaveDate())))) {
+            throw new LeaveRequestException("Already have a leave request on that date");
+        }
         LeaveRequest leaveRequest = toLeaveRequest(employeeRepository.getReferenceById(employeeId), request);
 
         return leaveRequestToResponse(leaveRepository.save(leaveRequest));

@@ -38,11 +38,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.lql.humanresourcedemo.dto.request.admin.AssignEmployeeToProjectRequest.EmployeeEffort;
 import static com.lql.humanresourcedemo.enumeration.ProjectState.*;
-import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byRole;
+import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.*;
 import static com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications.byProjectId;
 import static com.lql.humanresourcedemo.repository.tech.EmployeeTechSpecifications.byEmployeeId;
+import static com.lql.humanresourcedemo.repository.tech.EmployeeTechSpecifications.byTechId;
 import static com.lql.humanresourcedemo.utility.HelperUtility.*;
 import static com.lql.humanresourcedemo.utility.MappingUtility.*;
 
@@ -200,7 +200,7 @@ public class AdminServiceImpl implements AdminService {
                 );
 
         request.techStacks().forEach(s -> {
-            if (employeeTechRepository.existsByIdEmployeeIdAndIdTechId(request.employeeId(), s.techId())) {
+            if (employeeTechRepository.exists(byEmployeeId(request.employeeId()).and(byTechId(s.techId())))) {
                 employeeTechRepository.updateYearOfExperienceByEmployeeIdAndTechId(request.employeeId(), s.techId(), s.yearOfExperience());
             } else {
                 employeeTechRepository.save(
@@ -209,11 +209,14 @@ public class AdminServiceImpl implements AdminService {
             }
         });
 
+        List<EmployeeTech> tech = employeeTechRepository.findBy(byEmployeeId(request.employeeId()), p -> p.project("tech").all());
+
         return new TechStackResponse(
                 request.employeeId(),
-                employeeTechRepository.findTechInfoByEmployeeId(request.employeeId())
+                tech.stream()
+                        .map(TechInfo::of)
+                        .toList()
         );
-
     }
 
     @Override
@@ -252,7 +255,7 @@ public class AdminServiceImpl implements AdminService {
             project.setActualFinishDate(request.actualFinishDate());
         }
         project.setState(request.newState());
-        if(request.newState().equals(FINISHED)) {
+        if (request.newState().equals(FINISHED)) {
             project.getEmployees()
                     .forEach(e -> employeeRepository.updateCurrentEffortById(e.getId().getEmployeeId(), (-e.getEffort())));
         }
@@ -266,25 +269,26 @@ public class AdminServiceImpl implements AdminService {
         Project project = projectRepository.findBy(ProjectSpecifications.byProjectId(request.projectId()), p -> p.project("employees.employee").first())
                 .orElseThrow(() -> new ProjectException("Could not find project " + request.projectId()));
 
-        request.assignList().stream().map(EmployeeEffort::employeeId).forEach(this::requiredExistsEmployee);
-
-        List<EmployeeProjectResponse> employeeList = project.getEmployees().stream()
+        List<EmployeeProjectResponse> alreadyInside = project.getEmployees().stream()
                 .map(EmployeeProjectResponse::toEmployeeProjectResponse)
                 .collect(Collectors.toList());
 
         List<EmployeeProjectResponse> list = request.assignList()
                 .stream()
-                .filter(ep -> employeeList.stream().noneMatch(e -> e.employeeId().equals(ep.employeeId())))
+                .filter(ep -> alreadyInside.stream().noneMatch(e -> e.employeeId().equals(ep.employeeId())))
                 .map(ep -> {
-                    EmployeeProject saved = employeeProjectRepository.save(new EmployeeProject(employeeRepository.getReferenceById(ep.employeeId()), projectRepository.getReferenceById(project.getId()), ep.effort()));
+                    if (!employeeRepository.exists(byId(ep.employeeId()).and(byCurrentEffortLessThanOrEqualTo(100 - ep.effort())))) {
+                        throw new ProjectException("Employee doesn't exists or effort exceeds 100%: " + ep );
+                    }
+                    EmployeeProject saved = employeeProjectRepository.save(new EmployeeProject(employeeRepository.getReferenceById(ep.employeeId()), project, ep.effort()));
                     employeeRepository.updateCurrentEffortById(ep.employeeId(), ep.effort());
                     return saved;
                 })
                 .map(EmployeeProjectResponse::toEmployeeProjectResponse).toList();
 
-        employeeList.addAll(list);
+        alreadyInside.addAll(list);
 
-        return employeeList;
+        return alreadyInside;
     }
 
     private void requiredExistsEmployee(Long employeeId) {

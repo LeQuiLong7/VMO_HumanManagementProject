@@ -13,6 +13,7 @@ import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseExceptio
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
+import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceSpecifications;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
@@ -21,6 +22,7 @@ import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
 import com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications;
 import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
 import com.lql.humanresourcedemo.repository.tech.EmployeeTechRepository;
+import com.lql.humanresourcedemo.repository.tech.EmployeeTechSpecifications;
 import com.lql.humanresourcedemo.service.aws.AWSService;
 import com.lql.humanresourcedemo.utility.MappingUtility;
 import jakarta.transaction.Transactional;
@@ -33,8 +35,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
+import static com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus.PROCESSING;
 import static com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications.byProjectId;
 import static com.lql.humanresourcedemo.repository.salary.SalaryRaiseSpecifications.byEmployeeId;
+import static com.lql.humanresourcedemo.repository.salary.SalaryRaiseSpecifications.byStatus;
 import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
 import static com.lql.humanresourcedemo.utility.FileUtility.*;
 import static com.lql.humanresourcedemo.utility.MappingUtility.*;
@@ -66,7 +72,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         requireExists(employeeId);
         return new TechStackResponse(
                 employeeId,
-                employeeTechRepository.findTechInfoByEmployeeId(employeeId)
+                employeeTechRepository.findBy(EmployeeTechSpecifications.byEmployeeId(employeeId), p -> p.project("tech").all())
+                        .stream()
+                        .map(TechInfo::of)
+                        .toList()
         );
     }
 
@@ -124,14 +133,16 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     public SalaryRaiseResponse createSalaryRaiseRequest(Long employeeId, CreateSalaryRaiseRequest request) {
 
+        if(salaryRepository.exists(byEmployeeId(employeeId).and(byStatus(PROCESSING)))) {
+            throw new SalaryRaiseException("Already have a PROCESSING salary raise request");
+        }
         OnlySalary currentSalary = employeeRepository.findById(employeeId, OnlySalary.class)
                 .orElseThrow(() -> new EmployeeException(employeeId));
 
         if (request.expectedSalary() <= currentSalary.currentSalary()) {
             throw new SalaryRaiseException("Expected salary is lower than current salary");
         }
-        SalaryRaiseRequest raiseRequest = toSalaryRaiseRequest(request, currentSalary.currentSalary());
-        raiseRequest.setEmployee(employeeRepository.getReferenceById(employeeId));
+        SalaryRaiseRequest raiseRequest = toSalaryRaiseRequest(request, currentSalary.currentSalary(), employeeRepository.getReferenceById(employeeId));
 
         return salaryRaiseRequestToResponse(salaryRepository.save(raiseRequest));
     }
@@ -139,7 +150,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long employeeId, Pageable pageRequest) {
         requireExists(employeeId);
-        return salaryRepository.findBy(byEmployeeId(employeeId), p -> p.page(pageRequest))
+        return salaryRepository.findBy(byEmployeeId(employeeId), p -> p.sortBy(pageRequest.getSort()).page(pageRequest))
                 .map(MappingUtility::salaryRaiseRequestToResponse);
     }
 

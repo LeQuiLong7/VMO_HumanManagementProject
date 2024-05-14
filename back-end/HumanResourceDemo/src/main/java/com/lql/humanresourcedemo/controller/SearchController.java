@@ -21,8 +21,7 @@ public class SearchController {
     private final SearchService searchService;
 
     @PostMapping("/employees")
-    public Page<SearchResponse> getAllEmployee(Pageable page,
-                                               @RequestBody SearchRequest searchRequest) {
+    public Page<SearchResponse> getAllEmployee(Pageable page, @RequestBody SearchRequest searchRequest) {
         return searchService.search(searchRequest, page);
     }
 }

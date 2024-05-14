@@ -27,8 +27,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,8 +47,8 @@ class LeaveServiceTest {
     void testCreateLeaveRequest_UserNotFound() {
         Long employeeId = 1L;
         LeaveRequestt leaveRequestt = new LeaveRequestt(null, null, null);
-        when(employeeRepository.findById(any(Long.class), eq(OnLyLeaveDays.class)))
-                .thenReturn(Optional.empty());
+        when(employeeRepository.existsById(any(Long.class)))
+                .thenReturn(false);
 
         assertThrows(
                 EmployeeException.class,
@@ -65,6 +64,9 @@ class LeaveServiceTest {
 
         LeaveRequestt leaveRequestt = new LeaveRequestt(null, null, LeaveType.PAID);
         OnLyLeaveDays leaveDays = new OnLyLeaveDays(((byte) 0));
+
+        when(employeeRepository.existsById(any(Long.class)))
+                .thenReturn(true);
         when(employeeRepository.findById(any(Long.class), eq(OnLyLeaveDays.class)))
                 .thenReturn(Optional.of(leaveDays));
 
@@ -86,7 +88,9 @@ class LeaveServiceTest {
         LeaveRequestt leaveRequestt = new LeaveRequestt(null, null, LeaveType.PAID);
 
 
-        when(employeeRepository.findById(any(Long.class), eq(OnLyLeaveDays.class)))
+        when(employeeRepository.existsById(any(Long.class)))
+                .thenReturn(true);
+        when(employeeRepository.findById(anyLong(), eq(OnLyLeaveDays.class)))
                 .thenReturn(Optional.of(leaveDays));
         when(employeeRepository.getReferenceById(any(Long.class)))
                 .thenReturn(employee);
