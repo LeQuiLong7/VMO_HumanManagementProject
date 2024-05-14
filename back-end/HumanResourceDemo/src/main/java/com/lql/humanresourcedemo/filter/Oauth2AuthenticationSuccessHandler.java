@@ -26,8 +26,8 @@ public class Oauth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
     public Oauth2AuthenticationSuccessHandler(LoginService loginService,
                                               RedisTemplate<String, LoginResponse> redisLoginTemplate,
-                                              @Value("${jwt.expiration.duration}") long EXPIRED_DURATION,
-                                              @Value("${jwt.expiration.time-unit}") String EXPIRED_TIME_UNIT) {
+                                              @Value("${jwt.expiration.duration}") final long EXPIRED_DURATION,
+                                              @Value("${jwt.expiration.time-unit}") final String EXPIRED_TIME_UNIT) {
         this.loginService = loginService;
         this.redisLoginTemplate = redisLoginTemplate;
         this.EXPIRED_DURATION = EXPIRED_DURATION;

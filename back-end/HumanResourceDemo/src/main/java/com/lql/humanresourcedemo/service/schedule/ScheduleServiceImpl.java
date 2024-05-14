@@ -21,13 +21,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_ARRIVAL_TIME;
 import static com.lql.humanresourcedemo.constant.CompanyConstant.COMPANY_LEAVE_TIME;
 import static com.lql.humanresourcedemo.enumeration.LeaveViolationCode.*;
-import static com.lql.humanresourcedemo.utility.AWSUtility.*;
-import static com.lql.humanresourcedemo.utility.HelperUtility.*;
+import static com.lql.humanresourcedemo.utility.AWSUtility.BUCKET_NAME;
+import static com.lql.humanresourcedemo.utility.HelperUtility.buildEmployeeWeeklyReport;
 import static com.lql.humanresourcedemo.utility.HelperUtility.buildLeaveWarningMessage;
 
 @Component
@@ -76,6 +79,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         });
     }
 
+    @Override
     @Scheduled(cron = "0 9 * * 6 *") // Run at 9AM every Saturday
     public void createEmployeeWeeklyReports() {
         List<OnlyIdPersonalEmailAndFirstName> employees = employeeRepository.findByQuitIsFalse(OnlyIdPersonalEmailAndFirstName.class);
