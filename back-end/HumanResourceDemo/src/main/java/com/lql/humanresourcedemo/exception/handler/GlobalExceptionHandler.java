@@ -16,6 +16,7 @@ import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseExceptio
 import com.lql.humanresourcedemo.exception.model.tech.TechException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -108,6 +109,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> pagingExceptionHandler(PagingException ex, HttpServletRequest request) {
         log.warn(buildLogMessage("Paging ", ex.getMessage(), request));
         return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<Object> pagingExceptionHandler(PropertyReferenceException ex, HttpServletRequest request) {
+        log.warn(buildLogMessage("Paging ", ex.getMessage(), request));
+        return createResponseDetail(ex.getPropertyName() + " is not a valid sort property", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(TechException.class)

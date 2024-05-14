@@ -5,12 +5,13 @@ import com.lql.humanresourcedemo.dto.request.pm.HandleLeaveRequest;
 import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.LeaveResponse;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
-import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
-import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.service.pm.PMService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
-import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPageRequest;
 
 @RestController
 @RequestMapping("/pm")
@@ -29,20 +29,14 @@ public class PMController {
 
     private final PMService pmService;
     @GetMapping("/employees")
-    public Page<GetProfileResponse> getAllEmployee(@RequestParam(required = false, defaultValue = "0") String page,
-                                                   @RequestParam(required = false, defaultValue = "10") String size,
-                                                   @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                                   @RequestParam(required = false, defaultValue = "asc") List<String> o) {
-        return pmService.getAllEmployee(getCurrentEmployeeId(), validateAndBuildPageRequest(page, size, p, o, Employee.class));
+    public Page<GetProfileResponse> getAllEmployee(Pageable page) {
+        return pmService.getAllEmployee(getCurrentEmployeeId(), page);
     }
 
 
     @GetMapping("/leave")
-    public Page<LeaveResponse> getAllLeaveRequest(@RequestParam(required = false, defaultValue = "0") String page,
-                                                   @RequestParam(required = false, defaultValue = "10") String size,
-                                                   @RequestParam(required = false, defaultValue = "createdAt") List<String> p,
-                                                   @RequestParam(required = false, defaultValue = "desc") List<String> o) {
-        return pmService.getAllLeaveRequest(getCurrentEmployeeId(),  validateAndBuildPageRequest(page, size, p, o, LeaveRequest.class));
+    public Page<LeaveResponse> getAllLeaveRequest(@SortDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable page) {
+        return pmService.getAllLeaveRequest(getCurrentEmployeeId(),  page);
     }
 
 

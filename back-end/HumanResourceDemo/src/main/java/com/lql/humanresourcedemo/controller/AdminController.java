@@ -4,9 +4,6 @@ package com.lql.humanresourcedemo.controller;
 import com.lql.humanresourcedemo.dto.request.admin.*;
 import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.dto.response.admin.EmployeeProjectResponse;
-import com.lql.humanresourcedemo.model.employee.Employee;
-import com.lql.humanresourcedemo.model.project.Project;
-import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.service.admin.AdminService;
 import com.lql.humanresourcedemo.utility.ContextUtility;
@@ -14,30 +11,26 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.lql.humanresourcedemo.utility.HelperUtility.validateAndBuildPageRequest;
-
 @RestController
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
-@Tag(name="6. Admin controller")
+@Tag(name = "6. Admin controller")
 public class AdminController {
 
     private final AdminService adminService;
 
     @GetMapping("/employees")
-    public Page<GetProfileResponse> getAllEmployee(@RequestParam(required = false, defaultValue = "0") String page,
-                                                   @RequestParam(required = false, defaultValue = "10") String size,
-                                                   @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                                   @RequestParam(required = false, defaultValue = "asc") List<String> o) {
+    public Page<GetProfileResponse> getAllEmployee(  Pageable page) {
 
-        return adminService.getAllEmployee(validateAndBuildPageRequest(page, size, p, o, Employee.class));
+        return adminService.getAllEmployee(page);
     }
 
     @PostMapping("/employees")
@@ -47,35 +40,26 @@ public class AdminController {
     }
 
     @GetMapping("/employee/{employeeId}/projects")
-    public Page<ProjectDetail> getAllProjectsByEmployeeId(@RequestParam(required = false, defaultValue = "0") String page,
-                                                          @RequestParam(required = false, defaultValue = "10") String size,
-                                                          @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                                          @RequestParam(required = false, defaultValue = "asc") List<String> o,
-                                                          @PathVariable Long employeeId) {
-        return adminService.getAllProjectsByEmployeeId(employeeId, validateAndBuildPageRequest(page, size, p, o, Project.class));
+    public Page<ProjectDetail> getAllProjectsByEmployeeId(
+             Pageable page,
+            @PathVariable Long employeeId) {
+        return adminService.getAllProjectsByEmployeeId(employeeId, page);
     }
 
     @GetMapping("/pm")
-    public Page<GetProfileResponse> getAllPM(@RequestParam(required = false, defaultValue = "0") String page,
-                                             @RequestParam(required = false, defaultValue = "10") String size,
-                                             @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                             @RequestParam(required = false, defaultValue = "asc") List<String> o) {
-        return adminService.getAllPM(validateAndBuildPageRequest(page, size, p, o, Employee.class));
+    public Page<GetProfileResponse> getAllPM( Pageable page) {
+        return adminService.getAllPM(page);
     }
 
     @GetMapping("/techStack")
-    public Page<Tech> getAllTechStack(@RequestParam(required = false, defaultValue = "0") String page,
-                                      @RequestParam(required = false, defaultValue = "10") String size,
-                                      @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                      @RequestParam(required = false, defaultValue = "asc") List<String> o) {
-        return adminService.getAllTech(validateAndBuildPageRequest(page, size, p, o, Tech.class));
+    public Page<Tech> getAllTechStack(Pageable page) {
+        return adminService.getAllTech(page);
     }
 
     @GetMapping("/techStack/{empId}")
     public TechStackResponse getTechStackByEmployeeId(@PathVariable Long empId) {
         return adminService.getTechStackByEmployeeId(empId);
     }
-
 
 
     @PutMapping("/techStack")
@@ -85,11 +69,8 @@ public class AdminController {
 
 
     @GetMapping("/salary")
-    public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(@RequestParam(required = false, defaultValue = "0") String page,
-                                                              @RequestParam(required = false, defaultValue = "10") String size,
-                                                              @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                                              @RequestParam(required = false, defaultValue = "asc") List<String> o) {
-        return adminService.getAllSalaryRaiseRequest(validateAndBuildPageRequest(page, size, p, o, SalaryRaiseRequest.class));
+    public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Pageable page) {
+        return adminService.getAllSalaryRaiseRequest(page);
     }
 
     @PutMapping("/salary")
@@ -98,11 +79,8 @@ public class AdminController {
     }
 
     @GetMapping("/project")
-    public Page<ProjectResponse> getAllProjects(@RequestParam(required = false, defaultValue = "0") String page,
-                                                @RequestParam(required = false, defaultValue = "10") String size,
-                                                @RequestParam(required = false, defaultValue = "id") List<String> p,
-                                                @RequestParam(required = false, defaultValue = "desc") List<String> o) {
-        return adminService.getAllProject(validateAndBuildPageRequest(page, size, p, o, Project.class));
+    public Page<ProjectResponse> getAllProjects(Pageable page) {
+        return adminService.getAllProject(page);
     }
 
     @GetMapping("/project/{projectId}/employees")

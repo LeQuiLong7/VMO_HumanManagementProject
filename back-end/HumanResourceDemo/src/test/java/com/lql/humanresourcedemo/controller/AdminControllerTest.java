@@ -15,8 +15,6 @@ import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseExceptio
 import com.lql.humanresourcedemo.filter.JWTAuthenticationFilter;
 import com.lql.humanresourcedemo.service.admin.AdminService;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -54,25 +52,6 @@ class AdminControllerTest {
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final String ERROR_MESSAGE = "error message";
-
-    @ParameterizedTest(name = "{0} is not a valid page number")
-    @ValueSource(strings = {"abc", "-1", "4.5"})
-    void getAllEmployee_PageRequestNotValid(String page) {
-        mockSecurityContext(() -> {
-            try {
-                mockMvc.perform(get(BASE_URL + "/employees?page=" + page)
-                ).andExpectAll(
-                        status().isBadRequest(),
-                        jsonPath("$.error").exists(),
-                        jsonPath("$.error").value(page+ " is not a valid page number"),
-                        jsonPath("$.time_stamp").exists()
-                );
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-
-        });
-    }
     @Test
     void createNewEmployee_RequestBodyNotValid() {
         mockSecurityContext(() -> {
