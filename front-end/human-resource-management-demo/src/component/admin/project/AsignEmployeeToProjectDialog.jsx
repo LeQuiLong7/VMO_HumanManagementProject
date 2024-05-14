@@ -53,6 +53,7 @@ export default function AssignEmployeeToProjectDialog({ selectedProject, assignS
   }
 
   function handleDelete(empId) {
+    console.log(employeesInsideProject, empId);
     setEmployeesInsideProject(
       employeesInsideProject.filter((e) => e.employeeId != empId)
     );
@@ -69,10 +70,10 @@ export default function AssignEmployeeToProjectDialog({ selectedProject, assignS
           {employeesInsideProject.map((t, index) => (
             <Grid key={index} item xs={2} >
               <Chip color="primary"
-                clickable
+                // clickable
                 sx={{ width: '200px' }}
                 label={t.employeeId + " - " + t.employeeName + " - " + t.effort + "%"}
-                onDelete={e => handleDelete(t.temployeeId)}
+                onDelete={e => handleDelete(t.employeeId)}
               />
             </Grid>
           ))}
@@ -82,9 +83,11 @@ export default function AssignEmployeeToProjectDialog({ selectedProject, assignS
 
     return [chip, 
     <SearchComponent key={4} 
+    searchQuery={searchQuery}
+    setSearchQuery={setSearchQuery}
+    convertToSearchRequest={convertToSearchRequest}
       allTech={allTech} 
       fetchEmployees={fetchEmployees} 
-      employeesInsideProject={employeesInsideProject}
       fetchAll={fetchAll}
       />,
       <Datatable key={23}
@@ -100,6 +103,75 @@ export default function AssignEmployeeToProjectDialog({ selectedProject, assignS
         header={"Employee list"}
       />];
   }
+  const [searchQuery, setSearchQuery] = useState({
+    roles: [],
+    techs: [],
+    numberOfOnGoingProjects: '',
+    currentEffort: ''
+})
+
+
+function convertToSearchRequest() {
+    const logics = [];
+    if (searchQuery.numberOfOnGoingProjects != '') {
+      logics.push({
+        column: 'numberOfOnGoingProjects',
+        value: searchQuery.numberOfOnGoingProjects,
+        queryOperator: 'LTE'
+      });
+    }
+    if (searchQuery.currentEffort != '') {
+      logics.push({
+        column: 'currentEffort',
+        value: searchQuery.currentEffort,
+        queryOperator: 'LTE'
+      });
+    }
+    if (searchQuery.roles.length !== 0) {
+      logics.push({
+        column: 'role',
+        values: searchQuery.roles,
+        queryOperator: 'IN'
+      });
+    }
+  
+    if (searchQuery.techs.length !== 0) {
+      const techLogics = searchQuery.techs.map(tech => ({
+        logicOperator: 'AND',
+        logics: [
+          {
+            column: 'techs.id.techId',
+            value: tech.techId,
+            queryOperator: 'EQ'
+          },
+          {
+            column: 'techs.yearOfExperience',
+            value: tech.yearOfExperience,
+            queryOperator: 'GTE'
+          }
+        ]
+      }));
+      
+      logics.push({
+        logicOperator: 'OR',
+        logics: techLogics
+      });
+    }
+  
+    logics.push({
+      column: 'id',
+      values: employeesInsideProject.map(e => e.employeeId),
+      queryOperator: 'NOT_IN'
+    });
+  
+    return {
+      logicOperator: 'AND',
+      logics: logics
+    };
+  }
+
+
+
 
 
   const columns = [

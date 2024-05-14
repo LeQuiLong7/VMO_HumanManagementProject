@@ -47,7 +47,7 @@ export default function ProjectDataTable({ data, setData }) {
       actualFinishDate: rowData[6],
     };
     try {
-      const response = await axios.put("/admin/project", newState);
+      const response = await axios.put("/admin/project?sort=id,desc", newState);
       const newData = [...data];
       newData[rowIndex] = response.data;
       setData(newData);

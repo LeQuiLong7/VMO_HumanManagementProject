@@ -53,7 +53,9 @@ export default function LeaveRequestDataTable({data}) {
             label: "STATUS",
             options: {
                 customBodyRender: (value) => (
-                    <StateText text={value} variant={'body1'} bgcolor={value==='PROCESSING'? 'warning.light' : value === 'ACCEPTED' ? 'success.main': 'error.main'}/>
+                    <StateText text={value} variant={'body1'} 
+                    bgcolor={ value === 'PROCESSING' ? 'primary.main' : value === 'REJECTED' ? 'error.main' :'success.main'}
+                    />
                 ),
             },
         }

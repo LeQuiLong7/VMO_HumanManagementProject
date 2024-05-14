@@ -73,7 +73,9 @@ export default function HandleLeavePage() {
                             label="State"
                             value={value}
                             name="status"
-                            sx={{color: 'white', bgcolor: value==='PROCESSING'? 'warning.light' : value === 'ACCEPTED' ? 'success.main': 'error.main'}}
+                             bgcolor={ value === 'PROCESSING' ? 'primary.main' : value === 'REJECTED' ? 'error.main' : 'success.main' }
+
+                            sx={{color: 'white', bgcolor: value === 'PROCESSING' ? 'primary.main' : value === 'REJECTED' ? 'error.main' : 'success.main' }}
                             onChange={(e) => handleChange(e, tableMeta.rowIndex, leaveRequests, setLeaveRequests)}
                         >
                             <MenuItem value={'PROCESSING'}>PROCESSING</MenuItem>

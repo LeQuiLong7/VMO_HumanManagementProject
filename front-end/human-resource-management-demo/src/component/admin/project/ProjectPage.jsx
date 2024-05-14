@@ -16,7 +16,7 @@ export default function ProjectPage() {
   }, []);
 
   async function fetchProjects() {
-    const reponse = await  axios.get("/admin/project?size=100");
+    const reponse = await  axios.get("/admin/project?size=100&sort=id,desc");
       
     setData(
       reponse.data.content.map((project) => ({

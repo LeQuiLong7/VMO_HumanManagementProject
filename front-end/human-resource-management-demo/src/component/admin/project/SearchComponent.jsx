@@ -15,7 +15,7 @@ import {
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import { handleUpdateStateOneObject } from "../../util/Helper";
-export default function SearchComponent({allTech, fetchEmployees, employeesInsideProject, fetchAll }) {
+export default function SearchComponent({allTech, fetchEmployees,  searchQuery, setSearchQuery, fetchAll, convertToSearchRequest }) {
     const roles = ['ADMIN', 'PM', 'EMPLOYEE']
     
   async function handleFilter() {
@@ -27,77 +27,6 @@ export default function SearchComponent({allTech, fetchEmployees, employeesInsid
     techName: '',
     yearOfExperience: ''
   })
-
-    const [searchQuery, setSearchQuery] = useState({
-        roles: [],
-        techs: [],
-        numberOfOnGoingProjects: '',
-        currentEffort: ''
-    })
-
-
-    function convertToSearchRequest() {
-        const logics = [];
-        if (searchQuery.numberOfOnGoingProjects != '') {
-          logics.push({
-            column: 'numberOfOnGoingProjects',
-            value: searchQuery.numberOfOnGoingProjects,
-            queryOperator: 'LTE'
-          });
-        }
-        if (searchQuery.currentEffort != '') {
-          logics.push({
-            column: 'currentEffort',
-            value: searchQuery.currentEffort,
-            queryOperator: 'LTE'
-          });
-        }
-        if (searchQuery.roles.length !== 0) {
-          logics.push({
-            column: 'role',
-            values: searchQuery.roles,
-            queryOperator: 'IN'
-          });
-        }
-      
-        if (searchQuery.techs.length !== 0) {
-          const techLogics = searchQuery.techs.map(tech => ({
-            logicOperator: 'AND',
-            logics: [
-              {
-                column: 'techs.id.techId',
-                value: tech.techId,
-                queryOperator: 'EQ'
-              },
-              {
-                column: 'techs.yearOfExperience',
-                value: tech.yearOfExperience,
-                queryOperator: 'GTE'
-              }
-            ]
-          }));
-          
-          logics.push({
-            logicOperator: 'OR',
-            logics: techLogics
-          });
-        }
-      
-        logics.push({
-          column: 'id',
-          values: employeesInsideProject.map(e => e.employeeId),
-          queryOperator: 'NOT_IN'
-        });
-      
-        return {
-          logicOperator: 'AND',
-          logics: logics
-        };
-      }
-    
-
-
-
     return (
             <Stack key={5} spacing={2} mb={2} mt={2}>
               <Typography variant="h6" gutterBottom>Search</Typography>
@@ -202,7 +131,7 @@ export default function SearchComponent({allTech, fetchEmployees, employeesInsid
                   value={searchQuery.currentEffort}
                   onChange={e => handleUpdateStateOneObject(e, setSearchQuery)}
                   name="currentEffort"
-                  label="CurrentEffort"
+                  label="Current effort"
                   type="number"
                 />
                 <Button variant="contained" onClick={handleFilter}>Filter</Button>

@@ -59,6 +59,7 @@ export default function CreateNewEmployeeDialog({ createState, setCreateState })
           role: 'EMPLOYEE', 
           managedBy: '' 
         });
+        window.location.reload()
       }, 2000);
 
     } catch (error) {
