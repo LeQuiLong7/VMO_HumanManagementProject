@@ -3,6 +3,8 @@ package com.lql.humanresourcedemo.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lql.humanresourcedemo.dto.request.login.LoginRequest;
+import com.lql.humanresourcedemo.dto.request.login.LogoutRequest;
+import com.lql.humanresourcedemo.dto.response.login.LoginResponse;
 import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,13 +14,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -26,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @AutoConfigureMockMvc
-public class LoginControllerTest {
+class LoginControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -45,7 +48,7 @@ public class LoginControllerTest {
     private String password = "admin";
 
     @Test
-    public void createNewEmployeeTest_Success() throws Exception {
+     void loginTest_Success() throws Exception {
         LoginRequest loginRequest = new LoginRequest(email, password);
 
         mockMvc.perform(post("/login")
@@ -58,11 +61,46 @@ public class LoginControllerTest {
                         jsonPath("$.token").exists()
                 );
     }
+    @Test
+    void loginOutTest_Success() throws Exception {
+        LoginRequest loginRequest = new LoginRequest(email, password);
+
+        MvcResult loginResult = mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.type").value("Bearer"),
+                        jsonPath("$.role").value("ADMIN"),
+                        jsonPath("$.token").exists()
+                ).andReturn();
+
+        LoginResponse loginResponse = objectMapper.readValue(loginResult.getResponse().getContentAsString(), LoginResponse.class);
+        mockMvc.perform(get("/profile")
+                        .header("Authorization", loginResponse.type() + " " + loginResponse.token()))
+                .andExpectAll(
+                        status().isOk()
+                );
+
+        LogoutRequest logoutRequest = new LogoutRequest(loginResponse.token());
+        mockMvc.perform(post("/sign-out")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(logoutRequest)))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.success").value(true)
+                );
+
+        mockMvc.perform(get("/profile")
+                .header("Authorization", loginResponse.type() + " " + loginResponse.token()))
+                .andExpectAll(
+                        status().isUnauthorized()
+                );
+    }
 
     @Test
-    public void createNewEmployeeTest_RequestNotValid() throws Exception {
+    void loginTest_RequestNotValid() throws Exception {
         LoginRequest loginRequest = new LoginRequest(email, null);
-
         mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))

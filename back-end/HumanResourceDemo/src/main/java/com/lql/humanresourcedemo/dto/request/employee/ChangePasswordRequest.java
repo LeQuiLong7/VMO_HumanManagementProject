@@ -3,8 +3,11 @@ package com.lql.humanresourcedemo.dto.request.employee;
 import jakarta.validation.constraints.NotNull;
 
 public record ChangePasswordRequest(
-        @NotNull String oldPassword,
-        @NotNull String newPassword,
-        @NotNull String confirmPassword
+        @NotNull (message = "Old password must not be null")
+        String oldPassword,
+        @NotNull (message = "New password must not be null")
+        String newPassword,
+        @NotNull (message = "Confirm password must not be null")
+        String confirmPassword
 ) {
 }

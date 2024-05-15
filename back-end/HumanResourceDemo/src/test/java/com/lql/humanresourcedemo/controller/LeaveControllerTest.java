@@ -50,7 +50,7 @@ class LeaveControllerTest {
     private final String ERROR_MESSAGE = "error message";
 
     @Test
-    void createLeaveRequest_Fail()  {
+    void createLeaveRequest_BodyNotValid_LeaveDateMustBeAFutureDate()  {
             mockSecurityContext(() -> {
                 objectMapper.registerModule(new JavaTimeModule());
                 LeaveRequestt request = new LeaveRequestt(LocalDate.now(), "", LeaveType.UNPAID);
@@ -66,19 +66,16 @@ class LeaveControllerTest {
                     ).andExpectAll(
                             status().isBadRequest(),
                             jsonPath("$.error").exists(),
-                            jsonPath("$.error").value("leaveDate: must be a future date"),
+                            jsonPath("$.error").value("Leave date must be a future date"),
                             jsonPath("$.time_stamp").exists()
                     );
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             });
-
-
     }
-
     @Test
-    void createLeaveRequest_Success() throws Exception {
+    void createLeaveRequest_Success(){
         mockSecurityContext(() -> {
             objectMapper.registerModule(new JavaTimeModule());
             LeaveRequestt request = new LeaveRequestt(LocalDate.now().plusDays(2), "", LeaveType.UNPAID);

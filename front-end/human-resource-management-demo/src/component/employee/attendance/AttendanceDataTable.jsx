@@ -1,11 +1,8 @@
+import { useEffect } from "react";
 import Datatable from "../../general/Datatable";
-import { useState, useEffect } from "react";
-
-import axios from "axios";
 import StateText from "../../general/StateText";
 export default function AttendanceDataTable({data}) {
     const header = "Attendance history"
-
     const columns = [
         {
             name: 'id',

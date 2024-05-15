@@ -1,5 +1,6 @@
 package com.lql.humanresourcedemo.service.employee;
 
+import com.lql.humanresourcedemo.dto.model.employee.OnlyAvatar;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyPassword;
 import com.lql.humanresourcedemo.dto.model.employee.OnlySalary;
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
@@ -123,7 +124,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (!supportAvatarExtension(fileExtension)) {
             throw new FileException("Not support " + fileExtension + " file for avatar - supported types: "  + supportImageExtension.toString());
         }
-        requireExists(employeeId);
+        employeeRepository.findById(employeeId, OnlyAvatar.class)
+                .ifPresentOrElse(avatar -> {
+                        if(!avatar.avatarUrl().isBlank()) {
+                            deleteOldAvatar(avatar);
+                        }
+                }, () -> {
+                    throw new EmployeeException(employeeId);
+                });
 
         String objectKey = String.format("image/%s.%s", employeeId, fileExtension);
 
@@ -132,6 +140,19 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.updateAvatarURLById(employeeId, avatarUrl);
 
         return avatarUrl;
+    }
+
+    private void deleteOldAvatar(OnlyAvatar avatar) {
+        String trimmedUrl = avatar.avatarUrl().substring(8);
+
+        // Split the remaining URL by ".s3."
+        String[] parts = trimmedUrl.split("\\.s3\\.");
+
+        // Extract bucket name and object key
+        String bucketName = parts[0];
+        String objectKey = parts[1].replace(region+".amazonaws.com/", "");
+
+        awsService.deleteFile(bucketName, objectKey);
     }
 
     @Override

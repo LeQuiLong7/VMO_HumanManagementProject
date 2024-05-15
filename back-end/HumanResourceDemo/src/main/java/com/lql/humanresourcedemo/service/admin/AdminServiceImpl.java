@@ -115,9 +115,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<EmployeeProjectResponse> getAllEmployeeInsideProject(Long projectId) {
         requiredExistsProject(projectId);
-        return employeeProjectRepository.findBy(
-                        byProjectId(projectId),
-                        p -> p.project(EmployeeProject_.EMPLOYEE).all())
+        return employeeProjectRepository.findBy(byProjectId(projectId), p -> p.project(EmployeeProject_.EMPLOYEE).all())
                 .stream()
                 .map(EmployeeProjectResponse::toEmployeeProjectResponse)
                 .toList();

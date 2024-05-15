@@ -54,7 +54,7 @@ class ResetPasswordControllerTest {
                 ).andExpectAll(
                         status().isBadRequest(),
                         jsonPath("$.error").exists(),
-                        jsonPath("$.error").value("email: must not be blank"),
+                        jsonPath("$.error").value("Email must not be blank"),
                         jsonPath("$.time_stamp").exists()
                 );
             } catch (Exception e) {

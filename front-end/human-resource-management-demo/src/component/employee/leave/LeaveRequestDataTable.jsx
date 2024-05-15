@@ -21,7 +21,7 @@ export default function LeaveRequestDataTable({data}) {
             label: "AVATAR",
             options: {
                 customBodyRender: (value) => (
-                    <Avatar src={value} />
+                    <Avatar src={value + "?" +Math.random().toString(36)} />
                 )
             }
     

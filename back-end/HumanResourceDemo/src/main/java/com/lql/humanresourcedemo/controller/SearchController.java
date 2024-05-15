@@ -5,6 +5,7 @@ import com.lql.humanresourcedemo.dto.request.search.SearchRequest;
 import com.lql.humanresourcedemo.dto.response.search.SearchResponse;
 import com.lql.humanresourcedemo.service.search.SearchService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +22,7 @@ public class SearchController {
     private final SearchService searchService;
 
     @PostMapping("/employees")
-    public Page<SearchResponse> getAllEmployee(Pageable page, @RequestBody SearchRequest searchRequest) {
+    public Page<SearchResponse> getAllEmployee(Pageable page, @RequestBody @Valid SearchRequest searchRequest) {
         return searchService.search(searchRequest, page);
     }
 }

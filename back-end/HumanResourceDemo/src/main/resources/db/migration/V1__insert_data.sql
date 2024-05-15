@@ -1,14 +1,14 @@
 INSERT INTO public.employee(
-    id, first_name, email, password, role, current_salary, created_at, created_by, current_effort)
-VALUES (nextval('employee_id_seq'), 'admin', 'admin@company.com', '$2a$10$e2cgzLiUBBkuRiQwsgV4JuNUEmaEmu5/l1KW1NqGvM6Xa5UTWdqrO', 'ADMIN', 100, NOW(), -1, 0);
+    id, first_name, email, password, role, avatar_url, current_salary, created_at, created_by, current_effort)
+VALUES (nextval('employee_id_seq'), 'admin', 'admin@company.com', '$2a$10$e2cgzLiUBBkuRiQwsgV4JuNUEmaEmu5/l1KW1NqGvM6Xa5UTWdqrO', 'ADMIN', '', 100, NOW(), -1, 0);
 
 INSERT INTO public.employee(
-    id, first_name, email, password, role, current_salary, created_at, created_by, current_effort)
-VALUES (nextval('employee_id_seq'), 'pm', 'pm@company.com', '$2a$10$Moim/Y9okiehT27cKalI/eOsgfCw.6VPf1Z4ZpS76aDHZ/M5pwOBS', 'PM', 100,  NOW(), 1, 0);
+    id, first_name, email, password, role, avatar_url, current_salary, created_at, created_by, current_effort)
+VALUES (nextval('employee_id_seq'), 'pm', 'pm@company.com', '$2a$10$Moim/Y9okiehT27cKalI/eOsgfCw.6VPf1Z4ZpS76aDHZ/M5pwOBS', 'PM', '', 100,  NOW(), 1, 0);
 
 INSERT INTO public.employee(
-    id, first_name, email, password, role, current_salary, created_at, created_by, current_effort)
-VALUES (nextval('employee_id_seq'), 'employee', 'employee@company.com', '$2a$10$GTNCA9YNa41iMypjpvW2kOA0pMEXnaEbRe6U441e/zzZuKKqLCac.', 'EMPLOYEE', 100, NOW(), 2, 0);
+    id, first_name, email, password, role, avatar_url, current_salary, created_at, created_by, current_effort)
+VALUES (nextval('employee_id_seq'), 'employee', 'employee@company.com', '$2a$10$GTNCA9YNa41iMypjpvW2kOA0pMEXnaEbRe6U441e/zzZuKKqLCac.', 'EMPLOYEE', '', 100, NOW(), 2, 0);
 
 INSERT INTO public.tech_group(
     id, name)

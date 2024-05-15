@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Delete;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
@@ -20,32 +23,42 @@ public class AWSServiceImpl implements AWSService {
     public String getUrlForObject(String bucketName, String region, String objectKey) {
         return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, objectKey);
     }
-
-
     @Override
-    public String uploadFile(MultipartFile file, String bucketName, String key) {
-        PutObjectRequest build = PutObjectRequest.builder()
+    public void deleteFile(String bucketName, String key) {
+        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
                 .build();
         try {
-            s3Client.putObject(build, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-            // TODO: delete old avatar on S3
+            s3Client.deleteObject(deleteRequest);
+        } catch (Exception ex) {
+            throw new AWSException("Error deleting file");
+        }
+    }
+
+
+    @Override
+    public String uploadFile(MultipartFile file, String bucketName, String key) {
+        PutObjectRequest putRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+        try {
+            s3Client.putObject(putRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
         } catch (Exception ex) {
             throw new AWSException("Error uploading file");
         }
-
         return key;
     }
 
     @Override
     public String uploadFile(File file, String bucketName, String key) {
-        PutObjectRequest build = PutObjectRequest.builder()
+        PutObjectRequest putRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
                 .build();
         try {
-            s3Client.putObject(build, RequestBody.fromFile(file));
+            s3Client.putObject(putRequest, RequestBody.fromFile(file));
         } catch (Exception e) {
             throw new AWSException("Error uploading file");
 

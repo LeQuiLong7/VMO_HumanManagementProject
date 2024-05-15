@@ -70,7 +70,6 @@ export default function AssignEmployeeToProjectDialog({ selectedProject, assignS
           {employeesInsideProject.map((t, index) => (
             <Grid key={index} item xs={2} >
               <Chip color="primary"
-                // clickable
                 sx={{ width: '200px' }}
                 label={t.employeeId + " - " + t.employeeName + " - " + t.effort + "%"}
                 onDelete={e => handleDelete(t.employeeId)}
@@ -184,7 +183,7 @@ function convertToSearchRequest() {
       label: "AVATAR",
       options: {
         customBodyRender: (value, tableMeta) =>
-          <Avatar src={value} >{tableMeta.rowData[2]}</Avatar>
+          <Avatar src={value + "?" +Math.random().toString(36)} >{tableMeta.rowData[2]}</Avatar>
       },
     },
     {

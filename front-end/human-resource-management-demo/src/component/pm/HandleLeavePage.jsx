@@ -35,7 +35,7 @@ export default function HandleLeavePage() {
             label: "AVATAR",
             options: {
                 customBodyRender: (value) => (
-                    <Avatar src={value} />
+                    <Avatar src={value + "?" +Math.random().toString(36)} />
                 )
             }
         }, 

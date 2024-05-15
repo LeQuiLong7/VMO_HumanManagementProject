@@ -7,6 +7,7 @@ import com.lql.humanresourcedemo.dto.response.leave.LeaveResponse;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.service.pm.PMService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,11 +43,11 @@ public class PMController {
 
     @PostMapping("/attendance")
     @ResponseStatus(HttpStatus.CREATED)
-    public List<Attendance> checkAttendance(@RequestBody CheckAttendanceRequest request) {
+    public List<Attendance> checkAttendance(@RequestBody @Valid CheckAttendanceRequest request) {
         return pmService.checkAttendance(getCurrentEmployeeId(), request);
     }
     @PutMapping("/leave")
-    public List<LeaveResponse> handleLeaveRequest(@RequestBody List<HandleLeaveRequest> request) {
+    public List<LeaveResponse> handleLeaveRequest(@RequestBody @Valid List<HandleLeaveRequest> request) {
         return pmService.handleLeaveRequest(getCurrentEmployeeId(), request);
     }
 }

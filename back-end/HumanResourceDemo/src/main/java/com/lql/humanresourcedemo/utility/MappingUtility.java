@@ -85,6 +85,7 @@ public class MappingUtility {
                 .personalEmail(request.personalEmail())
                 .currentSalary(request.currentSalary())
                 .role(request.role())
+                .avatarUrl("")
                 .leaveDays((byte) 0)
                 .quit(false)
                 .lastUpdatedAt(LocalDateTime.now())

@@ -26,8 +26,6 @@ import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmploye
 public class EmployeeController {
 
     private final EmployeeService employeeService;
-
-
     @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM'})")
     @PostMapping("/salary")
     @ResponseStatus(HttpStatus.CREATED)
@@ -45,7 +43,6 @@ public class EmployeeController {
     @PreAuthorize("hasAnyRole({'EMPLOYEE', 'PM', 'ADMIN'})")
     @GetMapping("/project")
     public Page<ProjectDetail> getAllProjectsByEmployeeId(Pageable page) {
-
         return employeeService.getAllProjects(getCurrentEmployeeId(), page);
     }
 
