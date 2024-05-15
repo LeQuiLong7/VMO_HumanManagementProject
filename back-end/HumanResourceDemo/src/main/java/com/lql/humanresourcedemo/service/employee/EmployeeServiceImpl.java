@@ -5,15 +5,22 @@ import com.lql.humanresourcedemo.dto.model.employee.OnlySalary;
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
-import com.lql.humanresourcedemo.dto.response.*;
+import com.lql.humanresourcedemo.dto.response.employee.ChangePasswordResponse;
+import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.project.AssignHistory;
+import com.lql.humanresourcedemo.dto.response.project.ProjectDetail;
+import com.lql.humanresourcedemo.dto.response.salary.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.dto.response.tech.TechInfo;
+import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
 import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;
+import com.lql.humanresourcedemo.model.project.EmployeeProject_;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
-import com.lql.humanresourcedemo.model.tech.EmployeeTech;
+import com.lql.humanresourcedemo.model.tech.EmployeeTech_;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceSpecifications;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
@@ -34,8 +41,6 @@ import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 import static com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus.PROCESSING;
 import static com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications.byProjectId;
@@ -72,7 +77,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         requireExists(employeeId);
         return new TechStackResponse(
                 employeeId,
-                employeeTechRepository.findBy(EmployeeTechSpecifications.byEmployeeId(employeeId), p -> p.project("tech").all())
+                employeeTechRepository.findBy(EmployeeTechSpecifications.byEmployeeId(employeeId), p -> p.project(EmployeeTech_.TECH).all())
                         .stream()
                         .map(TechInfo::of)
                         .toList()
@@ -164,12 +169,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     public Page<ProjectDetail> getAllProjects(Long employeeId, Pageable pageRequest) {
 
         requireExists(employeeId);
-        Page<EmployeeProject> projects = employeeProjectRepository.findBy(EmployeeProjectSpecifications.byEmployeeId(employeeId), p -> p.project("project").sortBy(pageRequest.getSort()).page(pageRequest));
+        Page<EmployeeProject> projects = employeeProjectRepository.findBy(EmployeeProjectSpecifications.byEmployeeId(employeeId), p -> p.project(EmployeeProject_.PROJECT).sortBy(pageRequest.getSort()).page(pageRequest));
 
         return  projects
                 .map(project -> new ProjectDetail(
                         project.getProject(),
-                        employeeProjectRepository.findBy(byProjectId(project.getId().getProjectId()), p -> p.project("employee").all())
+                        employeeProjectRepository.findBy(byProjectId(project.getId().getProjectId()), p -> p.project(EmployeeProject_.EMPLOYEE).all())
                                 .stream()
                                 .map(AssignHistory::of)
                                 .toList()

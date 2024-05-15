@@ -1,10 +1,8 @@
-package com.lql.humanresourcedemo.dto.response;
+package com.lql.humanresourcedemo.dto.response.project;
 
-import com.lql.humanresourcedemo.enumeration.Role;
+import com.lql.humanresourcedemo.dto.response.project.AssignHistory;
 import com.lql.humanresourcedemo.model.project.Project;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public record ProjectDetail(

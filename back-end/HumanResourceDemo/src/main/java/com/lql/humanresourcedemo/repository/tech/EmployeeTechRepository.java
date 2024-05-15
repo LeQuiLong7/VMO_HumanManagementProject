@@ -1,14 +1,11 @@
 package com.lql.humanresourcedemo.repository.tech;
 
-import com.lql.humanresourcedemo.dto.response.TechInfo;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-
-import java.util.List;
 
 public interface EmployeeTechRepository extends JpaRepository<EmployeeTech, EmployeeTech.EmployeeTechId>, JpaSpecificationExecutor<EmployeeTech> {
 

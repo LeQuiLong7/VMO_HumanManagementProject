@@ -1,7 +1,7 @@
 package com.lql.humanresourcedemo.config;
 
 
-import com.lql.humanresourcedemo.dto.response.LoginResponse;
+import com.lql.humanresourcedemo.dto.response.login.LoginResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;

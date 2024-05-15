@@ -2,8 +2,12 @@ package com.lql.humanresourcedemo.controller;
 
 
 import com.lql.humanresourcedemo.dto.request.admin.*;
-import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.dto.response.admin.EmployeeProjectResponse;
+import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.project.ProjectDetail;
+import com.lql.humanresourcedemo.dto.response.project.ProjectResponse;
+import com.lql.humanresourcedemo.dto.response.salary.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.service.admin.AdminService;
 import com.lql.humanresourcedemo.utility.ContextUtility;

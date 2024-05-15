@@ -1,4 +1,4 @@
-package com.lql.humanresourcedemo.dto.response;
+package com.lql.humanresourcedemo.dto.response.project;
 
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;

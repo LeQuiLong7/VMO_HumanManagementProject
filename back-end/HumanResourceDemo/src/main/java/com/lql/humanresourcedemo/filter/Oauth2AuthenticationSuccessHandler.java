@@ -1,6 +1,6 @@
 package com.lql.humanresourcedemo.filter;
 
-import com.lql.humanresourcedemo.dto.response.LoginResponse;
+import com.lql.humanresourcedemo.dto.response.login.LoginResponse;
 import com.lql.humanresourcedemo.exception.model.login.LoginException;
 import com.lql.humanresourcedemo.service.login.LoginService;
 import jakarta.servlet.ServletException;

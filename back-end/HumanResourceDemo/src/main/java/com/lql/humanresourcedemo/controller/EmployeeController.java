@@ -2,8 +2,8 @@ package com.lql.humanresourcedemo.controller;
 
 
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
-import com.lql.humanresourcedemo.dto.response.ProjectDetail;
-import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.dto.response.project.ProjectDetail;
+import com.lql.humanresourcedemo.dto.response.salary.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.service.employee.EmployeeService;
 import io.swagger.v3.oas.annotations.tags.Tag;

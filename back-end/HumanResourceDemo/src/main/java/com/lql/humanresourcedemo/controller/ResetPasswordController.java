@@ -2,7 +2,7 @@ package com.lql.humanresourcedemo.controller;
 
 import com.lql.humanresourcedemo.dto.request.employee.CreateResetPasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.ResetPasswordRequest;
-import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
+import com.lql.humanresourcedemo.dto.response.employee.ChangePasswordResponse;
 import com.lql.humanresourcedemo.service.password.PasswordService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

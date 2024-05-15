@@ -2,7 +2,7 @@ package com.lql.humanresourcedemo.service.leave;
 
 import com.lql.humanresourcedemo.dto.model.employee.OnLyLeaveDays;
 import com.lql.humanresourcedemo.dto.request.employee.LeaveRequestt;
-import com.lql.humanresourcedemo.dto.response.LeaveResponse;
+import com.lql.humanresourcedemo.dto.response.leave.LeaveResponse;
 import com.lql.humanresourcedemo.enumeration.LeaveType;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;

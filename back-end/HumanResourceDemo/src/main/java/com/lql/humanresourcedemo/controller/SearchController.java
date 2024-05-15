@@ -2,7 +2,7 @@ package com.lql.humanresourcedemo.controller;
 
 
 import com.lql.humanresourcedemo.dto.request.search.SearchRequest;
-import com.lql.humanresourcedemo.dto.response.SearchResponse;
+import com.lql.humanresourcedemo.dto.response.search.SearchResponse;
 import com.lql.humanresourcedemo.service.search.SearchService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

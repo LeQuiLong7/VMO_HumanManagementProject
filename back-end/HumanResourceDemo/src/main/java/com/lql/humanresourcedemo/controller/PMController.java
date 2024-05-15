@@ -2,8 +2,8 @@ package com.lql.humanresourcedemo.controller;
 
 import com.lql.humanresourcedemo.dto.request.pm.CheckAttendanceRequest;
 import com.lql.humanresourcedemo.dto.request.pm.HandleLeaveRequest;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.LeaveResponse;
+import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.leave.LeaveResponse;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.service.pm.PMService;
 import io.swagger.v3.oas.annotations.tags.Tag;

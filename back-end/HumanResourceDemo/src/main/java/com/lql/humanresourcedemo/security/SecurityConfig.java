@@ -1,24 +1,16 @@
 package com.lql.humanresourcedemo.security;
 
 
-import com.lql.humanresourcedemo.constant.SecurityConstants;
-import com.lql.humanresourcedemo.dto.response.LoginResponse;
-import com.lql.humanresourcedemo.exception.model.login.LoginException;
 import com.lql.humanresourcedemo.filter.JWTAuthenticationFilter;
-import com.lql.humanresourcedemo.service.login.LoginService;
-import com.lql.humanresourcedemo.utility.ContextUtility;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;

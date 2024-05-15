@@ -74,8 +74,6 @@ public class GlobalExceptionHandler {
         return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-
-
     @ExceptionHandler(NewAccountException.class)
     public ResponseEntity<Object> newAccountExceptionHandler(NewAccountException ex, HttpServletRequest request) {
         log.warn(buildLogMessage("New account", ex.getMessage(), request));
