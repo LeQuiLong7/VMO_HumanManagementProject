@@ -1,25 +1,34 @@
 package com.lql.humanresourcedemo.service.employee;
 
+import com.lql.humanresourcedemo.dto.model.employee.OnLyLeaveDays;
+import com.lql.humanresourcedemo.dto.model.employee.OnlyAvatar;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyPassword;
 import com.lql.humanresourcedemo.dto.model.employee.OnlySalary;
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
+import com.lql.humanresourcedemo.dto.request.employee.LeaveRequestt;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
 import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.leave.LeaveResponse;
 import com.lql.humanresourcedemo.dto.response.salary.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
+import com.lql.humanresourcedemo.enumeration.LeaveStatus;
+import com.lql.humanresourcedemo.enumeration.LeaveType;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
+import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
+import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
 import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
 import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
 import com.lql.humanresourcedemo.repository.tech.EmployeeTechRepository;
@@ -48,8 +57,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class EmployeeServiceTest {
-
-
     @Mock
     private EmployeeRepository employeeRepository;
     @Mock
@@ -58,6 +65,8 @@ class EmployeeServiceTest {
     private EmployeeProjectRepository employeeProjectRepository;
     @Mock
     private SalaryRaiseRequestRepository salaryRepository;
+    @Mock
+    private LeaveRepository leaveRepository;
     @Mock
     private  PasswordEncoder passwordEncoder;
     @Mock
@@ -70,7 +79,7 @@ class EmployeeServiceTest {
 
     @BeforeEach
     void setUp() {
-        employeeService = new EmployeeServiceImpl(employeeRepository, employeeTechRepository, employeeProjectRepository, attendanceRepository, salaryRepository, passwordEncoder, awsService);
+        employeeService = new EmployeeServiceImpl(employeeRepository, employeeTechRepository, employeeProjectRepository, attendanceRepository, leaveRepository, salaryRepository, passwordEncoder, awsService);
     }
 
     @Test
@@ -234,7 +243,7 @@ class EmployeeServiceTest {
         MultipartFile file = new MockMultipartFile("demo.jpg", "demo.jpg", MediaType.IMAGE_JPEG.getType(),  "demo".getBytes());
 
 
-        when(employeeRepository.existsById(empId)).thenReturn(false);
+        when(employeeRepository.findById(empId, OnlyAvatar.class)).thenReturn(Optional.empty());
 
         assertThrows(
                 EmployeeException.class,
@@ -263,7 +272,7 @@ class EmployeeServiceTest {
         Long empId = 1L;
         MultipartFile file = new MockMultipartFile("demo", "demo.jpg", null, "demo".getBytes());
 
-        when(employeeRepository.existsById(empId)).thenReturn(true);
+        when(employeeRepository.findById(empId, OnlyAvatar.class)).thenReturn(Optional.of(new OnlyAvatar("https://vmo-human-management-project.s3.ap-southeast-1.amazonaws.com/image/1.png")));
         employeeService.uploadAvatar(empId, file);
 
 
@@ -329,7 +338,7 @@ class EmployeeServiceTest {
 
     Pageable pageable = Pageable.ofSize(10);
     @Test
-    public void getAllAttendanceHistory() {
+     void getAllAttendanceHistory() {
         Long employeeId = 1L;
 
 
@@ -344,7 +353,7 @@ class EmployeeServiceTest {
         );
     }
     @Test
-    public void getAllSalaryRaiseRequest() {
+     void getAllSalaryRaiseRequest() {
         Long employeeId = 1L;
         Employee employee = Employee.builder()
                 .id(employeeId)
@@ -364,36 +373,70 @@ class EmployeeServiceTest {
         );
     }
 
-//    @Test
-//    public void getAllProjects() {
-//        Long employeeId = 1L;
-//        Project project = Project.builder()
-//                .id(1L)
-//                .build();
-//        Employee employee = Employee.builder()
-//                .id(employeeId)
-//                .build();
-//
-//        EmployeeProject ep = new EmployeeProject(
-//                        employee,
-//                        project,
-//                      10
-//        );
-//
-//        employee.setProjects(List.of(ep));
-//
-//        when(employeeRepository.existsById(employeeId)).thenReturn(true);
-//
-//        when(employeeProjectRepository.findBy(any(Specification.class), any()))
-//                .thenReturn(new PageImpl<>(List.of(ep)));
-////        when(employeeProjectRepository.findBy(any(Specification.class), any()))
-////                .thenReturn(List.of(ep));
-//
-//        Page<ProjectDetail> response = employeeService.getAllProjects(employeeId, pageable);
-//        assertAll(
-//                () -> assertEquals(1, response.getSize())
-//        );
-//    }
+    @Test
+    void testCreateLeaveRequest_UserNotFound() {
+        Long employeeId = 1L;
+        LeaveRequestt leaveRequestt = new LeaveRequestt(null, null, null);
+        when(employeeRepository.existsById(any(Long.class)))
+                .thenReturn(false);
+
+        assertThrows(
+                EmployeeException.class,
+                () -> employeeService.createLeaveRequest(employeeId, leaveRequestt),
+                "Could not find employee " + employeeId);
+
+
+    }
+
+    @Test
+    void testCreateLeaveRequest_PaidLeaveWithoutEnoughDays() {
+        Long employeeId = 1L;
+
+        LeaveRequestt leaveRequestt = new LeaveRequestt(null, null, LeaveType.PAID);
+        OnLyLeaveDays leaveDays = new OnLyLeaveDays(((byte) 0));
+
+        when(employeeRepository.existsById(any(Long.class)))
+                .thenReturn(true);
+        when(employeeRepository.findById(any(Long.class), eq(OnLyLeaveDays.class)))
+                .thenReturn(Optional.of(leaveDays));
+
+        assertThrows(
+                LeaveRequestException.class,
+                () -> employeeService.createLeaveRequest(employeeId, leaveRequestt),
+                "Requesting a paid leave day but not enough leave day left");
+
+    }
+
+    @Test
+    void testCreateLeaveRequest_PaidLeaveWithEnoughDays() {
+
+        Long employeeId = 1L;
+        Employee employee = Employee.builder()
+                .id(employeeId).build();
+        OnLyLeaveDays leaveDays = new OnLyLeaveDays(((byte) 5));
+
+        LeaveRequestt leaveRequestt = new LeaveRequestt(null, null, LeaveType.PAID);
+
+
+        when(employeeRepository.existsById(any(Long.class)))
+                .thenReturn(true);
+        when(employeeRepository.findById(anyLong(), eq(OnLyLeaveDays.class)))
+                .thenReturn(Optional.of(leaveDays));
+        when(employeeRepository.getReferenceById(any(Long.class)))
+                .thenReturn(employee);
+        when(leaveRepository.save(any(LeaveRequest.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        LeaveResponse response = employeeService.createLeaveRequest(employeeId, leaveRequestt);
+
+        assertAll(
+                () -> assertEquals(leaveRequestt.leaveDate(), response.date()),
+                () -> assertEquals(employeeId, response.employeeId()),
+                () -> assertEquals(leaveRequestt.type(), response.type()),
+                () -> assertEquals(LeaveStatus.PROCESSING, response.status())
+        );
+
+    }
 
 
 }

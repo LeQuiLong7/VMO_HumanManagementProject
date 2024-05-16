@@ -12,7 +12,7 @@ public class PasswordResetSpecifications {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(PasswordResetRequest_.ID).get("token"), token);
     }
     public static Specification<PasswordResetRequest> byEmployeeId(Long employeeId) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(PasswordResetRequest_.EMPLOYEE).get("employeeId"), employeeId);
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(PasswordResetRequest_.ID).get("employeeId"), employeeId);
     }
 
 }

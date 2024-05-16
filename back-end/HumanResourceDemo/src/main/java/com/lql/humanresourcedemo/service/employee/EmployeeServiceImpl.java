@@ -1,23 +1,29 @@
 package com.lql.humanresourcedemo.service.employee;
 
+import com.lql.humanresourcedemo.dto.model.employee.OnLyLeaveDays;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyAvatar;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyPassword;
 import com.lql.humanresourcedemo.dto.model.employee.OnlySalary;
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
+import com.lql.humanresourcedemo.dto.request.employee.LeaveRequestt;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
 import com.lql.humanresourcedemo.dto.response.employee.ChangePasswordResponse;
 import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.leave.LeaveResponse;
 import com.lql.humanresourcedemo.dto.response.project.AssignHistory;
 import com.lql.humanresourcedemo.dto.response.project.ProjectDetail;
 import com.lql.humanresourcedemo.dto.response.salary.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.tech.TechInfo;
 import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
+import com.lql.humanresourcedemo.enumeration.LeaveType;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
+import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
+import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;
 import com.lql.humanresourcedemo.model.project.EmployeeProject_;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
@@ -26,6 +32,8 @@ import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceSpecifications;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications;
+import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
+import com.lql.humanresourcedemo.repository.leave.LeaveSpecifications;
 import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
 import com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications;
 import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
@@ -44,6 +52,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import static com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus.PROCESSING;
+import static com.lql.humanresourcedemo.repository.leave.LeaveSpecifications.byDate;
 import static com.lql.humanresourcedemo.repository.project.EmployeeProjectSpecifications.byProjectId;
 import static com.lql.humanresourcedemo.repository.salary.SalaryRaiseSpecifications.byEmployeeId;
 import static com.lql.humanresourcedemo.repository.salary.SalaryRaiseSpecifications.byStatus;
@@ -58,6 +67,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeTechRepository employeeTechRepository;
     private final EmployeeProjectRepository employeeProjectRepository;
     private final AttendanceRepository attendanceRepository;
+    private final LeaveRepository leaveRepository;
     private final SalaryRaiseRequestRepository salaryRepository;
     private final PasswordEncoder passwordEncoder;
     private final AWSService awsService;
@@ -135,13 +145,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         String objectKey = String.format("image/%s.%s", employeeId, fileExtension);
 
-        awsService.uploadFile(file, BUCKET_NAME, objectKey);
-        String avatarUrl = awsService.getUrlForObject(BUCKET_NAME, region, objectKey);
+
+        String avatarUrl = awsService.getUrlForObject(BUCKET_NAME, region, awsService.uploadFile(file, BUCKET_NAME, objectKey));
         employeeRepository.updateAvatarURLById(employeeId, avatarUrl);
 
         return avatarUrl;
     }
-
     private void deleteOldAvatar(OnlyAvatar avatar) {
         String trimmedUrl = avatar.avatarUrl().substring(8);
 
@@ -150,10 +159,31 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         // Extract bucket name and object key
         String bucketName = parts[0];
-        String objectKey = parts[1].replace(region+".amazonaws.com/", "");
+        String objectKey = parts[1].substring(parts[1].indexOf("/") + 1);
 
         awsService.deleteFile(bucketName, objectKey);
     }
+
+    @Override
+    @Transactional
+    public LeaveResponse createLeaveRequest(Long employeeId, LeaveRequestt request) {
+        if(!employeeRepository.existsById(employeeId)) {
+            throw new EmployeeException(employeeId);
+        }
+        if(request.type().equals(LeaveType.PAID)) {
+            OnLyLeaveDays leaveDays = employeeRepository.findById(employeeId, OnLyLeaveDays.class)
+                    .orElseThrow(() -> new EmployeeException(employeeId));
+            if(leaveDays.leaveDays() < 1)
+                throw new LeaveRequestException("Requesting a paid leave day but not enough leave day left");
+        }
+        if(leaveRepository.exists(LeaveSpecifications.byEmployeeId(employeeId).and(byDate(request.leaveDate())))) {
+            throw new LeaveRequestException("Already have a leave request on that date");
+        }
+        LeaveRequest leaveRequest = toLeaveRequest(employeeRepository.getReferenceById(employeeId), request);
+
+        return leaveRequestToResponse(leaveRepository.save(leaveRequest));
+    }
+
 
     @Override
     @Transactional

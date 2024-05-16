@@ -15,7 +15,7 @@ export default function CreateNewLeaveRequestDialog({ open, setOpen , setData}) 
 
     async function handleCreateNewLeaveRequest() {
         try {
-            const response = await axios.post("leave", leaveRequest);
+            const response = await axios.post("/employee/leave", leaveRequest);
             setData(pre => [...pre, response.data])
         } catch(error) {
             throw error
