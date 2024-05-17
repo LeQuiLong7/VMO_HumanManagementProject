@@ -36,7 +36,7 @@ export default function CheckAttendanceDialog({open, setOpen}) {
             return {
                 id: employee.employeeId,
                 name: employee.name,
-                avatar: <Avatar src={employee.avatarUrl} />,
+                avatar: <Avatar src={employee.avatarUrl + "?" +Math.random().toString(36)} />,
                 timeIn: (
                     <TextField
                         name='timeIn'
@@ -116,6 +116,7 @@ export default function CheckAttendanceDialog({open, setOpen}) {
                 <BasicDialog open={open} handleClose={e => setOpen(false)}
                     content={[<BasicTable key={1} columns={columns} data={mapToDataTable()} />]}
                     action={'Check attendance'}
+                    title={"Check attendance"}
                     disabledButton={!allCheck}
                     buttonIcon={<Send />}
                     buttonText={'Send'}

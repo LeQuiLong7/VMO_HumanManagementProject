@@ -1,4 +1,4 @@
-package com.lql.humanresourcedemo.dto.response;
+package com.lql.humanresourcedemo.dto.response.project;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.lql.humanresourcedemo.enumeration.ProjectState;

@@ -3,8 +3,8 @@ package com.lql.humanresourcedemo.service.login;
 import com.lql.humanresourcedemo.constant.JWTConstants;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPasswordAndRole;
 import com.lql.humanresourcedemo.dto.request.login.LoginRequest;
-import com.lql.humanresourcedemo.dto.response.LoginResponse;
-import com.lql.humanresourcedemo.dto.response.LogoutResponse;
+import com.lql.humanresourcedemo.dto.response.login.LoginResponse;
+import com.lql.humanresourcedemo.dto.response.login.LogoutResponse;
 import com.lql.humanresourcedemo.exception.model.login.LoginException;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.service.jwt.JwtService;
@@ -34,8 +34,8 @@ public class LoginServiceImpl implements LoginService {
                             RedisTemplate<String, LoginResponse> redisTemplate2,
                             JwtService jwtService,
                             PasswordEncoder passwordEncoder,
-                            @Value("${jwt.expiration.duration}") long EXPIRED_DURATION,
-                            @Value("${jwt.expiration.time-unit}") String EXPIRED_TIME_UNIT) {
+                            @Value("${jwt.expiration.duration}") final long EXPIRED_DURATION,
+                            @Value("${jwt.expiration.time-unit}") final String EXPIRED_TIME_UNIT) {
         this.employeeRepository = employeeRepository;
         this.redisTemplate = redisTemplate;
         this.redisTemplate2 = redisTemplate2;

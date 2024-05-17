@@ -1,8 +1,8 @@
 package com.lql.humanresourcedemo.service.search;
 
 import com.lql.humanresourcedemo.dto.request.search.SearchRequest;
-import com.lql.humanresourcedemo.dto.response.SearchResponse;
-import com.lql.humanresourcedemo.dto.response.TechInfo;
+import com.lql.humanresourcedemo.dto.response.search.SearchResponse;
+import com.lql.humanresourcedemo.dto.response.tech.TechInfo;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.utility.MappingUtility;

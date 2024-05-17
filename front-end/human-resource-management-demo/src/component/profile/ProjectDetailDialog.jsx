@@ -21,7 +21,7 @@ export default function ProjectDetailDialog({ project, open, setOpen }) {
             label: "AVATAR",
             options: {
                 customBodyRender: (value, tableMeta) =>
-                    <Avatar src={value} >{tableMeta.rowData[2]}</Avatar>
+                    <Avatar src={value + "?" +Math.random().toString(36)} >{tableMeta.rowData[2]}</Avatar>
             },
         },
         {

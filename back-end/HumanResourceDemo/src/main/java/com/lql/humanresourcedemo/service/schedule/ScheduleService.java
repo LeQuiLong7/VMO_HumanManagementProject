@@ -9,4 +9,7 @@ public interface ScheduleService {
 
 
     void createEmployeeWeeklyReports();
+
+
+    void captureEffortDaily();
 }

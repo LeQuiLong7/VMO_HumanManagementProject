@@ -2,10 +2,10 @@ package com.lql.humanresourcedemo.service.admin;
 
 import com.lql.humanresourcedemo.dto.model.tech.TechStack;
 import com.lql.humanresourcedemo.dto.request.admin.*;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.ProjectResponse;
-import com.lql.humanresourcedemo.dto.response.SalaryRaiseResponse;
-import com.lql.humanresourcedemo.dto.response.TechStackResponse;
+import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.project.ProjectResponse;
+import com.lql.humanresourcedemo.dto.response.salary.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
 import com.lql.humanresourcedemo.dto.response.admin.EmployeeProjectResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;

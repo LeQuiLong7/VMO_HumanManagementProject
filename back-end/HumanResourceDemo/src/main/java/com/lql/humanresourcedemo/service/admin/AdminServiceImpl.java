@@ -2,8 +2,14 @@ package com.lql.humanresourcedemo.service.admin;
 
 
 import com.lql.humanresourcedemo.dto.request.admin.*;
-import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.dto.response.admin.EmployeeProjectResponse;
+import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.project.AssignHistory;
+import com.lql.humanresourcedemo.dto.response.project.ProjectDetail;
+import com.lql.humanresourcedemo.dto.response.project.ProjectResponse;
+import com.lql.humanresourcedemo.dto.response.salary.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.dto.response.tech.TechInfo;
+import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
@@ -12,9 +18,13 @@ import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseExceptio
 import com.lql.humanresourcedemo.exception.model.tech.TechException;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.project.EmployeeProject;
+import com.lql.humanresourcedemo.model.project.EmployeeProject_;
 import com.lql.humanresourcedemo.model.project.Project;
+import com.lql.humanresourcedemo.model.project.Project_;
 import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
+import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest_;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
+import com.lql.humanresourcedemo.model.tech.EmployeeTech_;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
@@ -91,7 +101,7 @@ public class AdminServiceImpl implements AdminService {
     public TechStackResponse getTechStackByEmployeeId(Long empId) throws EmployeeException {
         requiredExistsEmployee(empId);
 
-        List<EmployeeTech> tech = employeeTechRepository.findBy(byEmployeeId(empId), p -> p.project("tech").all());
+        List<EmployeeTech> tech = employeeTechRepository.findBy(byEmployeeId(empId), p -> p.project(EmployeeTech_.TECH).all());
 
         return new TechStackResponse(
                 empId,
@@ -105,9 +115,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<EmployeeProjectResponse> getAllEmployeeInsideProject(Long projectId) {
         requiredExistsProject(projectId);
-        return employeeProjectRepository.findBy(
-                        byProjectId(projectId),
-                        p -> p.project("employee").all())
+        return employeeProjectRepository.findBy(byProjectId(projectId), p -> p.project(EmployeeProject_.EMPLOYEE).all())
                 .stream()
                 .map(EmployeeProjectResponse::toEmployeeProjectResponse)
                 .toList();
@@ -119,12 +127,12 @@ public class AdminServiceImpl implements AdminService {
     public Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, Pageable pageRequest) throws EmployeeException {
 
         requiredExistsEmployee(employeeId);
-        Page<EmployeeProject> projects = employeeProjectRepository.findBy(EmployeeProjectSpecifications.byEmployeeId(employeeId), p -> p.project("project").sortBy(pageRequest.getSort()).page(pageRequest));
+        Page<EmployeeProject> projects = employeeProjectRepository.findBy(EmployeeProjectSpecifications.byEmployeeId(employeeId), p -> p.project(EmployeeProject_.PROJECT).sortBy(pageRequest.getSort()).page(pageRequest));
 
         return projects
                 .map(project -> new ProjectDetail(
                         project.getProject(),
-                        employeeProjectRepository.findBy(byProjectId(project.getId().getProjectId()), p -> p.project("employee").all())
+                        employeeProjectRepository.findBy(byProjectId(project.getId().getProjectId()), p -> p.project(EmployeeProject_.EMPLOYEE).all())
                                 .stream()
                                 .map(AssignHistory::of)
                                 .toList()
@@ -156,14 +164,18 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest) throws SalaryRaiseException {
 
-        SalaryRaiseRequest raiseRequest = salaryRepository.findBy(SalaryRaiseSpecifications.byId(handleRequest.requestId()), p -> p.project("employee").first())
+        SalaryRaiseRequest raiseRequest = salaryRepository.findBy(SalaryRaiseSpecifications.byId(handleRequest.requestId()), p -> p.project(SalaryRaiseRequest_.EMPLOYEE).first())
                 .orElseThrow(() -> new SalaryRaiseException("Raise request not found"));
 
         if (raiseRequest.getStatus() != SalaryRaiseRequestStatus.PROCESSING) {
             throw new SalaryRaiseException("Raise request already handled");
         }
-        if (handleRequest.status() == SalaryRaiseRequestStatus.PARTIALLY_ACCEPTED && handleRequest.newSalary() == null) {
-            throw new SalaryRaiseException("New salary is required");
+        if (handleRequest.status() == SalaryRaiseRequestStatus.PARTIALLY_ACCEPTED) {
+            if(handleRequest.newSalary() == null)
+             throw new SalaryRaiseException("New salary is required");
+            if(handleRequest.newSalary() <= raiseRequest.getCurrentSalary()) {
+                throw new SalaryRaiseException("New salary must be greater than current salary");
+            }
         }
 
         Double newSalary = switch (handleRequest.status()) {
@@ -209,7 +221,7 @@ public class AdminServiceImpl implements AdminService {
             }
         });
 
-        List<EmployeeTech> tech = employeeTechRepository.findBy(byEmployeeId(request.employeeId()), p -> p.project("tech").all());
+        List<EmployeeTech> tech = employeeTechRepository.findBy(byEmployeeId(request.employeeId()), p -> p.project(EmployeeTech_.TECH).all());
 
         return new TechStackResponse(
                 request.employeeId(),
@@ -231,7 +243,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public ProjectResponse updateProject(UpdateProjectStatusRequest request) {
 
-        Project project = projectRepository.findBy(ProjectSpecifications.byProjectId(request.id()), p -> p.project("employees").first())
+        Project project = projectRepository.findBy(ProjectSpecifications.byProjectId(request.id()), p -> p.project(Project_.EMPLOYEES).first())
                 .orElseThrow(() -> new ProjectException(request.id()));
 
 

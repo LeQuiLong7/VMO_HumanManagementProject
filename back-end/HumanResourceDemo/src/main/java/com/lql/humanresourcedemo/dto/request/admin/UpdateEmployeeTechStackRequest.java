@@ -8,10 +8,10 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record UpdateEmployeeTechStackRequest (
-        @NotNull
+        @NotNull(message = "Employee id must not be null")
         Long employeeId,
-        @NotNull
-        @NotEmpty
+        @NotNull(message = "Tech stack must not be null")
+        @NotEmpty (message = "Tech stack must not be empty")
         List<TechStack> techStacks) {
 
 }

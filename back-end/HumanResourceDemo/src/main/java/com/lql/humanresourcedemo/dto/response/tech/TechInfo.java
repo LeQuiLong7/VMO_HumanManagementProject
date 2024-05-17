@@ -1,6 +1,5 @@
-package com.lql.humanresourcedemo.dto.response;
+package com.lql.humanresourcedemo.dto.response.tech;
 
-import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 
 public record TechInfo(Long techId, String techName, Double yearOfExperience) {

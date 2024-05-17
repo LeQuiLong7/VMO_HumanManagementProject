@@ -3,7 +3,7 @@ package com.lql.humanresourcedemo.service.login;
 import com.lql.humanresourcedemo.constant.JWTConstants;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPasswordAndRole;
 import com.lql.humanresourcedemo.dto.request.login.LoginRequest;
-import com.lql.humanresourcedemo.dto.response.LoginResponse;
+import com.lql.humanresourcedemo.dto.response.login.LoginResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.exception.model.login.LoginException;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;

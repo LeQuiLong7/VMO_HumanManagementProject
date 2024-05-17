@@ -2,14 +2,19 @@ package com.lql.humanresourcedemo.controller;
 
 
 import com.lql.humanresourcedemo.dto.request.admin.*;
-import com.lql.humanresourcedemo.dto.response.*;
 import com.lql.humanresourcedemo.dto.response.admin.EmployeeProjectResponse;
+import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.project.ProjectDetail;
+import com.lql.humanresourcedemo.dto.response.project.ProjectResponse;
+import com.lql.humanresourcedemo.dto.response.salary.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.service.admin.AdminService;
 import com.lql.humanresourcedemo.utility.ContextUtility;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -29,7 +34,6 @@ public class AdminController {
 
     @GetMapping("/employees")
     public Page<GetProfileResponse> getAllEmployee(Pageable page) {
-
         return adminService.getAllEmployee(page);
     }
 

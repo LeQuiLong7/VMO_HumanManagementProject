@@ -8,16 +8,16 @@ import java.time.LocalDate;
 
 public record CreateNewProjectRequest(
 
-        @NotNull
-        @NotBlank
+        @NotNull(message = "Project name must not be null")
+        @NotBlank(message = "Project name must not be blank")
         String name,
         String description,
 
-        @Future
-        @NotNull
+        @Future(message = "Expected start date must be a future date")
+        @NotNull(message = "Expected start date must not be null")
         LocalDate expectedStartDate,
-        @Future
-        @NotNull
+        @Future(message = "Expected finish date must be a future date")
+        @NotNull(message = "Expected finish date must not be null")
         LocalDate expectedFinishDate
 ) {
 }

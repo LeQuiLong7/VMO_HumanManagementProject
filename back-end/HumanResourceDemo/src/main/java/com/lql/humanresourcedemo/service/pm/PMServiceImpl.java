@@ -1,17 +1,17 @@
 package com.lql.humanresourcedemo.service.pm;
 
 
-import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.dto.request.pm.CheckAttendanceRequest;
 import com.lql.humanresourcedemo.dto.request.pm.HandleLeaveRequest;
-import com.lql.humanresourcedemo.dto.response.GetProfileResponse;
-import com.lql.humanresourcedemo.dto.response.LeaveResponse;
+import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.leave.LeaveResponse;
 import com.lql.humanresourcedemo.enumeration.LeaveStatus;
 import com.lql.humanresourcedemo.enumeration.LeaveType;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
+import com.lql.humanresourcedemo.model.attendance.LeaveRequest_;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
@@ -76,7 +76,7 @@ public class PMServiceImpl implements PMService {
             throw new LeaveRequestException("Status " + request.status() + " is not valid");
         }
 
-        LeaveRequest l = leaveRepository.findBy(LeaveSpecifications.byId(request.requestId()), p -> p.project("employee").first())
+        LeaveRequest l = leaveRepository.findBy(LeaveSpecifications.byId(request.requestId()), p -> p.project(LeaveRequest_.EMPLOYEE).first())
                 .orElseThrow(() -> new LeaveRequestException("Leave request could not be found"));
 
         if (l.getStatus() != LeaveStatus.PROCESSING) {
@@ -124,7 +124,7 @@ public class PMServiceImpl implements PMService {
     public Page<LeaveResponse> getAllLeaveRequest(Long pmId, Pageable pageRequest) {
         requireExists(pmId);
 
-        return leaveRepository.findBy(LeaveSpecifications.byPmId(pmId), p -> p.project("employee").sortBy(pageRequest.getSort()).page(pageRequest))
+        return leaveRepository.findBy(LeaveSpecifications.byPmId(pmId), p -> p.project(LeaveRequest_.EMPLOYEE).sortBy(pageRequest.getSort()).page(pageRequest))
                 .map(MappingUtility::leaveRequestToResponse);
     }
 

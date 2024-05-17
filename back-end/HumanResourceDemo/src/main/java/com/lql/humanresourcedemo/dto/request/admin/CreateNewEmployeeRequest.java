@@ -15,7 +15,7 @@ public record CreateNewEmployeeRequest(
         @NotNull(message = "Last name must not be null")
         @NotBlank(message = "Last name must not be blank")
         String lastName,
-        @Past(message = "Birth date is not valid")
+        @Past(message = "Birth date must be a past date")
         @NotNull(message = "Birth date must not be null")
         LocalDate birthDate,
         @NotNull(message = "Phone number must not be null")

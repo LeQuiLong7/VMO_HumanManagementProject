@@ -3,7 +3,7 @@ package com.lql.humanresourcedemo.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lql.humanresourcedemo.dto.request.employee.CreateResetPasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.ResetPasswordRequest;
-import com.lql.humanresourcedemo.dto.response.ChangePasswordResponse;
+import com.lql.humanresourcedemo.dto.response.employee.ChangePasswordResponse;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.resetpassword.ResetPasswordException;
 import com.lql.humanresourcedemo.filter.JWTAuthenticationFilter;
@@ -54,7 +54,7 @@ class ResetPasswordControllerTest {
                 ).andExpectAll(
                         status().isBadRequest(),
                         jsonPath("$.error").exists(),
-                        jsonPath("$.error").value("email: must not be blank"),
+                        jsonPath("$.error").value("Email must not be blank"),
                         jsonPath("$.time_stamp").exists()
                 );
             } catch (Exception e) {

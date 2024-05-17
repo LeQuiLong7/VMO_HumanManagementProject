@@ -106,7 +106,7 @@ export default function CreateNewEmployeeDialog({ createState, setCreateState })
                   <MenuItem value={e.id} key={e.id}>
                     <Stack direction={"row"} spacing={3}>
                       <Typography>{e.id}</Typography>
-                      <Avatar src={e.avatarUrl}></Avatar>
+                      <Avatar src={e.avatarUrl + "?" +Math.random().toString(36)}></Avatar>
                       <Typography>{e.lastName + " " + e.firstName}</Typography>
                     </Stack>
                   </MenuItem>

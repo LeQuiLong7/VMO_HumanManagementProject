@@ -1,4 +1,4 @@
-package com.lql.humanresourcedemo.dto.response;
+package com.lql.humanresourcedemo.dto.response.employee;
 
 public record ChangePasswordResponse(String message) {
 }

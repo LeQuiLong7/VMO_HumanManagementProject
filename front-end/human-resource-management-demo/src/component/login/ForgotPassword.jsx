@@ -32,6 +32,7 @@ export default function ForgotPassword() {
         const data = resetPasswordRequest
         try {
             const response = await axios.put('/reset-password', data);
+            console.log(response);
             setState(2)
         } catch (error) {
             throw error

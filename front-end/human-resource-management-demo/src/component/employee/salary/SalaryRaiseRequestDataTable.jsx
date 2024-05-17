@@ -21,7 +21,7 @@ export default function SalaryRaiseRequesDataTable({data}) {
             label: "AVATAR",
             options: {
                 customBodyRender: (value, tableMeta) => (
-                    <Avatar src={value} >{tableMeta.rowData[3]}</Avatar>
+                    <Avatar src={value + "?" +Math.random().toString(36)} >{tableMeta.rowData[3]}</Avatar>
                 )
             }
 

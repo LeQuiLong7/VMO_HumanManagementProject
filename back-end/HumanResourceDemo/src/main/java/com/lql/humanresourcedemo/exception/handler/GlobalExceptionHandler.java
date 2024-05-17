@@ -1,6 +1,7 @@
 package com.lql.humanresourcedemo.exception.handler;
 
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.lql.humanresourcedemo.exception.model.aws.AWSException;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
@@ -27,7 +28,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
@@ -43,15 +43,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> methodArgumentNotValidHandler(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        List<String> errors = ex.getBindingResult()
+
+        String error = ex.getBindingResult()
                 .getFieldErrors()
-                .stream()
-                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
-                .toList();
+                .get(0)
+                .getDefaultMessage();
         log.warn(buildLogMessage("Method argument", "Someone provide not valid arguments to an endpoint " + ex.getMessage(), request));
-        return createResponseDetail(errors.toString().substring(1, errors.toString().length() - 1), HttpStatus.BAD_REQUEST);
+        return createResponseDetail(error, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(JsonParseException.class)
+    public ResponseEntity<Object> jsonParseExceptionHandler(JsonParseException ex, HttpServletRequest request) {
+        log.warn(buildLogMessage("Json parse ", ex.getMessage(), request));
+        return createResponseDetail("Request body is not a valid json", HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(EmployeeException.class)
     public ResponseEntity<Object> employeeNotFoundExceptionHandler(EmployeeException ex, HttpServletRequest request) {
@@ -63,6 +68,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FileException.class)
     public ResponseEntity<Object> fileNotSupportExceptionHandler(FileException ex, HttpServletRequest request) {
         log.warn(buildLogMessage("File upload", ex.getMessage(), request));
+
         return createResponseDetail(ex.getMessage() , HttpStatus.BAD_REQUEST);
     }
 
@@ -73,8 +79,6 @@ public class GlobalExceptionHandler {
         log.warn(buildLogMessage("Password change", ex.getMessage(), request));
         return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
-
-
 
     @ExceptionHandler(NewAccountException.class)
     public ResponseEntity<Object> newAccountExceptionHandler(NewAccountException ex, HttpServletRequest request) {
@@ -131,12 +135,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Object> httpMessageNotReadableExceptionHandler(HttpMessageNotReadableException ex, HttpServletRequest request) {
 
-        ex.printStackTrace();
-        Object value = ((InvalidFormatException) ex.getCause()).getValue();
-        String fieldName = ((InvalidFormatException) ex.getCause()).getPath().get(0).getFieldName();
+        if(ex.getCause() instanceof JsonParseException e) {
+            return jsonParseExceptionHandler(e, request);
+        }
+        if(ex.getCause() instanceof InvalidFormatException e) {
+            Object value = e.getValue();
+            String fieldName =  e.getPath().get(0).getFieldName();
+            log.warn(buildLogMessage("Request value not valid", ex.getMessage(), request));
+            return createResponseDetail(String.format("%s is not a valid value for %s", value, convertCamelCaseToNormalWords(fieldName)), HttpStatus.BAD_REQUEST);
+        }
 
         log.warn(buildLogMessage(" ", ex.getMessage(), request));
-        return createResponseDetail(String.format("%s is not a valid value for %s", value, convertCamelCaseToNormalWords(fieldName)), HttpStatus.BAD_REQUEST);
+        return createResponseDetail(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MailException.class)
