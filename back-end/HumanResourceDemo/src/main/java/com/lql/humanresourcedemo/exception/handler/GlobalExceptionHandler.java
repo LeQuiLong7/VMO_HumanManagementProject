@@ -68,6 +68,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FileException.class)
     public ResponseEntity<Object> fileNotSupportExceptionHandler(FileException ex, HttpServletRequest request) {
         log.warn(buildLogMessage("File upload", ex.getMessage(), request));
+
         return createResponseDetail(ex.getMessage() , HttpStatus.BAD_REQUEST);
     }
 

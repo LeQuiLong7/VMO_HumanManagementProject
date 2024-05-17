@@ -66,7 +66,7 @@ public class JWTFilterTest {
     static RedisContainer redis  = new RedisContainer(DockerImageName.parse("redis:7.2.4-alpine"));
 
     @Test
-    public void noBearerTokenTest() throws Exception {
+     void noBearerTokenTest() throws Exception {
 
         MvcResult mvcResult = mockMvc.perform(get("/profile"))
                 .andExpect(status().isUnauthorized())
@@ -77,7 +77,7 @@ public class JWTFilterTest {
     }
 
     @Test
-    public void tokenNotValidTest() throws Exception {
+     void tokenNotValidTest() throws Exception {
 
         MvcResult mvcResult = mockMvc.perform(get("/profile")
                         .header("Authorization", "Bearer abc"))
@@ -89,7 +89,7 @@ public class JWTFilterTest {
 
     }
     @Test
-    public void tokenExpired() throws Exception {
+     void tokenExpired() throws Exception {
         jwtService = new JWTServiceImpl(jwtBuilder,jwtParser, -60000, "MINUTES");
 
         String expiredToken = jwtService.generateToken(new OnlyIdPasswordAndRole(1L, "", Role.EMPLOYEE));
@@ -104,7 +104,7 @@ public class JWTFilterTest {
     }
 
     @Test
-    public void unauthorizedAccess() throws Exception {
+     void unauthorizedAccess() throws Exception {
         String loginRequest = """
                 { "email": "employee@company.com",
                    "password": "employee"
@@ -125,7 +125,7 @@ public class JWTFilterTest {
         assertEquals("Access denied. You don't have permission to access this resource.", mvcResult.getResponse().getContentAsString());
     }
     @Test
-    public void loggedOutToken() throws Exception {
+     void loggedOutToken() throws Exception {
         String loginRequest = """
                 { "email": "employee@company.com",
                    "password": "employee"

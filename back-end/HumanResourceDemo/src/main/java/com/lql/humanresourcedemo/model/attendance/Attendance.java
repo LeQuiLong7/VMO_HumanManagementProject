@@ -19,9 +19,14 @@ public class Attendance extends Auditable {
     @SequenceGenerator(name = "attendance_id_seq", sequenceName = "attendance_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "attendance_id_seq")
     private Long id;
+
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employeeId")
     private Employee employee;
+
+
+
     private LocalDate date;
     private LocalTime timeIn;
     private LocalTime timeOut;

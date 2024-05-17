@@ -8,12 +8,13 @@ import { useEffect } from 'react';
 import AccountInfo from './AccountInfo';
 import { useState } from 'react';
 import { AccountDetailsForm } from './AccountDetailsForm';
-import { Box, CardHeader, Divider, Paper, Skeleton } from '@mui/material';
+import { Box, Card, CardHeader, Divider, Paper, Skeleton } from '@mui/material';
 import ProjectHistoryDataTable from './ProjectHistoryDataTable';
 import Datatable from '../general/Datatable';
 import useAxios from '../../hooks/useAxios';
+import Chart from '../test/Chart';
 export default function Profile() {
-  
+
   const axios = useAxios()
 
   const [user, setUser] = useState(null)
@@ -55,7 +56,10 @@ export default function Profile() {
     selectableRows: 'none',
     rowsPerPage: 5,
     rowsPerPageOptions: [5, 10, 20]
-};
+  };
+
+  const date = [new Date(2024, 4, 1), new Date(2024, 4, 2), new Date(2024, 4, 3), new Date(2024, 4, 4), new Date(2024, 4, 5), new Date(2024, 4, 6)];
+  const data = [30, 50, 40, 60, 90, 90]
 
   return (
 
@@ -73,13 +77,13 @@ export default function Profile() {
             <Grid item={+true} lg={8} md={6} xs={12}>
               <AccountDetailsForm user={user} setUser={setUser} />
             </Grid>
-            <Grid item={+true} xs={12}>
+            {/* <Grid item={+true} xs={12}>
               <Paper sx={{ width: '100%', mt: 5 }}>
                 <CardHeader title="Tech details" />
                 <Divider />
                 {tech && <Datatable data={tech.techInfo} options={options} columns={techColumns} />}
               </Paper>
-            </Grid>
+            </Grid> */}
             <Grid item={+true} xs={12}>
               <Paper sx={{ width: '100%', mt: 5 }}>
                 <CardHeader title="Project history" />
@@ -88,6 +92,16 @@ export default function Profile() {
               </Paper>
             </Grid>
           </Grid>
+            <Card sx={{ flexDirection: 'row', alignItems:'center', justifyContent:'space-between', display:'flex', padding:2}}>
+              <Box>
+                <Chart xAxisData={date} yAxisData={data} fullDate={true}/>
+                <Typography textAlign='center' variant='h6'>This month effort</Typography>
+              </Box>
+              <Box>
+                <Chart xAxisData={date} yAxisData={data} fullDate={false}/>
+                <Typography textAlign='center'  variant='h6'>This year effort</Typography>
+              </Box>
+            </Card>
         </Stack>
 
       )}
