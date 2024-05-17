@@ -1,9 +1,11 @@
 package com.lql.humanresourcedemo.service.schedule;
 
 import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
+import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
+import com.lql.humanresourcedemo.repository.effort.EffortHistoryRepository;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
@@ -35,6 +37,8 @@ public class ScheduleServiceTest {
     @Mock
     private LeaveRepository leaveRepository;
     @Mock
+    private EffortHistoryRepository effortHistoryRepository;
+    @Mock
     private MailService mailService;
     @Mock
     private AWSService awsService;
@@ -45,7 +49,7 @@ public class ScheduleServiceTest {
 
     @BeforeEach
     void setUp() {
-        scheduleService = new ScheduleServiceImpl(employeeRepository, attendanceRepository, leaveRepository, mailService, awsService, region);
+        scheduleService = new ScheduleServiceImpl(employeeRepository, attendanceRepository, leaveRepository, mailService, effortHistoryRepository, awsService, region);
     }
 
 

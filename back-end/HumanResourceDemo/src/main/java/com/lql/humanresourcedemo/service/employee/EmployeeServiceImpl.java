@@ -8,6 +8,7 @@ import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.CreateSalaryRaiseRequest;
 import com.lql.humanresourcedemo.dto.request.employee.LeaveRequestt;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
+import com.lql.humanresourcedemo.dto.response.effort.EffortHistoryRecord;
 import com.lql.humanresourcedemo.dto.response.employee.ChangePasswordResponse;
 import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.leave.LeaveResponse;
@@ -30,6 +31,8 @@ import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech_;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceSpecifications;
+import com.lql.humanresourcedemo.repository.effort.EffortHistoryRepository;
+import com.lql.humanresourcedemo.repository.effort.EffortHistorySpecifications;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications;
 import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
@@ -46,10 +49,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDate;
+import java.util.List;
 
 import static com.lql.humanresourcedemo.enumeration.SalaryRaiseRequestStatus.PROCESSING;
 import static com.lql.humanresourcedemo.repository.leave.LeaveSpecifications.byDate;
@@ -68,6 +75,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeProjectRepository employeeProjectRepository;
     private final AttendanceRepository attendanceRepository;
     private final LeaveRepository leaveRepository;
+    private final EffortHistoryRepository effortHistoryRepository;
     private final SalaryRaiseRequestRepository salaryRepository;
     private final PasswordEncoder passwordEncoder;
     private final AWSService awsService;
@@ -230,6 +238,18 @@ public class EmployeeServiceImpl implements EmployeeService {
                                 .map(AssignHistory::of)
                                 .toList()
                 ));
+    }
+
+    @Override
+    public List<EffortHistoryRecord> getEffortHistory(Long employeeId, LocalDate date, boolean year) {
+
+        requireExists(employeeId);
+        LocalDate startDate = year ? date.withDayOfYear(1) : date.withDayOfMonth(1);
+        if(year) {
+            return effortHistoryRepository.findMonthlyAverageEffort(employeeId, startDate, date).stream().map(monthlyAverageResult -> new EffortHistoryRecord(LocalDate.of(date.getYear(), monthlyAverageResult.month(), 1), monthlyAverageResult.avgEffort())).toList();
+        } else {
+            return effortHistoryRepository.findBy(EffortHistorySpecifications.byEmployeeId(employeeId).and(EffortHistorySpecifications.byDateBetween(startDate, date)), p -> p.sortBy(Sort.by("id.date")).all()).stream().map(EffortHistoryRecord::of).toList();
+        }
     }
 
     private void requireExists(Long employeeId) {

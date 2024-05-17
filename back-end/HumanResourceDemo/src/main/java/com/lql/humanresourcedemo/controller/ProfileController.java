@@ -3,6 +3,7 @@ package com.lql.humanresourcedemo.controller;
 
 import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
+import com.lql.humanresourcedemo.dto.response.effort.EffortHistoryRecord;
 import com.lql.humanresourcedemo.dto.response.employee.ChangePasswordResponse;
 import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
@@ -13,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDate;
+import java.util.List;
 
 import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
 
@@ -28,6 +32,10 @@ public class ProfileController {
     @GetMapping
     public GetProfileResponse getProfile() {
         return employeeService.getProfile(getCurrentEmployeeId());
+    }
+    @GetMapping("/effort")
+    public List<EffortHistoryRecord> getEffortHistory(@RequestParam(required = false, defaultValue = "false") boolean year) {
+        return employeeService.getEffortHistory(getCurrentEmployeeId(), LocalDate.now(), year);
     }
 
     @GetMapping("/tech")

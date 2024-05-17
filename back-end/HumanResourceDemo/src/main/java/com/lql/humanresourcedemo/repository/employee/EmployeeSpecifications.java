@@ -6,6 +6,9 @@ import com.lql.humanresourcedemo.model.employee.Employee_;
 import org.springframework.data.jpa.domain.Specification;
 
 public class EmployeeSpecifications {
+    private EmployeeSpecifications() {
+    }
+
     public static Specification<Employee> byRole(Role role) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get(Employee_.ROLE), role);
@@ -22,8 +25,8 @@ public class EmployeeSpecifications {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThanOrEqualTo(root.get(Employee_.CURRENT_EFFORT), currentEffort);
     }
-    public static Specification<Employee> byPersonalEmail(String personalEmail) {
-        return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get(Employee_.PERSONAL_EMAIL), personalEmail);
-    }
+//    public static Specification<Employee> byPersonalEmail(String personalEmail) {
+//        return (root, query, criteriaBuilder) ->
+//                criteriaBuilder.equal(root.get(Employee_.PERSONAL_EMAIL), personalEmail);
+//    }
 }

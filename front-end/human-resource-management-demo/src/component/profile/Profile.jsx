@@ -19,47 +19,35 @@ export default function Profile() {
 
   const [user, setUser] = useState(null)
   const [tech, setTech] = useState(null)
+  const [thisMonthEffort, setThisMonthEffort] = useState([])
+  const [thisYearEffort, setThisYearEffort] = useState([])
 
   useEffect(() => {
     fetchProfile();
     fetchTechInfo();
+    fetchThisMonthEffortHistory();
+    fetchThisYearEffortHistory();
   }, [])
 
   async function fetchProfile() {
-
     const response = await axios.get("/profile");
     setUser(response.data);
   }
 
   async function fetchTechInfo() {
-
     const response = await axios.get("/profile/tech");
     setTech(response.data);
   }
-
-  const techColumns = [
-    {
-      name: 'techId',
-      label: 'TECH ID'
-    },
-    {
-      name: 'techName',
-      label: 'TECH NAME'
-    },
-    {
-      name: 'yearOfExperience',
-      label: 'YEAR OF EXPERIENCE'
-    }
-  ]
-
-  const options = {
-    selectableRows: 'none',
-    rowsPerPage: 5,
-    rowsPerPageOptions: [5, 10, 20]
-  };
-
-  const date = [new Date(2024, 4, 1), new Date(2024, 4, 2), new Date(2024, 4, 3), new Date(2024, 4, 4), new Date(2024, 4, 5), new Date(2024, 4, 6)];
-  const data = [30, 50, 40, 60, 90, 90]
+  async function fetchThisMonthEffortHistory() {
+    const response = await axios.get("/profile/effort");
+    console.log(response.data);
+    setThisMonthEffort(response.data);
+  }
+  async function fetchThisYearEffortHistory() {
+    const response = await axios.get("/profile/effort?year=true");
+    console.log(response.data);
+    setThisYearEffort(response.data);
+  }
 
   return (
 
@@ -77,13 +65,6 @@ export default function Profile() {
             <Grid item={+true} lg={8} md={6} xs={12}>
               <AccountDetailsForm user={user} setUser={setUser} />
             </Grid>
-            {/* <Grid item={+true} xs={12}>
-              <Paper sx={{ width: '100%', mt: 5 }}>
-                <CardHeader title="Tech details" />
-                <Divider />
-                {tech && <Datatable data={tech.techInfo} options={options} columns={techColumns} />}
-              </Paper>
-            </Grid> */}
             <Grid item={+true} xs={12}>
               <Paper sx={{ width: '100%', mt: 5 }}>
                 <CardHeader title="Project history" />
@@ -92,16 +73,21 @@ export default function Profile() {
               </Paper>
             </Grid>
           </Grid>
-            <Card sx={{ flexDirection: 'row', alignItems:'center', justifyContent:'space-between', display:'flex', padding:2}}>
+
+          <Card  >
+            <CardHeader title='Effort history'/>
+            <Box>
               <Box>
-                <Chart xAxisData={date} yAxisData={data} fullDate={true}/>
-                <Typography textAlign='center' variant='h6'>This month effort</Typography>
+                <Typography textAlign='center' variant='h6' gutterBottom>This month effort</Typography>
+                <Chart xAxisData={thisMonthEffort.map(e => new Date(e.date))} yAxisData={thisMonthEffort.map(e => e.effort)} fullDate={true} />
               </Box>
+              <Divider/>
               <Box>
-                <Chart xAxisData={date} yAxisData={data} fullDate={false}/>
-                <Typography textAlign='center'  variant='h6'>This year effort</Typography>
+                <Typography textAlign='center' variant='h6' marginTop={5}>This year effort</Typography>
+                <Chart xAxisData={thisYearEffort.map(e => new Date(e.date))} yAxisData={thisYearEffort.map(e => e.effort)} fullDate={false} />
               </Box>
-            </Card>
+            </Box>
+          </Card>
         </Stack>
 
       )}

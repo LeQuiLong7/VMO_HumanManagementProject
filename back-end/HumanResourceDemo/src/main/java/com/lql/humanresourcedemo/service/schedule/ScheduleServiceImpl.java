@@ -1,5 +1,6 @@
 package com.lql.humanresourcedemo.service.schedule;
 
+import com.lql.humanresourcedemo.dto.model.employee.OnlyIdAndCurrentEffort;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
 import com.lql.humanresourcedemo.enumeration.LeaveStatus;
@@ -7,11 +8,14 @@ import com.lql.humanresourcedemo.enumeration.LeaveViolationCode;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
+import com.lql.humanresourcedemo.model.effort.EffortHistory;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
+import com.lql.humanresourcedemo.repository.effort.EffortHistoryRepository;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
 import com.lql.humanresourcedemo.service.aws.AWSService;
 import com.lql.humanresourcedemo.service.mail.MailService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -40,22 +44,31 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final EmployeeRepository employeeRepository;
     private final AttendanceRepository attendanceRepository;
     private final LeaveRepository leaveRepository;
+    private final EffortHistoryRepository effortHistoryRepository;
     private final MailService mailService;
     private final AWSService awsService;
 
+    private final  String region;
 
-    @Value("${spring.cloud.aws.region.static}")
-    private  String region;
-
-    public ScheduleServiceImpl(EmployeeRepository employeeRepository, AttendanceRepository attendanceRepository, LeaveRepository leaveRepository, MailService mailService, AWSService awsService, @Value("${spring.cloud.aws.region.static}") String region) {
+    public ScheduleServiceImpl(EmployeeRepository employeeRepository, AttendanceRepository attendanceRepository, LeaveRepository leaveRepository, MailService mailService,EffortHistoryRepository effortHistoryRepository, AWSService awsService, @Value("${spring.cloud.aws.region.static}") String region) {
         this.employeeRepository = employeeRepository;
         this.attendanceRepository = attendanceRepository;
         this.leaveRepository = leaveRepository;
+        this.effortHistoryRepository = effortHistoryRepository;
         this.mailService = mailService;
         this.awsService = awsService;
         this.region = region;
     }
 
+//            ┌───────────── second (0-59)
+//            │ ┌───────────── minute (0 - 59)
+//            │ │ ┌───────────── hour (0 - 23)
+//            │ │ │ ┌───────────── day of the month (1 - 31)
+//            │ │ │ │ ┌───────────── month (1 - 12) (or JAN-DEC)
+//            │ │ │ │ │ ┌───────────── day of the week (0 - 7)
+//            │ │ │ │ │ │          (0 or 7 is Sunday, or MON-SUN)
+//            │ │ │ │ │ │
+//            * * * * * *
     @Scheduled(cron = "0 0 0 1 * *") // Run at midnight on the first day of each month
     public void updateEmployeeLeaveDaysMonthly() {
         int i = employeeRepository.increaseLeaveDaysBy1();
@@ -63,7 +76,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
 
-    @Scheduled(cron = "0 9 * * 2-6 *") // Run at 9AM Tuesday to Saturday
+    @Scheduled(cron = "0 0 9 * * 2-6") // Run at 9AM Tuesday to Saturday
     public void notifyLeaveViolation() {
 
         List<Attendance> attendances = attendanceRepository.findByDate(LocalDate.now().minusDays(1));
@@ -80,7 +93,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    @Scheduled(cron = "0 9 * * 6 *") // Run at 9AM every Saturday
+    @Scheduled(cron = "0 0 9 * * 6") // Run at 9AM every Saturday
     public void createEmployeeWeeklyReports() {
         List<OnlyIdPersonalEmailAndFirstName> employees = employeeRepository.findByQuitIsFalse(OnlyIdPersonalEmailAndFirstName.class);
 
@@ -108,6 +121,16 @@ public class ScheduleServiceImpl implements ScheduleService {
             }
 
         }
+    }
+
+    @Override
+    @Scheduled(cron = "0 0 17 * * 1-5") // Run at 5PM Monday to Friday
+    public void captureEffortDaily() {
+        LocalDate today = LocalDate.now();
+
+        employeeRepository.findByQuitIsFalse(OnlyIdAndCurrentEffort.class)
+                .forEach(emp -> effortHistoryRepository.save(new EffortHistory(emp.id(), today, emp.currentEffort())));
+        log.info("Capture employee effort successfully - Date: {}", today);
     }
 
     private File createCsvFile(Long employeeId, List<Attendance> attendanceList, Map<LeaveViolationCode, Integer> agg) throws IOException {

@@ -18,7 +18,7 @@ export default function Chart({xAxisData, yAxisData, fullDate}) {
         if(fullDate)
         // Step 5: Combine the formatted parts into the desired string format
             return `${day}/${month}/${year}`;
-        return `${month}/${year}`;
+        return `${month}/20${year}`;
 
     }
     return (
@@ -29,9 +29,15 @@ export default function Chart({xAxisData, yAxisData, fullDate}) {
             series={[
                 {
                     data: yAxisData
+                
                 },
+                
             ]}
-            width={500}
+            yAxis={[{
+                min: 0,
+                max: 100
+            }]}
+            sx={{width: '100%'}}
             height={300}
         />
     );

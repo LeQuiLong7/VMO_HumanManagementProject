@@ -27,6 +27,7 @@ import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
+import com.lql.humanresourcedemo.repository.effort.EffortHistoryRepository;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
 import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
@@ -67,6 +68,9 @@ class EmployeeServiceTest {
     private SalaryRaiseRequestRepository salaryRepository;
     @Mock
     private LeaveRepository leaveRepository;
+
+    @Mock
+    private EffortHistoryRepository effortHistoryRepository;
     @Mock
     private  PasswordEncoder passwordEncoder;
     @Mock
@@ -79,7 +83,7 @@ class EmployeeServiceTest {
 
     @BeforeEach
     void setUp() {
-        employeeService = new EmployeeServiceImpl(employeeRepository, employeeTechRepository, employeeProjectRepository, attendanceRepository, leaveRepository, salaryRepository, passwordEncoder, awsService);
+        employeeService = new EmployeeServiceImpl(employeeRepository, employeeTechRepository, employeeProjectRepository, attendanceRepository, leaveRepository, effortHistoryRepository, salaryRepository, passwordEncoder, awsService);
     }
 
     @Test
