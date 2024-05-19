@@ -47,21 +47,25 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
-
+        // get only the password and role for the email provided in the request if exists
         OnlyIdPasswordAndRole employee = employeeRepository.findByEmail(loginRequest.email(), OnlyIdPasswordAndRole.class)
                 .orElseThrow(() -> new LoginException("%s doesn't exists".formatted(loginRequest.email())));
 
+        // check if the login password and the account's password matches or not
         if (!passwordEncoder.matches(loginRequest.password(), employee.password())) {
             throw new LoginException("Password is not correct");
         }
-
+        // password matches, generate a jwt token
         String token = jwtService.generateToken(employee);
+
+        // store the token in redis, key is the employee id
         redisTemplate.opsForValue().set(employee.id(), token, Duration.of(EXPIRED_DURATION, ChronoUnit.valueOf(EXPIRED_TIME_UNIT)));
         return new LoginResponse(JWTConstants.TOKEN_TYPE, token, employee.role());
     }
 
     @Override
     public LoginResponse exchangeToken(String token) {
+        // check if the token exists or not
         LoginResponse loginResponse = redisTemplate2.opsForValue().get(token);
         if(loginResponse == null) {
             throw new LoginException("Session id does not exists");
@@ -70,20 +74,25 @@ public class LoginServiceImpl implements LoginService {
     }
 
     @Override
+    // login with oauth2, success if the email exists in the system and fail if not, no need for password
     public LoginResponse loginWithOauth2(String email) {
 
         OnlyIdPasswordAndRole employee = employeeRepository.findByPersonalEmail(email, OnlyIdPasswordAndRole.class)
                 .orElseThrow(() -> new LoginException("Account doesn't exists"));
-
+        // generate the jwt token
         String token = jwtService.generateToken(employee);
+        // store the token in redis, the key is employee id
         redisTemplate.opsForValue().set(employee.id(), token, Duration.of(EXPIRED_DURATION, ChronoUnit.valueOf(EXPIRED_TIME_UNIT)));
         return new LoginResponse(JWTConstants.TOKEN_TYPE, token, employee.role());
     }
 
     @Override
+    // delete the record for the token from redis when performing logout
     public LogoutResponse logout(String token) {
         try {
+            // get the employee id from the token
             long employeeId = Long.parseLong(jwtService.extractClaim(token, Claims::getSubject));
+            // check if exists any token corresponding to the employee id and if the two token matches or not
             String storedToken = redisTemplate.opsForValue().get(employeeId);
             if (storedToken == null) {
                 return new LogoutResponse(false, "You haven't logged in yet");
@@ -91,6 +100,7 @@ public class LoginServiceImpl implements LoginService {
             if (!storedToken.equals(token)) {
                 return new LogoutResponse(false, "Invalid token");
             }
+            // check successfully, delete the record
             redisTemplate.delete(employeeId);
             return new LogoutResponse(true, "Logout successful!");
         } catch (JwtException ex) {

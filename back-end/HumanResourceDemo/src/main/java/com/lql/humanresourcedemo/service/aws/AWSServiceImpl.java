@@ -20,6 +20,7 @@ public class AWSServiceImpl implements AWSService {
     private final S3Client s3Client;
 
     @Override
+    // form the full s3 address from the bucket name, region and object key
     public String getUrlForObject(String bucketName, String region, String objectKey) {
         return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, objectKey);
     }

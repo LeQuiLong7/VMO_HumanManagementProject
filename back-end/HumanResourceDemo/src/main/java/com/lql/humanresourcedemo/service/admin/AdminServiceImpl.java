@@ -127,11 +127,13 @@ public class AdminServiceImpl implements AdminService {
     public Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, Pageable pageRequest) throws EmployeeException {
 
         requiredExistsEmployee(employeeId);
+        // get all projects that the employee have joined
         Page<EmployeeProject> projects = employeeProjectRepository.findBy(EmployeeProjectSpecifications.byEmployeeId(employeeId), p -> p.project(EmployeeProject_.PROJECT).sortBy(pageRequest.getSort()).page(pageRequest));
 
         return projects
                 .map(project -> new ProjectDetail(
                         project.getProject(),
+                        // get all employees inside the project
                         employeeProjectRepository.findBy(byProjectId(project.getId().getProjectId()), p -> p.project(EmployeeProject_.EMPLOYEE).all())
                                 .stream()
                                 .map(AssignHistory::of)
@@ -142,21 +144,23 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public GetProfileResponse createNewEmployee(CreateNewEmployeeRequest request) {
-
-
+        // create email address base on the employee name : Le Qui Long -> longlq@company.com
         String email = buildEmail(request.firstName(), request.lastName());
+        // add a number identifier if the email already exists: longlq2@company.com
         if (employeeRepository.existsByEmail(email)) {
             int count = employeeRepository.countByEmailLike(buildEmailWithWildcard(email));
             email = emailWithIdentityNumber(email, count);
         }
+        // random UUID password
         String password = UUID.randomUUID().toString();
 
         Employee e = toEmployee(request, employeeRepository.getReferenceById(request.managedBy()), email, passwordEncoder.encode(password));
 
         employeeRepository.save(e);
 
+        // send email address and password to employee's personal email
         mailService.sendEmail(e.getPersonalEmail(), "[COMPANY] - WELCOME NEW EMPLOYEE", buildWelcomeMailMessage(e.getFirstName() + " " + e.getLastName(), e.getEmail(), password));
-
+        // map to response
         return employeeToProfileResponse(e);
     }
 
@@ -164,38 +168,48 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest) throws SalaryRaiseException {
 
+        // check whether the raise request exists for not
         SalaryRaiseRequest raiseRequest = salaryRepository.findBy(SalaryRaiseSpecifications.byId(handleRequest.requestId()), p -> p.project(SalaryRaiseRequest_.EMPLOYEE).first())
                 .orElseThrow(() -> new SalaryRaiseException("Raise request not found"));
 
+        // throw an exception if the request is already handled (status is not PROCESSING)
         if (raiseRequest.getStatus() != SalaryRaiseRequestStatus.PROCESSING) {
             throw new SalaryRaiseException("Raise request already handled");
         }
+        // if the raise request is partially accepted then the new salary is required in the handle request
         if (handleRequest.status() == SalaryRaiseRequestStatus.PARTIALLY_ACCEPTED) {
             if(handleRequest.newSalary() == null)
              throw new SalaryRaiseException("New salary is required");
+            // new salary must be greater than their current salary
             if(handleRequest.newSalary() <= raiseRequest.getCurrentSalary()) {
                 throw new SalaryRaiseException("New salary must be greater than current salary");
             }
         }
 
         Double newSalary = switch (handleRequest.status()) {
+            // new status PROCESSING is not valid
             case PROCESSING -> throw new SalaryRaiseException("New status is not valid");
+            // if the raise request is rejected, then their new salary will be the current salary
             case REJECTED -> raiseRequest.getCurrentSalary();
+            // if the raise request is partially accepted, then their new salary will be the new salary in the handle request
             case FULLY_ACCEPTED -> raiseRequest.getExpectedSalary();
+            // if the raise request is fully accepted, then their new salary will be their expected salary in the raise request
             case PARTIALLY_ACCEPTED -> handleRequest.newSalary();
         };
 
         raiseRequest.setStatus(handleRequest.status());
         raiseRequest.setNewSalary(newSalary);
         raiseRequest.setApprovedBy(employeeRepository.getReferenceById(adminId));
+
+        // update the raise request
         salaryRepository.save(raiseRequest);
-
+        // update the current salary in employee table
         employeeRepository.updateSalaryById(raiseRequest.getEmployee().getId(), newSalary);
-
+        // send a mail notify that the raise request has been handled
         mailService.sendEmail(raiseRequest.getEmployee().getPersonalEmail(),
                 "[COMPANY] - YOUR SALARY RAISE REQUEST HAS BEEN PROCESSED",
                 buildSalaryProcessedMail(raiseRequest.getEmployee().getFirstName(), raiseRequest));
-
+        // map to response
         return salaryRaiseRequestToResponse(raiseRequest);
     }
 
@@ -203,6 +217,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public TechStackResponse updateEmployeeTechStack(UpdateEmployeeTechStackRequest request) {
 
+        // check if the employee and all the tech is exists
         requiredExistsEmployee(request.employeeId());
         request.techStacks()
                 .forEach(t -> {
@@ -210,7 +225,8 @@ public class AdminServiceImpl implements AdminService {
                                 throw new TechException("Tech id %s not found".formatted(t.techId()));
                         }
                 );
-
+        // if the employee already have that tech then update the corresponding year of experience
+        // otherwise create a new record in the employee tech table
         request.techStacks().forEach(s -> {
             if (employeeTechRepository.exists(byEmployeeId(request.employeeId()).and(byTechId(s.techId())))) {
                 employeeTechRepository.updateYearOfExperienceByEmployeeIdAndTechId(request.employeeId(), s.techId(), s.yearOfExperience());
@@ -221,6 +237,7 @@ public class AdminServiceImpl implements AdminService {
             }
         });
 
+        // get their updated tech list
         List<EmployeeTech> tech = employeeTechRepository.findBy(byEmployeeId(request.employeeId()), p -> p.project(EmployeeTech_.TECH).all());
 
         return new TechStackResponse(
@@ -243,30 +260,35 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public ProjectResponse updateProject(UpdateProjectStatusRequest request) {
 
+        // check if the project exists or not, get the employees list along if the project exist
         Project project = projectRepository.findBy(ProjectSpecifications.byProjectId(request.id()), p -> p.project(Project_.EMPLOYEES).first())
                 .orElseThrow(() -> new ProjectException(request.id()));
 
-
+        // could not update FINISHED projects
         if (project.getState().equals(FINISHED)) {
             throw new ProjectException("Could not update project, project already finished ");
         }
-
+        // the new state must be greater than the current state of the project
         if (request.newState().equals(project.getState())) {
             throw new ProjectException("New state is not valid, project already in that state ");
         }
 
+        // update to INITIATION state is not valid
         if (request.newState().equals(INITIATION)) {
             throw new ProjectException("New state %s id not valid, project already in %s".formatted(request.newState(), project.getState()));
         } else if (request.newState().equals(ON_GOING)) {
+            // update to ON_GOING state requires the actual start date
             if (request.actualStartDate() == null)
                 throw new ProjectException("Actual start date is required");
             project.setActualStartDate(request.actualStartDate());
         } else if (request.newState().equals(FINISHED)) {
+            // update to FINISHED state requires the actual finish date
             if (request.actualFinishDate() == null)
                 throw new ProjectException("Actual finished date is required");
             project.setActualFinishDate(request.actualFinishDate());
         }
         project.setState(request.newState());
+        // if the project is updated to finished then decrease the current effort of all employees inside the project
         if (request.newState().equals(FINISHED)) {
             project.getEmployees()
                     .forEach(e -> employeeRepository.updateCurrentEffortById(e.getId().getEmployeeId(), (-e.getEffort())));
@@ -278,26 +300,33 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public List<EmployeeProjectResponse> assignEmployeeToProject(AssignEmployeeToProjectRequest request) {
 
+        // check if the project exists or not, get the employees list along if the project exist
         Project project = projectRepository.findBy(ProjectSpecifications.byProjectId(request.projectId()), p -> p.project("employees.employee").first())
                 .orElseThrow(() -> new ProjectException("Could not find project " + request.projectId()));
 
+        // list of employees already assigned to the project
         List<EmployeeProjectResponse> alreadyInside = project.getEmployees().stream()
                 .map(EmployeeProjectResponse::toEmployeeProjectResponse)
                 .collect(Collectors.toList());
 
+        // remove already assigned employees from the request then perform the assignment
         List<EmployeeProjectResponse> list = request.assignList()
                 .stream()
                 .filter(ep -> alreadyInside.stream().noneMatch(e -> e.employeeId().equals(ep.employeeId())))
                 .map(ep -> {
+                    // check if the employee exists or not and whether their effort exceeds 100% or not
                     if (!employeeRepository.exists(byId(ep.employeeId()).and(byCurrentEffortLessThanOrEqualTo(100 - ep.effort())))) {
                         throw new ProjectException("Employee doesn't exists or effort exceeds 100%: " + ep );
                     }
+                    // create a new record in the employee project table
                     EmployeeProject saved = employeeProjectRepository.save(new EmployeeProject(employeeRepository.getReferenceById(ep.employeeId()), project, ep.effort()));
+                    // update the current effort for employee after assigning them to a project
                     employeeRepository.updateCurrentEffortById(ep.employeeId(), ep.effort());
                     return saved;
                 })
                 .map(EmployeeProjectResponse::toEmployeeProjectResponse).toList();
 
+        // add the newly assigned employees list to the already assigned list and return
         alreadyInside.addAll(list);
 
         return alreadyInside;

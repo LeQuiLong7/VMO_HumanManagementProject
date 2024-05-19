@@ -102,115 +102,6 @@ public class EmployeeServiceImpl implements EmployeeService {
                         .toList()
         );
     }
-
-    @Override
-    @Transactional
-    public GetProfileResponse updateInfo(Long employeeId, UpdateProfileRequest request) {
-
-        return employeeRepository.findById(employeeId)
-                .map(employee -> newInfo(employee, request))
-                .map(employeeRepository::save)
-                .map(MappingUtility::employeeToProfileResponse)
-                .orElseThrow(() -> new EmployeeException(employeeId));
-
-    }
-
-    @Override
-    @Transactional
-    public ChangePasswordResponse changePassword(Long employeeId, ChangePasswordRequest request) {
-
-        if (!request.newPassword().equals(request.confirmPassword())) {
-            throw new ChangePasswordException("Password and confirmation password do not match");
-        }
-
-        OnlyPassword p = employeeRepository.findById(employeeId, OnlyPassword.class)
-                .orElseThrow(() -> new EmployeeException(employeeId));
-
-        if (!passwordEncoder.matches(request.oldPassword(), p.password())) {
-            throw new ChangePasswordException("Old password is not correct");
-        }
-
-        employeeRepository.updatePasswordById(employeeId, passwordEncoder.encode(request.newPassword()));
-        return new ChangePasswordResponse("Changed password successfully");
-
-    }
-
-    @Override
-    @Transactional
-    public String uploadAvatar(Long employeeId, MultipartFile file) {
-        String fileExtension = getFileExtension(file.getOriginalFilename()).toLowerCase();
-        if (!supportAvatarExtension(fileExtension)) {
-            throw new FileException("Not support " + fileExtension + " file for avatar - supported types: "  + supportImageExtension.toString());
-        }
-        employeeRepository.findById(employeeId, OnlyAvatar.class)
-                .ifPresentOrElse(avatar -> {
-                        if(!avatar.avatarUrl().isBlank()) {
-                            deleteOldAvatar(avatar);
-                        }
-                }, () -> {
-                    throw new EmployeeException(employeeId);
-                });
-
-        String objectKey = String.format("image/%s.%s", employeeId, fileExtension);
-
-
-        String avatarUrl = awsService.getUrlForObject(BUCKET_NAME, region, awsService.uploadFile(file, BUCKET_NAME, objectKey));
-        employeeRepository.updateAvatarURLById(employeeId, avatarUrl);
-
-        return avatarUrl;
-    }
-    private void deleteOldAvatar(OnlyAvatar avatar) {
-        String trimmedUrl = avatar.avatarUrl().substring(8);
-
-        // Split the remaining URL by ".s3."
-        String[] parts = trimmedUrl.split("\\.s3\\.");
-
-        // Extract bucket name and object key
-        String bucketName = parts[0];
-        String objectKey = parts[1].substring(parts[1].indexOf("/") + 1);
-
-        awsService.deleteFile(bucketName, objectKey);
-    }
-
-    @Override
-    @Transactional
-    public LeaveResponse createLeaveRequest(Long employeeId, LeaveRequestt request) {
-        if(!employeeRepository.existsById(employeeId)) {
-            throw new EmployeeException(employeeId);
-        }
-        if(request.type().equals(LeaveType.PAID)) {
-            OnLyLeaveDays leaveDays = employeeRepository.findById(employeeId, OnLyLeaveDays.class)
-                    .orElseThrow(() -> new EmployeeException(employeeId));
-            if(leaveDays.leaveDays() < 1)
-                throw new LeaveRequestException("Requesting a paid leave day but not enough leave day left");
-        }
-        if(leaveRepository.exists(LeaveSpecifications.byEmployeeId(employeeId).and(byDate(request.leaveDate())))) {
-            throw new LeaveRequestException("Already have a leave request on that date");
-        }
-        LeaveRequest leaveRequest = toLeaveRequest(employeeRepository.getReferenceById(employeeId), request);
-
-        return leaveRequestToResponse(leaveRepository.save(leaveRequest));
-    }
-
-
-    @Override
-    @Transactional
-    public SalaryRaiseResponse createSalaryRaiseRequest(Long employeeId, CreateSalaryRaiseRequest request) {
-
-        if(salaryRepository.exists(byEmployeeId(employeeId).and(byStatus(PROCESSING)))) {
-            throw new SalaryRaiseException("Already have a PROCESSING salary raise request");
-        }
-        OnlySalary currentSalary = employeeRepository.findById(employeeId, OnlySalary.class)
-                .orElseThrow(() -> new EmployeeException(employeeId));
-
-        if (request.expectedSalary() <= currentSalary.currentSalary()) {
-            throw new SalaryRaiseException("Expected salary is lower than current salary");
-        }
-        SalaryRaiseRequest raiseRequest = toSalaryRaiseRequest(request, currentSalary.currentSalary(), employeeRepository.getReferenceById(employeeId));
-
-        return salaryRaiseRequestToResponse(salaryRepository.save(raiseRequest));
-    }
-
     @Override
     public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long employeeId, Pageable pageRequest) {
         requireExists(employeeId);
@@ -241,8 +132,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    // year = true means get monthly average effort for the current year
+    // year = false means get daily effort history for the current month
     public List<EffortHistoryRecord> getEffortHistory(Long employeeId, LocalDate date, boolean year) {
-
         requireExists(employeeId);
         LocalDate startDate = year ? date.withDayOfYear(1) : date.withDayOfMonth(1);
         if(year) {
@@ -250,6 +142,132 @@ public class EmployeeServiceImpl implements EmployeeService {
         } else {
             return effortHistoryRepository.findBy(EffortHistorySpecifications.byEmployeeId(employeeId).and(EffortHistorySpecifications.byDateBetween(startDate, date)), p -> p.sortBy(Sort.by("id.date")).all()).stream().map(EffortHistoryRecord::of).toList();
         }
+    }
+
+
+    @Override
+    @Transactional
+    public GetProfileResponse updateInfo(Long employeeId, UpdateProfileRequest request) {
+
+        return employeeRepository.findById(employeeId)
+                .map(employee -> newInfo(employee, request))
+                .map(employeeRepository::save)
+                .map(MappingUtility::employeeToProfileResponse)
+                .orElseThrow(() -> new EmployeeException(employeeId));
+
+    }
+
+    @Override
+    @Transactional
+    public ChangePasswordResponse changePassword(Long employeeId, ChangePasswordRequest request) {
+
+        // new password and confirm password must match
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            throw new ChangePasswordException("Password and confirmation password do not match");
+        }
+
+        // get the current password for the employee id, throw exception if the employee does not exist
+        OnlyPassword p = employeeRepository.findById(employeeId, OnlyPassword.class)
+                .orElseThrow(() -> new EmployeeException(employeeId));
+
+        // check if the old password in the change password request matches the current password of the account or not
+        if (!passwordEncoder.matches(request.oldPassword(), p.password())) {
+            throw new ChangePasswordException("Old password is not correct");
+        }
+        // check successfully, update the account password
+        employeeRepository.updatePasswordById(employeeId, passwordEncoder.encode(request.newPassword()));
+        return new ChangePasswordResponse("Changed password successfully");
+
+    }
+
+    @Override
+    @Transactional
+    public String uploadAvatar(Long employeeId, MultipartFile file) {
+        // only allow some image type for avatar
+        String fileExtension = getFileExtension(file.getOriginalFilename()).toLowerCase();
+        if (!supportAvatarExtension(fileExtension)) {
+            throw new FileException("Not support " + fileExtension + " file for avatar - supported types: "  + supportImageExtension.toString());
+        }
+        // delete the old avatar if exists, throw exception if the employee does not exist
+        employeeRepository.findById(employeeId, OnlyAvatar.class)
+                .ifPresentOrElse(avatar -> {
+                        if(!avatar.avatarUrl().isBlank()) {
+                            deleteOldAvatar(avatar);
+                        }
+                }, () -> {
+                    throw new EmployeeException(employeeId);
+                });
+
+        // key for avatar will be image/{employeeId}.{fileExtention}
+        String objectKey = String.format("image/%s.%s", employeeId, fileExtension);
+        // upload the avatar to s3 and get the full url
+        String avatarUrl = awsService.getUrlForObject(BUCKET_NAME, region, awsService.uploadFile(file, BUCKET_NAME, objectKey));
+        // set the avatar url of employee to the newly uploaded
+        employeeRepository.updateAvatarURLById(employeeId, avatarUrl);
+
+        return avatarUrl;
+    }
+    private void deleteOldAvatar(OnlyAvatar avatar) {
+
+        // example url: https://human-management-project.s3.ap-southeast-1.amazonaws.com/image/1.jpg
+        // remove the https:// part
+        // remain: human-management-project.s3.ap-southeast-1.amazonaws.com/image/1.jpg
+        String trimmedUrl = avatar.avatarUrl().substring(8);
+        // Split the remaining URL by ".s3."
+        // result: parts[0]: human-management-project : bucket name
+        //         parts[1]: ap-southeast-1.amazonaws.com/image/1.jpg : region and object id
+        String[] parts = trimmedUrl.split("\\.s3\\.");
+
+        // Extract bucket name and object key
+        String bucketName = parts[0];
+        // Extract the object key
+        String objectKey = parts[1].substring(parts[1].indexOf("/") + 1);
+
+        awsService.deleteFile(bucketName, objectKey);
+    }
+
+    @Override
+    @Transactional
+    public LeaveResponse createLeaveRequest(Long employeeId, LeaveRequestt request) {
+        if(!employeeRepository.existsById(employeeId)) {
+            throw new EmployeeException(employeeId);
+        }
+        // if requesting a paid leave day then the employee must have more than 1 leave days
+        if(request.type().equals(LeaveType.PAID)) {
+            OnLyLeaveDays leaveDays = employeeRepository.findById(employeeId, OnLyLeaveDays.class)
+                    .orElseThrow(() -> new EmployeeException(employeeId));
+            if(leaveDays.leaveDays() < 1)
+                throw new LeaveRequestException("Requesting a paid leave day but not enough leave day left");
+        }
+        // can not create two leave requests on the same day
+        if(leaveRepository.exists(LeaveSpecifications.byEmployeeId(employeeId).and(byDate(request.leaveDate())))) {
+            throw new LeaveRequestException("Already have a leave request on that date");
+        }
+        LeaveRequest leaveRequest = toLeaveRequest(employeeRepository.getReferenceById(employeeId), request);
+
+        return leaveRequestToResponse(leaveRepository.save(leaveRequest));
+    }
+
+
+    @Override
+    @Transactional
+    public SalaryRaiseResponse createSalaryRaiseRequest(Long employeeId, CreateSalaryRaiseRequest request) {
+        // can not create two salary raise request at a time, the previous request must be handled before
+        // they can create another salary raise request
+        if(salaryRepository.exists(byEmployeeId(employeeId).and(byStatus(PROCESSING)))) {
+            throw new SalaryRaiseException("Already have a PROCESSING salary raise request");
+        }
+
+        OnlySalary currentSalary = employeeRepository.findById(employeeId, OnlySalary.class)
+                .orElseThrow(() -> new EmployeeException(employeeId));
+
+        // expected salary must be greater than their current salary
+        if (request.expectedSalary() <= currentSalary.currentSalary()) {
+            throw new SalaryRaiseException("Expected salary is lower than current salary");
+        }
+        SalaryRaiseRequest raiseRequest = toSalaryRaiseRequest(request, currentSalary.currentSalary(), employeeRepository.getReferenceById(employeeId));
+
+        return salaryRaiseRequestToResponse(salaryRepository.save(raiseRequest));
     }
 
     private void requireExists(Long employeeId) {

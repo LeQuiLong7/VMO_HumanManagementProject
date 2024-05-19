@@ -46,24 +46,29 @@ public class PMServiceImpl implements PMService {
 
     @Override
     @Transactional
+    // give attendance to employees in manage
     public List<Attendance> checkAttendance(Long pmId, CheckAttendanceRequest request) {
+        // get all employees in manage
         List<Long> empIdsInManage = employeeRepository.findAllIdByManagedById(pmId);
         LocalDate now = LocalDate.now();
 
         request.attendanceDetails()
                 .forEach(detail -> {
+                    // check if employees in the give attendance request exists or not
                     if (!employeeRepository.existsById(detail.employeeId())) {
                         throw new EmployeeException(detail.employeeId());
                     }
+                    // check if employees in the give attendance request in their manage or not
                     if (!empIdsInManage.contains(detail.employeeId())) {
                         throw new EmployeeException("You cannot give attendance to people who are not in your manage");
                     }
+                    // check if employees in the give attendance request already have an attendance record for today or not
                     if (attendanceRepository.existsByEmployeeIdAndDate(detail.employeeId(), now)) {
                         throw new EmployeeException("Employee %s already have an attendance record".formatted(detail.employeeId()));
 
                     }
                 });
-
+        // check successfully, create new attendance record for each employee
         return request.attendanceDetails()
                 .stream()
                 .map(at -> MappingUtility.toAttendance(at, now, employeeRepository.getReferenceById(at.employeeId())))
@@ -92,10 +97,12 @@ public class PMServiceImpl implements PMService {
         l.setApprovedBy(employeeRepository.getReferenceById(pmId));
         leaveRepository.save(l);
 
+        // if the leave request type if paid then decrease one leave day from the employee's leave days
         if (request.status().equals(LeaveStatus.ACCEPTED) && l.getType().equals(LeaveType.PAID))
             employeeRepository.decreaseLeaveDaysBy1(l.getEmployee().getId());
 
         Employee e = l.getEmployee();
+        // send email notify that the leave request has been handled
         mailService.sendEmail(e.getPersonalEmail(),
                 "[COMPANY] - YOUR LEAVE REQUEST HAS BEEN PROCESSED",
                 buildLeaveRequestProcessedMail(e.getFirstName(), l));

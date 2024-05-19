@@ -36,7 +36,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-
+        // Check whether the request uri is a public uri or not
         if (!isPublicUrl(request.getRequestURI())) {
 
             final String bearerToken = request.getHeader(AUTHORIZATION);
@@ -49,7 +49,9 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             }
             String token = bearerToken.substring(7);
             try {
+                // extract the employee id from the token
                 long employeeId = Long.parseLong(jwtService.extractClaim(token, Claims::getSubject));
+                // get the corresponding token with that employee id in redis
                 String storedToken = redisTemplate.opsForValue().get(employeeId);
                 if(storedToken == null || !storedToken.equals(token)) {
                     log.warn("Access denied: Someone trying to access {} Method: {} with a logged out token : {} - IP address: {} ", request.getRequestURI(), request.getMethod(), token, request.getRemoteAddr());
@@ -68,9 +70,10 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 response.getWriter().print("token is not valid");
                 return;
             }
+            // authenticate successfully, create an authentication object and store in security context
+            // the authentication object contains only the employee id and their role
             MyAuthentication authentication = new MyAuthentication();
             Claims claims = jwtService.extractAllClaims(token);
-
             authentication.setEmployeeId(Long.parseLong(jwtService.extractClaim(claims, Claims::getSubject)));
             authentication.setRole(Role.valueOf(jwtService.extractClaim(claims, claim -> claim.get(ROLE).toString())));
 
@@ -85,6 +88,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         return PUBLIC_URI
                 .stream()
                 .anyMatch(publicUrl -> {
+                    //  /abc/** will allow /abc, /abc/, /abc/anything,...
                     if (publicUrl.endsWith("/**")) {
                         String regex = "^%s(?:/.*?)?$".formatted(publicUrl.substring(0, publicUrl.length() - 3));
                         return Pattern.matches(regex, url);

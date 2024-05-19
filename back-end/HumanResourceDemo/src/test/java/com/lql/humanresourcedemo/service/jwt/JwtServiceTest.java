@@ -16,12 +16,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class JwtServiceTest {
 
-    private String mockSecretKey = "rcvDhGcLJNUiog9CvUKc+sbs4cojMAnMkALj5VDiXCE=";
+    private final String MOCK_SECRET_KEY = "rcvDhGcLJNUiog9CvUKc+sbs4cojMAnMkALj5VDiXCE=";
     private JwtBuilder jwtBuilder;
     private JwtParser jwtParser;
 
     private SecretKey getSecretKey() {
-        byte[] bytes = Decoders.BASE64.decode(mockSecretKey);
+        byte[] bytes = Decoders.BASE64.decode(MOCK_SECRET_KEY);
         return Keys.hmacShaKeyFor(bytes);
     }
 
@@ -36,7 +36,7 @@ class JwtServiceTest {
 
 
     @Test
-    public void generateTokenTest() {
+     void generateTokenTest() {
         OnlyIdPasswordAndRole employee = new OnlyIdPasswordAndRole(1L, "", Role.ADMIN);
 
         String token = jwtService.generateToken(employee);
@@ -52,7 +52,7 @@ class JwtServiceTest {
     }
 
     @Test
-    public void extractAllClaimsTest() {
+     void extractAllClaimsTest() {
         OnlyIdPasswordAndRole employee = new OnlyIdPasswordAndRole(1L, "", Role.ADMIN);
 
         String token = jwtService.generateToken(employee);
@@ -69,7 +69,7 @@ class JwtServiceTest {
     }
 
     @Test
-    public void notValidTokenTest() {
+     void notValidTokenTest() {
 
         String token = "abc";
 
@@ -79,7 +79,7 @@ class JwtServiceTest {
 
 
     @Test
-    public void expiredTokenTest() {
+     void expiredTokenTest() {
 
         jwtService = new JWTServiceImpl(jwtBuilder, jwtParser, -60000, "MINUTES");
 
@@ -92,7 +92,7 @@ class JwtServiceTest {
     }
 
     @Test
-    public void expiredNotValidTokenTest() {
+     void expiredNotValidTokenTest() {
 
         String token = "abc";
         assertThrows(JwtException.class,

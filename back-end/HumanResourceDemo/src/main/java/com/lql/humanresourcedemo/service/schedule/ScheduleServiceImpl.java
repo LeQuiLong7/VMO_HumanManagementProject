@@ -70,6 +70,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 //            │ │ │ │ │ │
 //            * * * * * *
     @Scheduled(cron = "0 0 0 1 * *") // Run at midnight on the first day of each month
+    // add 1 leave day to all employee each month
     public void updateEmployeeLeaveDaysMonthly() {
         int i = employeeRepository.increaseLeaveDaysBy1();
         log.info("updated leave days for {} employees, date: {}", i, LocalDate.now());
@@ -77,6 +78,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 
     @Scheduled(cron = "0 0 9 * * 2-6") // Run at 9AM Tuesday to Saturday
+    // mail notification for employees if their previous day's attendance status is not ON_TIME
     public void notifyLeaveViolation() {
 
         List<Attendance> attendances = attendanceRepository.findByDate(LocalDate.now().minusDays(1));
@@ -94,6 +96,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     @Scheduled(cron = "0 0 9 * * 6") // Run at 9AM every Saturday
+    // create weekly attendance reports, store on s3 and mail notification for attendance status of the week
     public void createEmployeeWeeklyReports() {
         List<OnlyIdPersonalEmailAndFirstName> employees = employeeRepository.findByQuitIsFalse(OnlyIdPersonalEmailAndFirstName.class);
 
@@ -111,8 +114,6 @@ public class ScheduleServiceImpl implements ScheduleService {
 
                 awsService.uploadFile(csvFile, BUCKET_NAME, key);
                 String reportUrl = awsService.getUrlForObject(BUCKET_NAME, region, key);
-
-
                 mailService.sendEmail(i.personalEmail(), "[COMPANY] - WEEKLY REPORT", buildEmployeeWeeklyReport(i.firstName(), startDate, endDate, agg, reportUrl));
 
            } catch (IOException e) {
@@ -125,6 +126,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     @Scheduled(cron = "0 0 17 * * 1-5") // Run at 5PM Monday to Friday
+    // capture current effort of all employees
     public void captureEffortDaily() {
         LocalDate today = LocalDate.now();
 
@@ -156,7 +158,6 @@ public class ScheduleServiceImpl implements ScheduleService {
     private LeaveViolationCode of(Attendance attendance) {
         if(attendance.getTimeIn() == null && attendance.getTimeOut() == null){
             Optional<LeaveRequest> leaveRequest = leaveRepository.findByEmployeeIdAndDate(attendance.getEmployee().getId(), attendance.getDate());
-
             if(leaveRequest.isEmpty() || !leaveRequest.get().getStatus().equals(LeaveStatus.ACCEPTED)) {
                 return ABSENCE;
             }

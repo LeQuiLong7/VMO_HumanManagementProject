@@ -35,15 +35,24 @@ public class Oauth2AuthenticationSuccessHandler implements AuthenticationSuccess
     }
 
     @Override
+    // redirect to /login on front end with a session id as parameter
+    // front end side will use that session id to exchange for a jwt token
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        // get the email address from the OAuth2AuthenticationToken when user authenticate successfully with google
         String email = ((OAuth2AuthenticationToken) authentication).getPrincipal().getAttribute("email");
         try {
+
             LoginResponse loginResponse = loginService.loginWithOauth2(email);
+            // create an uuid as the session id
             String sessionId = UUID.randomUUID().toString();
+            // store the login response in redis with the key is the uuid that is just created
             redisLoginTemplate.opsForValue().set(sessionId, loginResponse,  Duration.of(EXPIRED_DURATION, ChronoUnit.valueOf(EXPIRED_TIME_UNIT)));
+
+            // redirect to front end with the uuid session id
             response.sendRedirect("http://localhost:5173/login?sessionId=%s".formatted(sessionId));
 
         } catch (LoginException ex) {
+            // the email does not exist in the system
             response.sendRedirect("http://localhost:5173/login?error=%s".formatted(ex.getMessage()));
         }
     }
