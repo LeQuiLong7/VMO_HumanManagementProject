@@ -5,6 +5,7 @@ import {
   Button,
   Chip,
   Grid,
+  Stack,
   Typography,
 } from "@mui/material";
 import Box from "@mui/material/Box";
@@ -13,11 +14,27 @@ import Datatable from "../../general/Datatable";
 import AssignDialog from "./AssignDialog";
 import useAxios from "../../../hooks/useAxios";
 import SearchComponent from "./SearchComponent";
+import EffortDetailDialog from "./EffortDetailDialog";
 
+const axios = useAxios()
 export default function AssignEmployeeToProjectDialog({ selectedProject, assignState, setAssignSate, allTech }) {
 
-  const axios = useAxios()
   const [popup, setPopup] = useState(false);
+  const [searchQuery, setSearchQuery] = useState({
+    roles: [],
+    techs: [],
+    numberOfOnGoingProjects: '',
+    currentEffort: ''
+  })
+  const [selectedEmployee, setSelectedEmployee] = useState({
+    id: '',
+    name: '',
+    currentEffort: '',
+    effort: ''
+  })
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(-1)
+
+  const [effortDetailState, setEffortDetailState] = useState(false);
   const [data, setData] = useState([]);
   const [tableState, setTableState] = useState({
     total: -1,
@@ -80,14 +97,14 @@ export default function AssignEmployeeToProjectDialog({ selectedProject, assignS
       </Box>
     );
 
-    return [chip, 
-    <SearchComponent key={4} 
-    searchQuery={searchQuery}
-    setSearchQuery={setSearchQuery}
-    convertToSearchRequest={convertToSearchRequest}
-      allTech={allTech} 
-      fetchEmployees={fetchEmployees} 
-      fetchAll={fetchAll}
+    return [chip,
+      <SearchComponent key={4}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        convertToSearchRequest={convertToSearchRequest}
+        allTech={allTech}
+        fetchEmployees={fetchEmployees}
+        fetchAll={fetchAll}
       />,
       <Datatable key={23}
         data={data
@@ -102,15 +119,8 @@ export default function AssignEmployeeToProjectDialog({ selectedProject, assignS
         header={"Employee list"}
       />];
   }
-  const [searchQuery, setSearchQuery] = useState({
-    roles: [],
-    techs: [],
-    numberOfOnGoingProjects: '',
-    currentEffort: ''
-})
 
-
-function convertToSearchRequest() {
+  function convertToSearchRequest() {
     const logics = [];
     if (searchQuery.numberOfOnGoingProjects != '') {
       logics.push({
@@ -133,7 +143,7 @@ function convertToSearchRequest() {
         queryOperator: 'IN'
       });
     }
-  
+
     if (searchQuery.techs.length !== 0) {
       const techLogics = searchQuery.techs.map(tech => ({
         logicOperator: 'AND',
@@ -150,19 +160,19 @@ function convertToSearchRequest() {
           }
         ]
       }));
-      
+
       logics.push({
         logicOperator: 'OR',
         logics: techLogics
       });
     }
-  
+
     logics.push({
       column: 'id',
       values: employeesInsideProject.map(e => e.employeeId),
       queryOperator: 'NOT_IN'
     });
-  
+
     return {
       logicOperator: 'AND',
       logics: logics
@@ -183,7 +193,7 @@ function convertToSearchRequest() {
       label: "AVATAR",
       options: {
         customBodyRender: (value, tableMeta) =>
-          <Avatar src={value + "?" +Math.random().toString(36)} >{tableMeta.rowData[2]}</Avatar>
+          <Avatar src={value + "?" + Math.random().toString(36)} >{tableMeta.rowData[2]}</Avatar>
       },
     },
     {
@@ -227,6 +237,14 @@ function convertToSearchRequest() {
     {
       name: "currentEffort",
       label: "CURRENT EFFORT",
+      options: {
+        customBodyRender: (e, tableMeta) => (
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-evenly'}>
+            <Typography >{e}</Typography>
+            <Button variant="contained" size="small" onClick={e => handleViewEffortDetail(tableMeta.rowData[0])}>Detail</Button>
+          </Stack>
+        ),
+      },
     },
     {
       name: "",
@@ -239,6 +257,10 @@ function convertToSearchRequest() {
     },
   ];
 
+  function handleViewEffortDetail(employeeId) {
+    setSelectedEmployeeId(employeeId);
+    setEffortDetailState(true)
+  }
   async function fetchEmployees(pageNumber, pageSize, searchRequest) {
     const response = await axios.post(`/search/employees?page=${pageNumber}&size=${pageSize}`, searchRequest);
     if (pageNumber == 0) {
@@ -255,7 +277,7 @@ function convertToSearchRequest() {
 
   async function handlePageChange(page) {
     if (page > tableState.lastPage) {
-        fetchEmployees(page, 2, convertToSearchRequest())
+      fetchEmployees(page, 2, convertToSearchRequest())
     }
   }
 
@@ -267,12 +289,6 @@ function convertToSearchRequest() {
     onChangePage: handlePageChange
   };
 
-  const [selectedEmployee, setSelectedEmployee] = useState({
-    id: '',
-    name: '',
-    currentEffort: '',
-    effort: ''
-  })
 
 
   function handleAdd(rowData) {
@@ -295,7 +311,7 @@ function convertToSearchRequest() {
       })),
     };
     try {
-      await axios.put(`/admin/project/assign`,data);
+      await axios.put(`/admin/project/assign`, data);
 
     } catch (error) {
       throw error
@@ -309,7 +325,7 @@ function convertToSearchRequest() {
 
   return (
     <>
-      <AssignDialog open={popup} setOpen={setPopup} employee={selectedEmployee} setEmployee={setSelectedEmployee} setEmployeesInsideProject={setEmployeesInsideProject}/>
+      <AssignDialog open={popup} setOpen={setPopup} employee={selectedEmployee} setEmployee={setSelectedEmployee} setEmployeesInsideProject={setEmployeesInsideProject} />
       <BasicDialog
         fullScreen={true}
         title="Assign employees to project"
@@ -320,6 +336,7 @@ function convertToSearchRequest() {
         buttonText="Update"
         onButtonClick={handleSendUpdate}
       />
+      {effortDetailState && <EffortDetailDialog open={effortDetailState} setOpen={setEffortDetailState} employeeId={selectedEmployeeId} />}
     </>
   );
 }

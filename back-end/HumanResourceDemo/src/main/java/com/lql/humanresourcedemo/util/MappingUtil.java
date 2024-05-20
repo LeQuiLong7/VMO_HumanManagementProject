@@ -1,4 +1,4 @@
-package com.lql.humanresourcedemo.utility;
+package com.lql.humanresourcedemo.util;
 
 import com.lql.humanresourcedemo.dto.request.admin.CreateNewEmployeeRequest;
 import com.lql.humanresourcedemo.dto.request.admin.CreateNewProjectRequest;
@@ -25,7 +25,7 @@ import java.util.Date;
 
 import static com.lql.humanresourcedemo.enumeration.ProjectState.INITIATION;
 
-public class MappingUtility {
+public class MappingUtil {
 
 
     public static Date toDate(LocalDateTime dateToConvert) {

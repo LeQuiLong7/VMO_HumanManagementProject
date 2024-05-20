@@ -5,7 +5,7 @@ import com.lql.humanresourcedemo.dto.response.search.SearchResponse;
 import com.lql.humanresourcedemo.dto.response.tech.TechInfo;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
-import com.lql.humanresourcedemo.utility.MappingUtility;
+import com.lql.humanresourcedemo.util.MappingUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,15 +28,20 @@ public class SearchServiceImpl implements SearchService {
         return by.map(
                 employee ->
                         new SearchResponse(
-                                MappingUtility.employeeToProfileResponse(employee),
+                                MappingUtil.employeeToProfileResponse(employee),
                                 employee.getTechs()
                                         .stream()
                                         .map(et -> new TechInfo(et.getId().getTechId(), et.getTech().getName(), et.getYearOfExperience())).toList(),
                                 employee.getProjects().stream()
-                                        .map(ep -> MappingUtility.projectToProjectResponse(ep.getProject()))
+                                        .map(ep -> MappingUtil.projectToProjectResponse(ep.getProject()))
                                         .toList()
                         )
         );
 
+    }
+
+    @Override
+    public Page<Employee> search(Specification<Employee> specification, Pageable pageRequest) {
+        return employeeRepository.findBy(specification,p -> p.sortBy(pageRequest.getSort()).page(pageRequest));
     }
 }

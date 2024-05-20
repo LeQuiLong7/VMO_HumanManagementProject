@@ -26,6 +26,10 @@ import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
 import com.lql.humanresourcedemo.repository.tech.EmployeeTechRepository;
 import com.lql.humanresourcedemo.repository.tech.TechRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
+import com.lql.humanresourcedemo.service.project.ProjectService;
+import com.lql.humanresourcedemo.service.salary.SalaryService;
+import com.lql.humanresourcedemo.service.search.SearchService;
+import com.lql.humanresourcedemo.service.tech.TechService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,13 +67,13 @@ class AdminServiceTest {
     @Mock
     private MailService mailService;
     @Mock
-    private SalaryRaiseRequestRepository salaryRepository;
+    private SalaryService salaryService;
     @Mock
-    private EmployeeTechRepository employeeTechRepository;
+    private SearchService searchService;
     @Mock
-    private EmployeeProjectRepository employeeProjectRepository;
+    private ProjectService projectService;
     @Mock
-    private TechRepository techRepository;
+    private TechService techService;
 
     @Mock
     private ProjectRepository projectRepository;
@@ -77,7 +81,7 @@ class AdminServiceTest {
 
     @BeforeEach
     void setUp() {
-        adminService = new AdminServiceImpl(employeeRepository, passwordEncoder, mailService, salaryRepository, employeeTechRepository, employeeProjectRepository, techRepository,  projectRepository);
+        adminService = new AdminServiceImpl(employeeRepository, passwordEncoder, mailService, salaryService, searchService, projectService, techService );
     }
 
 //    @Test

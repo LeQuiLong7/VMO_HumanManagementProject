@@ -1,8 +1,8 @@
-package com.lql.humanresourcedemo.utility;
+package com.lql.humanresourcedemo.util;
 
 import java.util.List;
 
-public class FileUtility {
+public class FileUtil {
 
     public static String getFileExtension(String fileName) {
         if (fileName != null && fileName.contains(".")) {

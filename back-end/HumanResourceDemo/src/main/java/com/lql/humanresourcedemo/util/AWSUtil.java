@@ -1,5 +1,5 @@
-package com.lql.humanresourcedemo.utility;
+package com.lql.humanresourcedemo.util;
 
-public class AWSUtility {
+public class AWSUtil {
     public static final String BUCKET_NAME = "vmo-human-management-project";
 }

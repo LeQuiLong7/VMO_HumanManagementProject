@@ -1,18 +1,15 @@
 package com.lql.humanresourcedemo.model;
 
-import com.lql.humanresourcedemo.security.MyAuthentication;
-import com.lql.humanresourcedemo.utility.ContextUtility;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 
-import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
+import static com.lql.humanresourcedemo.util.ContextUtil.getCurrentEmployeeId;
 
 
 @NoArgsConstructor

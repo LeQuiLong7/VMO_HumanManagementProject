@@ -6,19 +6,22 @@ import com.lql.humanresourcedemo.dto.request.employee.UpdateProfileRequest;
 import com.lql.humanresourcedemo.dto.response.effort.EffortHistoryRecord;
 import com.lql.humanresourcedemo.dto.response.employee.ChangePasswordResponse;
 import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
+import com.lql.humanresourcedemo.dto.response.leave.LeaveResponse;
 import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
 import com.lql.humanresourcedemo.service.employee.EmployeeService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
+import static com.lql.humanresourcedemo.util.ContextUtil.getCurrentEmployeeId;
 
 @RestController
 @RequestMapping("/profile")
@@ -38,6 +41,10 @@ public class ProfileController {
         return employeeService.getEffortHistory(getCurrentEmployeeId(), LocalDate.now(), year);
     }
 
+    @GetMapping("/leave")
+    public Page<LeaveResponse> getAllLeaveRequest(Pageable page) {
+        return employeeService.getAllLeaveRequest(getCurrentEmployeeId(), page);
+    }
     @GetMapping("/tech")
     public TechStackResponse getTechStack() {
         return employeeService.getTechStack(getCurrentEmployeeId());

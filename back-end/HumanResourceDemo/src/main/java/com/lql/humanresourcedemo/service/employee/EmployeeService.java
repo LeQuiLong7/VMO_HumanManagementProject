@@ -11,6 +11,7 @@ import com.lql.humanresourcedemo.dto.response.leave.LeaveResponse;
 import com.lql.humanresourcedemo.dto.response.project.ProjectDetail;
 import com.lql.humanresourcedemo.dto.response.salary.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
+import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,12 +24,10 @@ public interface EmployeeService {
 
     GetProfileResponse getProfile(Long employeeId);
     TechStackResponse getTechStack(Long employeeId);
+    Page<LeaveResponse> getAllLeaveRequest(Long employeeId, Pageable pageRequest);
     Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Long employeeId, Pageable pageRequest);
     Page<Attendance> getAllAttendanceHistory(Long employeeId, Pageable pageRequest);
     Page<ProjectDetail> getAllProjects(Long employeeId, Pageable pageRequest);
-
-    // year = false means get everyday effort history this month
-    // year = true means get monthly average effort history this year
     List<EffortHistoryRecord> getEffortHistory(Long employeeId, LocalDate date, boolean year);
 
     GetProfileResponse updateInfo(Long employeeId, UpdateProfileRequest request);

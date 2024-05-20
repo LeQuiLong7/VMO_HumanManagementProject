@@ -20,7 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import static com.lql.humanresourcedemo.constant.SecurityConstants.*;
-import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
+import static com.lql.humanresourcedemo.util.ContextUtil.getCurrentEmployeeId;
 
 @Configuration
 @EnableWebSecurity

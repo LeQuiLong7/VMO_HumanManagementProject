@@ -2,7 +2,7 @@ package com.lql.humanresourcedemo.service.jwt;
 
 
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPasswordAndRole;
-import com.lql.humanresourcedemo.utility.MappingUtility;
+import com.lql.humanresourcedemo.util.MappingUtil;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -55,8 +55,8 @@ public class JWTServiceImpl implements JwtService {
 
         return  jwtBuilder
                 .setClaims(buildClaims(e))
-                .setIssuedAt(MappingUtility.toDate(now))
-                .setExpiration(MappingUtility.toDate(expirationTime))
+                .setIssuedAt(MappingUtil.toDate(now))
+                .setExpiration(MappingUtil.toDate(expirationTime))
                 .compact();
     }
 

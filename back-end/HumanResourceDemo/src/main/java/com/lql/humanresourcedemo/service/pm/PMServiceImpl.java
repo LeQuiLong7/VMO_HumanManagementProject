@@ -5,20 +5,14 @@ import com.lql.humanresourcedemo.dto.request.pm.CheckAttendanceRequest;
 import com.lql.humanresourcedemo.dto.request.pm.HandleLeaveRequest;
 import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.leave.LeaveResponse;
-import com.lql.humanresourcedemo.enumeration.LeaveStatus;
-import com.lql.humanresourcedemo.enumeration.LeaveType;
+import com.lql.humanresourcedemo.enumeration.Role;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
-import com.lql.humanresourcedemo.exception.model.leaverequest.LeaveRequestException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
-import com.lql.humanresourcedemo.model.attendance.LeaveRequest;
-import com.lql.humanresourcedemo.model.attendance.LeaveRequest_;
-import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.leave.LeaveRepository;
-import com.lql.humanresourcedemo.repository.leave.LeaveSpecifications;
-import com.lql.humanresourcedemo.service.mail.MailService;
-import com.lql.humanresourcedemo.utility.MappingUtility;
+import com.lql.humanresourcedemo.service.leave.LeaveService;
+import com.lql.humanresourcedemo.service.validate.ValidateService;
+import com.lql.humanresourcedemo.util.MappingUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,28 +20,24 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byId;
 import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byPmId;
-import static com.lql.humanresourcedemo.utility.HelperUtility.buildLeaveRequestProcessedMail;
-import static com.lql.humanresourcedemo.utility.MappingUtility.leaveRequestToResponse;
 
 @Service
 @RequiredArgsConstructor
 public class PMServiceImpl implements PMService {
 
     private final AttendanceRepository attendanceRepository;
+    private final ValidateService validateService;
     private final EmployeeRepository employeeRepository;
-    private final LeaveRepository leaveRepository;
-    private final MailService mailService;
-
-
+    private final LeaveService leaveService;
     @Override
     @Transactional
     // give attendance to employees in manage
     public List<Attendance> checkAttendance(Long pmId, CheckAttendanceRequest request) {
+        validateService.requireExistsEmployee(pmId);
         // get all employees in manage
         List<Long> empIdsInManage = employeeRepository.findAllIdByManagedById(pmId);
         LocalDate now = LocalDate.now();
@@ -71,75 +61,27 @@ public class PMServiceImpl implements PMService {
         // check successfully, create new attendance record for each employee
         return request.attendanceDetails()
                 .stream()
-                .map(at -> MappingUtility.toAttendance(at, now, employeeRepository.getReferenceById(at.employeeId())))
+                .map(at -> MappingUtil.toAttendance(at, now, employeeRepository.getReferenceById(at.employeeId())))
                 .map(attendanceRepository::save)
                 .toList();
     }
 
-    private LeaveResponse handleLeaveRequest(Long pmId, HandleLeaveRequest request) {
-        if (request.status().equals(LeaveStatus.PROCESSING)) {
-            throw new LeaveRequestException("Status " + request.status() + " is not valid");
-        }
-
-        LeaveRequest l = leaveRepository.findBy(LeaveSpecifications.byId(request.requestId()), p -> p.project(LeaveRequest_.EMPLOYEE).first())
-                .orElseThrow(() -> new LeaveRequestException("Leave request could not be found"));
-
-        if (l.getStatus() != LeaveStatus.PROCESSING) {
-            throw new LeaveRequestException("Cannot change already handle request");
-
-        }
-        if (!l.getEmployee().getManagedBy().getId().equals(pmId)) {
-            throw new LeaveRequestException("You cannot handle leave request %s: employee is not in your manage".formatted(l.getId()));
-
-        }
-
-        l.setStatus(request.status());
-        l.setApprovedBy(employeeRepository.getReferenceById(pmId));
-        leaveRepository.save(l);
-
-        // if the leave request type if paid then decrease one leave day from the employee's leave days
-        if (request.status().equals(LeaveStatus.ACCEPTED) && l.getType().equals(LeaveType.PAID))
-            employeeRepository.decreaseLeaveDaysBy1(l.getEmployee().getId());
-
-        Employee e = l.getEmployee();
-        // send email notify that the leave request has been handled
-        mailService.sendEmail(e.getPersonalEmail(),
-                "[COMPANY] - YOUR LEAVE REQUEST HAS BEEN PROCESSED",
-                buildLeaveRequestProcessedMail(e.getFirstName(), l));
-
-        return leaveRequestToResponse(l);
-    }
-
     @Override
     @Transactional
-    public List<LeaveResponse> handleLeaveRequest(Long pmId, List<HandleLeaveRequest> requests) {
-        List<LeaveResponse> leaveResponses = new ArrayList<>();
-        for (var leaveRequest : requests) {
-            leaveResponses.add(handleLeaveRequest(pmId, leaveRequest));
-        }
-        return leaveResponses;
+    public LeaveResponse handleLeaveRequest(Long pmId, HandleLeaveRequest request) {
+        return leaveService.handleLeaveRequest(pmId, request);
     }
 
     @Override
     public Page<GetProfileResponse> getAllEmployee(Long pmId, Pageable pageRequest) {
-        requireExists(pmId);
+        validateService.requireExistsEmployee(pmId);
         return employeeRepository.findBy(byPmId(pmId).or(byId(pmId)), p -> p.sortBy(pageRequest.getSort()).page(pageRequest))
-                .map(MappingUtility::employeeToProfileResponse);
+                .map(MappingUtil::employeeToProfileResponse);
     }
 
     @Override
     public Page<LeaveResponse> getAllLeaveRequest(Long pmId, Pageable pageRequest) {
-        requireExists(pmId);
-
-        return leaveRepository.findBy(LeaveSpecifications.byPmId(pmId), p -> p.project(LeaveRequest_.EMPLOYEE).sortBy(pageRequest.getSort()).page(pageRequest))
-                .map(MappingUtility::leaveRequestToResponse);
-    }
-
-
-    private void requireExists(Long employeeId) {
-        if (!employeeRepository.existsById(employeeId)) {
-            throw new EmployeeException(employeeId);
-        }
+        return leaveService.getAllLeaveRequest(pmId, Role.PM, pageRequest);
     }
 
 }

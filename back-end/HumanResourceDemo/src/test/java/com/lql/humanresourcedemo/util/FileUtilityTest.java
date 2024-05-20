@@ -1,4 +1,4 @@
-package com.lql.humanresourcedemo.utility;
+package com.lql.humanresourcedemo.util;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -17,18 +17,18 @@ class FileUtilityTest {
 
     })
     void getFileExtensionTest(String filename, String fileExtension) {
-        assertEquals(fileExtension, FileUtility.getFileExtension(filename));
+        assertEquals(fileExtension, FileUtil.getFileExtension(filename));
     }
 
     @ParameterizedTest(name = "{0} extension is not supported for avatar")
     @ValueSource(strings = {"svg", "gif", "docs"})
     void notSupportedAvatarExtensionTest(String fileExtension) {
-        assertFalse(FileUtility.supportAvatarExtension(fileExtension));
+        assertFalse(FileUtil.supportAvatarExtension(fileExtension));
     }
 
     @ParameterizedTest(name = "{0} extension is supported for avatar")
     @ValueSource(strings = {"jpg", "png", "jpeg"})
     void supportedAvatarExtensionTest(String fileExtension) {
-        assertTrue(FileUtility.supportAvatarExtension(fileExtension));
+        assertTrue(FileUtil.supportAvatarExtension(fileExtension));
     }
 }

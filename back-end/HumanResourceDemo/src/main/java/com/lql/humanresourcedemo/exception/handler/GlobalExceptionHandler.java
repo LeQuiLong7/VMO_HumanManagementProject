@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
+import static com.lql.humanresourcedemo.util.ContextUtil.getCurrentEmployeeId;
 
 @ControllerAdvice
 @Slf4j

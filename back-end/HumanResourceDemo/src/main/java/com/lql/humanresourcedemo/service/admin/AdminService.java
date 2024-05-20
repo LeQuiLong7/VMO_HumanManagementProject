@@ -30,13 +30,8 @@ public interface AdminService {
     SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest);
     TechStackResponse updateEmployeeTechStack(UpdateEmployeeTechStackRequest request);
 
-
-
-
-
     TechStackResponse getTechStackByEmployeeId(Long empId);
 
     List<EmployeeProjectResponse> getAllEmployeeInsideProject(Long projectId);
 
-    Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, Pageable pageRequest);
 }

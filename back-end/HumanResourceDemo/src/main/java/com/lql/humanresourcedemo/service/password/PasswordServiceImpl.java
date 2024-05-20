@@ -2,9 +2,12 @@ package com.lql.humanresourcedemo.service.password;
 
 
 import com.lql.humanresourcedemo.dto.model.employee.OnlyIdPersonalEmailAndFirstName;
+import com.lql.humanresourcedemo.dto.model.employee.OnlyPassword;
+import com.lql.humanresourcedemo.dto.request.employee.ChangePasswordRequest;
 import com.lql.humanresourcedemo.dto.request.employee.ResetPasswordRequest;
 import com.lql.humanresourcedemo.dto.response.employee.ChangePasswordResponse;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
+import com.lql.humanresourcedemo.exception.model.password.ChangePasswordException;
 import com.lql.humanresourcedemo.exception.model.resetpassword.ResetPasswordException;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.password.PasswordResetRequest;
@@ -24,7 +27,7 @@ import static com.lql.humanresourcedemo.constant.PasswordResetConstants.VALID_UN
 import static com.lql.humanresourcedemo.constant.PasswordResetConstants.VALID_UNTIL_TIME_AMOUNT;
 import static com.lql.humanresourcedemo.repository.passwordreset.PasswordResetSpecifications.byEmployeeId;
 import static com.lql.humanresourcedemo.repository.passwordreset.PasswordResetSpecifications.byToken;
-import static com.lql.humanresourcedemo.utility.HelperUtility.buildResetMailMessage;
+import static com.lql.humanresourcedemo.util.HelperUtil.buildResetMailMessage;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +39,27 @@ public class PasswordServiceImpl implements PasswordService{
     private final MailService mailService;
 
 
+    @Override
+    @Transactional
+    public ChangePasswordResponse changePassword(Long employeeId, ChangePasswordRequest request) {
+
+        // new password and confirm password must match
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            throw new ChangePasswordException("Password and confirmation password do not match");
+        }
+
+        // get the current password for the employee id, throw exception if the employee does not exist
+        OnlyPassword p = employeeRepository.findById(employeeId, OnlyPassword.class)
+                .orElseThrow(() -> new EmployeeException(employeeId));
+
+        // check if the old password in the change password request matches the current password of the account or not
+        if (!passwordEncoder.matches(request.oldPassword(), p.password())) {
+            throw new ChangePasswordException("Old password is not correct");
+        }
+        // check successfully, update the account password
+        employeeRepository.updatePasswordById(employeeId, passwordEncoder.encode(request.newPassword()));
+        return new ChangePasswordResponse("Changed password successfully");
+    }
 
     @Override
     @Transactional

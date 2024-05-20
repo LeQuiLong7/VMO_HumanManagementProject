@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.lql.humanresourcedemo.utility.ContextUtility.getCurrentEmployeeId;
+import static com.lql.humanresourcedemo.util.ContextUtil.getCurrentEmployeeId;
 
 @RestController
 @RequestMapping("/pm")
@@ -47,7 +47,7 @@ public class PMController {
         return pmService.checkAttendance(getCurrentEmployeeId(), request);
     }
     @PutMapping("/leave")
-    public List<LeaveResponse> handleLeaveRequest(@RequestBody @Valid List<HandleLeaveRequest> request) {
+    public LeaveResponse handleLeaveRequest(@RequestBody @Valid HandleLeaveRequest request) {
         return pmService.handleLeaveRequest(getCurrentEmployeeId(), request);
     }
 }

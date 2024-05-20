@@ -1,12 +1,11 @@
-package com.lql.humanresourcedemo.utility;
+package com.lql.humanresourcedemo.util;
 
-import com.lql.humanresourcedemo.security.MyAuthentication;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-public class ContextUtility {
+public class ContextUtil {
 
     public static Long getCurrentEmployeeId() {
 

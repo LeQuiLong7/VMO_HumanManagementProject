@@ -1,62 +1,41 @@
 package com.lql.humanresourcedemo.service.validate;
 
-import com.lql.humanresourcedemo.exception.model.paging.PagingException;
-import org.springframework.data.domain.Sort;
+import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
+import com.lql.humanresourcedemo.exception.model.project.ProjectException;
+import com.lql.humanresourcedemo.exception.model.tech.TechException;
+import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
+import com.lql.humanresourcedemo.repository.project.ProjectRepository;
+import com.lql.humanresourcedemo.repository.tech.TechRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static com.lql.humanresourcedemo.utility.HelperUtility.getAllFields;
-
 @Service
+@RequiredArgsConstructor
 public class ValidateServiceImpl implements ValidateService {
 
-
-    private boolean isPositiveIntegerNumber(String number) {
-        return Pattern.matches("\\d+", number);
-    }
-
-    private boolean isSortingOrderValid(String order) {
-        try {
-            Sort.Direction.valueOf(order.toUpperCase());
-            return true;
-        } catch (IllegalArgumentException ex) {
-            return false;
-        }
-    }
-
+    private final EmployeeRepository employeeRepository;
+    private final ProjectRepository projectRepository;
+    private final TechRepository techRepository;
 
     @Override
-    public void validatePageRequest(String pageNumber, String pageSize, List<String> sortProperties, List<String> order, Class<?> clazz) {
-        if (!isPositiveIntegerNumber(pageNumber)) {
-            throw new PagingException("%s is not a valid page number".formatted(pageNumber));
+    public void requireExistsEmployee(Long employeeId) {
+        if (!employeeRepository.existsById(employeeId)) {
+            throw new EmployeeException(employeeId);
+
         }
-        if (!isPositiveIntegerNumber(pageSize) || Integer.parseInt(pageSize) == 0) {
+    }
 
-            throw new PagingException("%s is not a valid page size".formatted(pageSize));
+    @Override
+    public void requireExistsProject(Long projectId) {
+        if (!projectRepository.existsById(projectId)) {
+            throw new ProjectException("Could not find project " + projectId);
         }
-        if (order != null)
-            order.forEach(o -> {
-                if (!isSortingOrderValid(o)) {
-                    throw new PagingException("%s is not a valid sort order, whether asc or desc".formatted(o));
-                }
-            });
+    }
 
-
-        Set<String> classProperties = getAllFields(clazz)
-                .stream()
-                .map(field -> field.getName().toLowerCase())
-                .collect(Collectors.toSet());
-        if (sortProperties != null)
-            sortProperties.forEach(p -> {
-                if (!classProperties.contains(p.toLowerCase())) {
-                    throw new PagingException("%s is not a valid sort property".formatted(p));
-                }
-            });
-
+    @Override
+    public void requireExistsTech(Long techId) {
+        if (!techRepository.existsById(techId))
+            throw new TechException("Tech id %s not found".formatted(techId));
 
     }
 }

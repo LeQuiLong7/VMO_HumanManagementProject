@@ -3,6 +3,7 @@ package com.lql.humanresourcedemo.controller;
 
 import com.lql.humanresourcedemo.dto.request.admin.*;
 import com.lql.humanresourcedemo.dto.response.admin.EmployeeProjectResponse;
+import com.lql.humanresourcedemo.dto.response.effort.EffortHistoryRecord;
 import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.project.ProjectDetail;
 import com.lql.humanresourcedemo.dto.response.project.ProjectResponse;
@@ -10,17 +11,18 @@ import com.lql.humanresourcedemo.dto.response.salary.SalaryRaiseResponse;
 import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.service.admin.AdminService;
-import com.lql.humanresourcedemo.utility.ContextUtility;
+import com.lql.humanresourcedemo.service.employee.EmployeeService;
+import com.lql.humanresourcedemo.util.ContextUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -31,7 +33,12 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final EmployeeService employeeService;
 
+    @GetMapping("/employee/{employeeId}/effort")
+    public List<EffortHistoryRecord> getEmployeeEffortHistory( @PathVariable Long employeeId, @RequestParam(required = false, defaultValue = "false") boolean year) {
+        return employeeService.getEffortHistory(employeeId, LocalDate.now(), year);
+    }
     @GetMapping("/employees")
     public Page<GetProfileResponse> getAllEmployee(Pageable page) {
         return adminService.getAllEmployee(page);
@@ -45,7 +52,7 @@ public class AdminController {
 
     @GetMapping("/employee/{employeeId}/projects")
     public Page<ProjectDetail> getAllProjectsByEmployeeId(Pageable page, @PathVariable Long employeeId) {
-        return adminService.getAllProjectsByEmployeeId(employeeId, page);
+        return employeeService.getAllProjects(employeeId, page);
     }
 
     @GetMapping("/pm")
@@ -77,7 +84,7 @@ public class AdminController {
 
     @PutMapping("/salary")
     public SalaryRaiseResponse handleSalaryRaise(@RequestBody @Valid HandleSalaryRaiseRequest handleSalaryRaiseRequest) {
-        return adminService.handleSalaryRaiseRequest(ContextUtility.getCurrentEmployeeId(), handleSalaryRaiseRequest);
+        return adminService.handleSalaryRaiseRequest(ContextUtil.getCurrentEmployeeId(), handleSalaryRaiseRequest);
     }
 
     @GetMapping("/project")

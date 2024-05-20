@@ -15,7 +15,7 @@ export default function LeavePage() {
     }, [])
 
     async function fetchLeave() {
-        const response = await axios.get("/leave?size=100");
+        const response = await axios.get("/profile/leave?size=100");
         setData(response.data.content)
     }
 
