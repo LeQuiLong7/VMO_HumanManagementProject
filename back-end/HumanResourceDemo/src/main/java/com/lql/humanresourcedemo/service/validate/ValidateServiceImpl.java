@@ -24,7 +24,6 @@ public class ValidateServiceImpl implements ValidateService {
 
         }
     }
-
     @Override
     public void requireExistsProject(Long projectId) {
         if (!projectRepository.existsById(projectId)) {
@@ -36,6 +35,5 @@ public class ValidateServiceImpl implements ValidateService {
     public void requireExistsTech(Long techId) {
         if (!techRepository.existsById(techId))
             throw new TechException("Tech id %s not found".formatted(techId));
-
     }
 }

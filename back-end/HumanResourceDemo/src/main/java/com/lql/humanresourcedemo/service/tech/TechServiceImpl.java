@@ -9,12 +9,14 @@ import com.lql.humanresourcedemo.model.tech.EmployeeTech_;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import com.lql.humanresourcedemo.repository.tech.EmployeeTechRepository;
+import com.lql.humanresourcedemo.repository.tech.EmployeeTechSpecifications;
 import com.lql.humanresourcedemo.repository.tech.TechRepository;
 import com.lql.humanresourcedemo.service.validate.ValidateService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -57,24 +59,25 @@ public class TechServiceImpl implements TechService {
         request.techStacks().stream()
                 .map(TechStack::techId)
                 .forEach(validateService::requireExistsTech);
+
+
+        List<EmployeeTech> techList = employeeTechRepository.findBy(byEmployeeId(request.employeeId()), FluentQuery.FetchableFluentQuery::all);
+
         // if the employee already have that tech then update the corresponding year of experience
         // otherwise create a new record in the employee tech table
-        request.techStacks().forEach(s -> {
-            if (employeeTechRepository.exists(byEmployeeId(request.employeeId()).and(byTechId(s.techId())))) {
-                employeeTechRepository.updateYearOfExperienceByEmployeeIdAndTechId(request.employeeId(), s.techId(), s.yearOfExperience());
-            } else {
-                employeeTechRepository.save(
-                        new EmployeeTech(employeeRepository.getReferenceById(request.employeeId()), techRepository.getReferenceById(s.techId()), s.yearOfExperience())
-                );
+        List<EmployeeTech> updated = request.techStacks().stream().map(techStack -> {
+            for (var i : techList) {
+                if (techStack.techId().equals(i.getId().getTechId())) {
+                    i.setYearOfExperience(techStack.yearOfExperience());
+                    return i;
+                }
             }
-        });
-
-        // get their updated tech list
-        List<EmployeeTech> tech = employeeTechRepository.findBy(byEmployeeId(request.employeeId()), p -> p.project(EmployeeTech_.TECH).all());
+            return new EmployeeTech(employeeRepository.getReferenceById(request.employeeId()), techRepository.getReferenceById(techStack.techId()), techStack.yearOfExperience());
+        }).toList();
 
         return new TechStackResponse(
                 request.employeeId(),
-                tech.stream()
+                employeeTechRepository.saveAll(updated).stream()
                         .map(TechInfo::of)
                         .toList()
         );

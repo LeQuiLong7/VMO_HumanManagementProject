@@ -37,7 +37,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class PMServiceTest {
+class PMServiceImplTest {
     @Mock
     private AttendanceRepository attendanceRepository;
     @Mock
@@ -131,6 +131,7 @@ class PMServiceTest {
                 () -> pmService.handleLeaveRequest(1L, List.of(handleRequest)),
                 "Leave request %s can not be found".formatted(handleRequest.requestId())
         );
+
     }
 
     @Test

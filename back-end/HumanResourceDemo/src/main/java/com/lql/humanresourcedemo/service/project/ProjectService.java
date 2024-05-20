@@ -14,8 +14,6 @@ import java.util.List;
 public interface ProjectService {
     Page<ProjectResponse> getAllProject(Pageable pageRequest);
     Page<ProjectDetail> getAllProjectsByEmployeeId(Long employeeId, Pageable pageRequest);
-
-
     List<EmployeeProjectResponse> getAllEmployeeInsideProject(Long projectId);
 
     ProjectResponse createNewProject(CreateNewProjectRequest request);

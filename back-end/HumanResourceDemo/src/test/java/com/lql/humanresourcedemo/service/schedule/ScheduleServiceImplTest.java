@@ -1,7 +1,6 @@
 package com.lql.humanresourcedemo.service.schedule;
 
 import com.lql.humanresourcedemo.dto.model.employee.OnlyPersonalEmailAndFirstName;
-import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.model.attendance.Attendance;
 import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.repository.attendance.AttendanceRepository;
@@ -29,7 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ScheduleServiceTest {
+public class ScheduleServiceImplTest {
     @Mock
     private EmployeeRepository employeeRepository;
     @Mock

@@ -81,11 +81,11 @@ public class LeaveServiceImpl implements LeaveService{
 
     @Override
     public LeaveResponse handleLeaveRequest(Long pmId, HandleLeaveRequest request) {
-        validateService.requireExistsEmployee(pmId);
-
         if (request.status().equals(LeaveStatus.PROCESSING)) {
             throw new LeaveRequestException("Status " + request.status() + " is not valid");
         }
+        validateService.requireExistsEmployee(pmId);
+
 
         LeaveRequest l = leaveRepository.findBy(LeaveSpecifications.byId(request.requestId()), p -> p.project(LeaveRequest_.EMPLOYEE).first())
                 .orElseThrow(() -> new LeaveRequestException("Leave request could not be found"));
