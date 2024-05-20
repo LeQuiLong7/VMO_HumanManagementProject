@@ -14,6 +14,7 @@ import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.salaryraise.SalaryRaiseException;
 import com.lql.humanresourcedemo.filter.JWTAuthenticationFilter;
 import com.lql.humanresourcedemo.service.admin.AdminService;
+import com.lql.humanresourcedemo.service.employee.EmployeeService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ class AdminControllerTest {
 
     @MockBean
     private AdminService adminService;
+    @MockBean
+    private EmployeeService employeeService;
+
 
     @MockBean
     private JWTAuthenticationFilter jwtAuthenticationFilter;
@@ -75,7 +79,7 @@ class AdminControllerTest {
     @Test
     void getAllProjectByEmployeeId_Fail() {
         mockSecurityContext(() -> {
-            when(adminService.getAllProjectsByEmployeeId(anyLong(), any(Pageable.class)))
+            when(employeeService.getAllProjects(anyLong(), any(Pageable.class)))
                     .thenThrow(new EmployeeException(ERROR_MESSAGE));
             try {
                 mockMvc.perform(get(BASE_URL + "/employee/1/projects")

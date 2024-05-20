@@ -19,7 +19,6 @@ import com.lql.humanresourcedemo.repository.attendance.AttendanceSpecifications;
 import com.lql.humanresourcedemo.repository.effort.EffortHistoryRepository;
 import com.lql.humanresourcedemo.repository.effort.EffortHistorySpecifications;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications;
 import com.lql.humanresourcedemo.service.aws.AWSService;
 import com.lql.humanresourcedemo.service.leave.LeaveService;
 import com.lql.humanresourcedemo.service.password.PasswordService;
@@ -33,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
