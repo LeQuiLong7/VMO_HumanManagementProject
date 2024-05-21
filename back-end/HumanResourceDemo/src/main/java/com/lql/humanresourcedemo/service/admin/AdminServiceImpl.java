@@ -21,13 +21,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
+import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.all;
 import static com.lql.humanresourcedemo.repository.employee.EmployeeSpecifications.byRole;
 import static com.lql.humanresourcedemo.util.HelperUtil.*;
 import static com.lql.humanresourcedemo.util.MappingUtil.employeeToProfileResponse;
@@ -46,8 +46,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Page<GetProfileResponse> getAllEmployee(Pageable pageRequest) {
-        Specification<Employee> all = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
-        return searchService.search(all, pageRequest).map(MappingUtil::employeeToProfileResponse);
+        return searchService.search(all(), pageRequest).map(MappingUtil::employeeToProfileResponse);
 
     }
 
@@ -64,7 +63,6 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public Page<SalaryRaiseResponse> getAllSalaryRaiseRequest(Pageable pageRequest) {
         return salaryService.getAllSalaryRaiseRequest(null, Role.ADMIN, pageRequest);
-
     }
 
     @Override
@@ -107,7 +105,6 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional
     public SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest)  {
         return salaryService.handleSalaryRaiseRequest(adminId, handleRequest);
     }

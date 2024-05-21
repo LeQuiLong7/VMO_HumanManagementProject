@@ -16,6 +16,7 @@ import com.lql.humanresourcedemo.repository.salary.SalaryRaiseSpecifications;
 import com.lql.humanresourcedemo.service.mail.MailService;
 import com.lql.humanresourcedemo.service.validate.ValidateService;
 import com.lql.humanresourcedemo.util.MappingUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +38,7 @@ public class SalaryServiceImpl implements SalaryService{
     private final ValidateService validateService;
     private final MailService mailService;
     @Override
+    @Transactional
     public SalaryRaiseResponse createSalaryRaiseRequest(Long employeeId, CreateSalaryRaiseRequest request) {
         // can not create two salary raise request at a time, the previous request must be handled before
         // they can create another salary raise request
@@ -69,6 +71,7 @@ public class SalaryServiceImpl implements SalaryService{
     }
 
     @Override
+    @Transactional
     public SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest) {
         // check whether the raise request exists for not
         SalaryRaiseRequest raiseRequest = salaryRepository.findBy(SalaryRaiseSpecifications.byId(handleRequest.requestId()), p -> p.project(SalaryRaiseRequest_.EMPLOYEE).first())

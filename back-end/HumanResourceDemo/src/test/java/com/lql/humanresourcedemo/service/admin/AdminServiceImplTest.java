@@ -5,6 +5,7 @@ import com.lql.humanresourcedemo.dto.request.admin.*;
 import com.lql.humanresourcedemo.dto.response.employee.GetProfileResponse;
 import com.lql.humanresourcedemo.dto.response.project.ProjectResponse;
 import com.lql.humanresourcedemo.dto.response.salary.SalaryRaiseResponse;
+import com.lql.humanresourcedemo.dto.response.tech.TechInfo;
 import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
 import com.lql.humanresourcedemo.dto.response.admin.EmployeeProjectResponse;
 import com.lql.humanresourcedemo.enumeration.Role;
@@ -20,16 +21,12 @@ import com.lql.humanresourcedemo.model.salary.SalaryRaiseRequest;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
-import com.lql.humanresourcedemo.repository.project.EmployeeProjectRepository;
-import com.lql.humanresourcedemo.repository.project.ProjectRepository;
-import com.lql.humanresourcedemo.repository.salary.SalaryRaiseRequestRepository;
-import com.lql.humanresourcedemo.repository.tech.EmployeeTechRepository;
-import com.lql.humanresourcedemo.repository.tech.TechRepository;
 import com.lql.humanresourcedemo.service.mail.MailService;
 import com.lql.humanresourcedemo.service.project.ProjectService;
 import com.lql.humanresourcedemo.service.salary.SalaryService;
 import com.lql.humanresourcedemo.service.search.SearchService;
 import com.lql.humanresourcedemo.service.tech.TechService;
+import com.lql.humanresourcedemo.util.MappingUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,10 +53,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AdminServiceTest {
+@SuppressWarnings("unchecked")
+class AdminServiceImplTest {
 
     Pageable pageable = Pageable.ofSize(10);
-
     @Mock
     private EmployeeRepository employeeRepository;
     @Mock
@@ -74,14 +71,11 @@ class AdminServiceTest {
     private ProjectService projectService;
     @Mock
     private TechService techService;
-
-    @Mock
-    private ProjectRepository projectRepository;
     private AdminService adminService;
 
     @BeforeEach
     void setUp() {
-        adminService = new AdminServiceImpl(employeeRepository, passwordEncoder, mailService, salaryService, searchService, projectService, techService );
+        adminService = new AdminServiceImpl(employeeRepository, passwordEncoder, mailService, salaryService, searchService, projectService, techService);
     }
 
 //    @Test
@@ -100,7 +94,7 @@ class AdminServiceTest {
     void getAllEmployeeTest() {
         Employee employee = Employee.builder().id(1L).build();
 
-        when(employeeRepository.findAll(pageable))
+        when(searchService.search(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(employee)));
 
         Page<GetProfileResponse> response = adminService.getAllEmployee(pageable);
@@ -108,30 +102,31 @@ class AdminServiceTest {
                 () -> assertEquals(1, response.getSize()),
                 () -> assertEquals(1L, response.getContent().get(0).id())
         );
+        verify(searchService, times(1)).search(any(Specification.class), any());
+        verify(employeeRepository, times(1)).findBy(any(Specification.class), any());
     }
 
     @Test
     void getAllPMTest() {
-        Employee employee = Employee.builder().id(1L).role(Role.PM).build();
+        Employee employee = Employee.builder().id(1L).build();
 
-
-        when(employeeRepository.findBy(any(Specification.class), any()))
+        when(searchService.search(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(employee)));
 
         Page<GetProfileResponse> response = adminService.getAllPM(pageable);
         assertAll(
                 () -> assertEquals(1, response.getSize()),
-                () -> assertEquals(1L, response.getContent().get(0).id()),
-                () -> assertEquals(Role.PM, response.getContent().get(0).role())
+                () -> assertEquals(1L, response.getContent().get(0).id())
         );
+        verify(searchService, times(1)).search(any(Specification.class), any());
+        verify(employeeRepository, times(1)).findBy(any(Specification.class), any());
     }
 
     @Test
     void getAllTech() {
         Tech tech = new Tech(1L, "a", null);
 
-
-        when(techRepository.findAll(pageable))
+        when(techService.getAllTech(pageable))
                 .thenReturn(new PageImpl<>(List.of(tech)));
 
         Page<Tech> response = adminService.getAllTech(pageable);
@@ -140,17 +135,18 @@ class AdminServiceTest {
                 () -> assertEquals(1L, response.getContent().get(0).getId()),
                 () -> assertEquals("a", response.getContent().get(0).getName())
         );
+        verify(techService, times(1)).getAllTech(pageable);
     }
 
     @Test
     void getAllProject() {
-        Project project = Project.builder()
+        ProjectResponse projectResponse = MappingUtil.projectToProjectResponse(Project.builder()
                 .id(1L)
                 .name("a")
-                .build();
+                .build());
 
-        when(projectRepository.findAll(pageable))
-                .thenReturn(new PageImpl<>(List.of(project)));
+        when(projectService.getAllProject(pageable))
+                .thenReturn(new PageImpl<>(List.of(projectResponse)));
 
         Page<ProjectResponse> response = adminService.getAllProject(pageable);
         assertAll(
@@ -158,21 +154,21 @@ class AdminServiceTest {
                 () -> assertEquals(1L, response.getContent().get(0).id()),
                 () -> assertEquals("a", response.getContent().get(0).name())
         );
+        verify(projectService, times(1)).getAllProject(pageable);
     }
 
     @Test
     void getAllSalaryRaiseRequest() {
         Employee employee = Employee.builder().id(1L).build();
 
-
-        SalaryRaiseRequest salaryRaiseRequest = SalaryRaiseRequest.builder()
+        SalaryRaiseResponse salaryRaiseResponse = MappingUtil.salaryRaiseRequestToResponse(SalaryRaiseRequest.builder()
                 .id(1L)
                 .employee(employee)
                 .status(PROCESSING)
-                .build();
+                .build());
 
-        when(salaryRepository.findAll(pageable))
-                .thenReturn(new PageImpl<>(List.of(salaryRaiseRequest)));
+        when(salaryService.getAllSalaryRaiseRequest(any(), Role.ADMIN, pageable))
+                .thenReturn(new PageImpl<>(List.of(salaryRaiseResponse)));
 
         Page<SalaryRaiseResponse> response = adminService.getAllSalaryRaiseRequest(pageable);
         assertAll(
@@ -180,82 +176,50 @@ class AdminServiceTest {
                 () -> assertEquals(1L, response.getContent().get(0).id()),
                 () -> assertEquals(PROCESSING, response.getContent().get(0).status())
         );
+        verify(salaryService, times(1)).getAllSalaryRaiseRequest(null, Role.ADMIN, pageable);
     }
 
     @Test
     void getTechStackByEmployeeId() {
 
         Long employeeId = 1L;
-        EmployeeTech et = new EmployeeTech(Mockito.mock(Employee.class), Mockito.mock(Tech.class), 1.2);
+        TechStackResponse techStackResponse = new TechStackResponse(employeeId, List.of(TechInfo.of(new EmployeeTech(Mockito.mock(Employee.class), Mockito.mock(Tech.class), 1.2))));
 
-        when(employeeRepository.existsById(employeeId)).thenReturn(true);
-//        when(employeeTechRepository.findTechInfoByEmployeeId(employeeId))
-        when(employeeTechRepository.findBy(any(Specification.class), any()))
-                .thenReturn(List.of(et));
+        when(techService.getTechStackByEmployeeId(employeeId))
+                .thenReturn(techStackResponse);
 
         TechStackResponse response = adminService.getTechStackByEmployeeId(employeeId);
         assertAll(
                 () -> assertEquals(employeeId, response.employeeId()),
                 () -> assertEquals(1, response.techInfo().size())
         );
+        verify(techService, times(1)).getTechStackByEmployeeId(employeeId);
     }
 
     @Test
-    void getTechStackByEmployeeId_EmployeeNotFound() {
+    void getAllEmployeesInsideProject() {
 
-        Long employeeId = 1L;
-
-        when(employeeRepository.existsById(employeeId)).thenReturn(false);
-        assertThrows(EmployeeException.class,
-                () -> adminService.getTechStackByEmployeeId(employeeId));
-
-    }
-    @Test
-    void getAllEmployeeInsideProject() {
-
+        long projectId = 1L;
         Employee employee = Employee.builder().id(1L).build();
-        Project project = Project.builder().id(1L).build();
+        Project project = Project.builder().id(projectId).build();
 
-        EmployeeProject ep = new EmployeeProject(
-                        employee,
-                        project,
+        EmployeeProjectResponse employeeProjectResponse = EmployeeProjectResponse.toEmployeeProjectResponse(new EmployeeProject(
+                employee,
+                project,
                 10
-        );
-        when(projectRepository.existsById(any())).thenReturn(true);
-        when(employeeProjectRepository.findBy(any(Specification.class), any()))
-//        when(employeeProjectRepository.findAllByIdProjectId(project.getId(), pageable))
-                .thenReturn(List.of(ep));
+        ));
+
+        when(projectService.getAllEmployeeInsideProject(projectId))
+                .thenReturn(List.of(employeeProjectResponse));
 
         List<EmployeeProjectResponse> response = adminService.getAllEmployeeInsideProject(project.getId());
         assertAll(
-                () -> assertEquals(1, response.size())
-//                () -> assertEquals(employee.getId(), response.getContent().get(0).id())
+                () -> assertEquals(1, response.size()),
+                () -> assertEquals(employee.getId(), response.get(0).employeeId())
         );
+        verify(projectService, times(1)).getAllEmployeeInsideProject(projectId);
     }
 
-//    @Test
-//    void getAllProjectsByEmployeeId() {
-//
-//        Employee employee = Employee.builder().id(1L).build();
-//        Project project = Project.builder().id(1L).build();
-//
-//        EmployeeProject ep = new EmployeeProject(
-//                        employee,
-//                        project,
-//                10
-//        );
-//        when(employeeRepository.existsById(employee.getId()))
-//                .thenReturn(true);
-//
-//        when(employeeProjectRepository.findBy(any(Specification.class), any()))
-//                .thenReturn(new PageImpl<>(List.of(ep)));
-//
-//        Page<ProjectDetail> response = adminService.getAllProjectsByEmployeeId(employee.getId(), pageable);
-//        assertAll(
-//                () -> assertEquals(1, response.getSize()),
-//                () -> assertEquals(project.getId(), response.getContent().get(0).projectInfo().getId())
-//        );
-//    }
 
 
 //    @Test
@@ -306,10 +270,9 @@ class AdminServiceTest {
 
 
     @Test
-    void createNewEmployee_Success() {
+    void createNewEmployee_EmailDoesNotExists() {
         CreateNewEmployeeRequest request = new CreateNewEmployeeRequest("long", "le qui", null, "", "", 2D, Role.EMPLOYEE, 1L, null);
-//        when(employeeRepository.existsByPersonalEmail(anyString())).thenReturn(false);
-
+        when(employeeRepository.existsByPersonalEmail(anyString())).thenReturn(false);
         GetProfileResponse response = adminService.createNewEmployee(request);
 
         assertAll(
@@ -327,15 +290,16 @@ class AdminServiceTest {
     @Test
     void createNewProject() {
         CreateNewProjectRequest request = new CreateNewProjectRequest("p1", "", LocalDate.now(), LocalDate.now());
+        ProjectResponse projectResponse = MappingUtil.projectToProjectResponse(MappingUtil.toProject(request));
 
-        when(projectRepository.save(ArgumentMatchers.any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(projectService.createNewProject(request)).thenReturn(projectResponse);
 
         ProjectResponse newProject = adminService.createNewProject(request);
         assertAll(
                 () -> assertEquals(INITIATION, newProject.state()),
                 () -> assertEquals("p1", newProject.name())
         );
-        verify(projectRepository, times(1)).save(ArgumentMatchers.any(Project.class));
+        verify(projectService, times(1)).createNewProject(request);
 
     }
 
@@ -551,7 +515,7 @@ class AdminServiceTest {
 
         assertThrows(
                 EmployeeException.class,
-                () -> adminService.updateEmployeeTechStack( request),
+                () -> adminService.updateEmployeeTechStack(request),
                 "Could not find employee " + request.employeeId()
         );
     }
@@ -568,7 +532,7 @@ class AdminServiceTest {
 
         assertThrows(
                 TechException.class,
-                () -> adminService.updateEmployeeTechStack( request),
+                () -> adminService.updateEmployeeTechStack(request),
                 "Tech id %s not found".formatted(techStack.techId())
         );
     }
