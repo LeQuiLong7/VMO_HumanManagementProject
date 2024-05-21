@@ -115,10 +115,9 @@ class SalaryServiceImplTest {
     @Test
     void getAllSalaryRaiseRequest_EmployeeNotFound() {
         Long employeeId = 1L;
-        when(employeeRepository.existsById(employeeId)).thenReturn(false);
-
+        doThrow(new EmployeeException(employeeId)).when(validateService).requireExistsEmployee(employeeId);
         assertThrows(
-                SalaryRaiseException.class,
+                EmployeeException.class,
                 () -> salaryService.getAllSalaryRaiseRequest(employeeId, Role.EMPLOYEE, page),
                 "Could not find employee " + employeeId
         );
@@ -136,7 +135,6 @@ class SalaryServiceImplTest {
                 .id(1L)
                 .employee(employee).build();
 
-        when(employeeRepository.existsById(employeeId)).thenReturn(true);
         when(salaryRepository.findBy(any(Specification.class), any()))
                 .thenReturn(new PageImpl<>(List.of(salaryRaiseRequest)));
 
@@ -150,9 +148,6 @@ class SalaryServiceImplTest {
     @Test
     void getAllSalaryRaiseRequest_PMRole() {
         Long employeeId = 1L;
-
-        when(employeeRepository.existsById(employeeId)).thenReturn(true);
-
         assertThrows(
                 AccessDeniedException.class,
                 () -> salaryService.getAllSalaryRaiseRequest(employeeId, Role.PM, page),
@@ -170,7 +165,6 @@ class SalaryServiceImplTest {
                 .id(1L)
                 .employee(employee).build();
 
-        when(employeeRepository.existsById(employeeId)).thenReturn(true);
         when(salaryRepository.findAll(any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(salaryRaiseRequest)));
 

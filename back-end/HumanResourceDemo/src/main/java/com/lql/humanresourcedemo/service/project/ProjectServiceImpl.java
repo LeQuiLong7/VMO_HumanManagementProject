@@ -131,7 +131,8 @@ public class ProjectServiceImpl implements ProjectService{
                 .orElseThrow(() -> new ProjectException("Could not find project " + request.projectId()));
 
         // list of employees already assigned to the project
-        List<EmployeeProjectResponse> alreadyInside = project.getEmployees().stream()
+        List<EmployeeProjectResponse> alreadyInside = project.getEmployees()
+                .stream()
                 .map(EmployeeProjectResponse::toEmployeeProjectResponse)
                 .collect(Collectors.toList());
 

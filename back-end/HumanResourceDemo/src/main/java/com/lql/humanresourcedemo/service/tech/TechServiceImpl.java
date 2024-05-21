@@ -67,7 +67,7 @@ public class TechServiceImpl implements TechService {
         // otherwise create a new record in the employee tech table
         List<EmployeeTech> updated = request.techStacks().stream().map(techStack -> {
             for (var i : techList) {
-                if (techStack.techId().equals(i.getId().getTechId())) {
+                if (techStack.techId().equals(i.getTech().getId())) {
                     i.setYearOfExperience(techStack.yearOfExperience());
                     return i;
                 }

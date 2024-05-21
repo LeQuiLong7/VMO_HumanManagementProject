@@ -21,7 +21,6 @@ public class ValidateServiceImpl implements ValidateService {
     public void requireExistsEmployee(Long employeeId) {
         if (!employeeRepository.existsById(employeeId)) {
             throw new EmployeeException(employeeId);
-
         }
     }
     @Override

@@ -105,6 +105,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public ProjectResponse createNewProject(CreateNewProjectRequest request) {
+        return projectService.createNewProject(request);
+    }
+
+    @Override
     public SalaryRaiseResponse handleSalaryRaiseRequest(Long adminId, HandleSalaryRaiseRequest handleRequest)  {
         return salaryService.handleSalaryRaiseRequest(adminId, handleRequest);
     }
@@ -114,10 +119,6 @@ public class AdminServiceImpl implements AdminService {
         return techService.updateEmployeeTechStack(request);
     }
 
-    @Override
-    public ProjectResponse createNewProject(CreateNewProjectRequest request) {
-        return projectService.createNewProject(request);
-    }
 
     @Override
     public ProjectResponse updateProject(UpdateProjectStatusRequest request) {

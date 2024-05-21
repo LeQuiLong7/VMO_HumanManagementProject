@@ -78,7 +78,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Page<Attendance> getAllAttendanceHistory(Long employeeId,Pageable pageRequest) {
+    public Page<Attendance> getAllAttendanceHistory(Long employeeId, Pageable pageRequest) {
         validateService.requireExistsEmployee(employeeId);
         return attendanceRepository.findBy(AttendanceSpecifications.byEmployeeId(employeeId), p -> p.sortBy(pageRequest.getSort()).page(pageRequest));
     }
@@ -129,14 +129,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 
     @Override
-    @Transactional
     public LeaveResponse createLeaveRequest(Long employeeId, LeaveRequestt request) {
         return leaveService.createLeaveRequest(employeeId, request);
     }
 
 
     @Override
-    @Transactional
     public SalaryRaiseResponse createSalaryRaiseRequest(Long employeeId, CreateSalaryRaiseRequest request) {
         return salaryService.createSalaryRaiseRequest(employeeId, request);
     }

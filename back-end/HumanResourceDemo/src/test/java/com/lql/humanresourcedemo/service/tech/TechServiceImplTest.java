@@ -5,6 +5,7 @@ import com.lql.humanresourcedemo.dto.request.admin.UpdateEmployeeTechStackReques
 import com.lql.humanresourcedemo.dto.response.tech.TechStackResponse;
 import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.tech.TechException;
+import com.lql.humanresourcedemo.model.employee.Employee;
 import com.lql.humanresourcedemo.model.tech.EmployeeTech;
 import com.lql.humanresourcedemo.model.tech.Tech;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
@@ -89,12 +90,20 @@ class TechServiceImplTest {
 
     @Test
     void updateEmployeeTechStack_EmployeeAndTechExist() {
-        TechStack techStack = new TechStack(1L, 5D);
+        long employeeId = 1L;
+        long techId = 1L;
+        Employee e = Employee.builder().id(employeeId).build();
+        Tech t = new Tech(techId, "", null);
+
+        TechStack techStack = new TechStack(techId, 5D);
+        EmployeeTech et = new EmployeeTech(e, t, 3D);
+
         UpdateEmployeeTechStackRequest request = new UpdateEmployeeTechStackRequest(1L, List.of(techStack));
 
-        // Mocking repository responses
 
-        when(employeeTechRepository.findBy(any(Specification.class), any())).thenReturn(Collections.emptyList());
+        when(employeeTechRepository.findBy(any(Specification.class), any())).thenReturn(List.of(et));
+        when(employeeTechRepository.saveAll(any())).thenAnswer(invocation ->  invocation.getArgument(0));
+
 
         TechStackResponse response = techService.updateEmployeeTechStack(request);
 
@@ -107,7 +116,7 @@ class TechServiceImplTest {
         verify(validateService, times(1)).requireExistsEmployee(request.employeeId());
         verify(employeeTechRepository, times(1)).findBy(any(Specification.class), any());
         verify(validateService, times(request.techStacks().size())).requireExistsTech(any());
-        verify(employeeTechRepository, times(request.techStacks().size())).save(any(EmployeeTech.class));
+        verify(employeeTechRepository, times(request.techStacks().size())).saveAll(any(List.class));
     }
 
     @Test

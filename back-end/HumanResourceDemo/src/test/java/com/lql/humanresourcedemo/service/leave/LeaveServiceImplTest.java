@@ -60,8 +60,10 @@ class LeaveServiceImplTest {
         OnLyLeaveDays leaveDays = new OnLyLeaveDays((byte) 2);
         long employeeId = 1L;
 
-        when(employeeRepository.findById(employeeId, eq(OnLyLeaveDays.class)))
+        when(employeeRepository.findById(eq(employeeId), eq(OnLyLeaveDays.class)))
                 .thenReturn(Optional.of(leaveDays));
+        when(employeeRepository.getReferenceById(employeeId))
+                .thenReturn(new Employee());
         when(leaveRepository.exists(any(Specification.class)))
                 .thenReturn(false);
 
@@ -86,7 +88,7 @@ class LeaveServiceImplTest {
         OnLyLeaveDays leaveDays = new OnLyLeaveDays((byte) 0);
         long employeeId = 1L;
 
-        when(employeeRepository.findById(employeeId, eq(OnLyLeaveDays.class)))
+        when(employeeRepository.findById(eq(employeeId), eq(OnLyLeaveDays.class)))
                 .thenReturn(Optional.of(leaveDays));
 
         assertThrows(
@@ -97,7 +99,7 @@ class LeaveServiceImplTest {
         );
 
         verify(validateService, times(1)).requireExistsEmployee(employeeId);
-        verify(employeeRepository, times(1)).findById(employeeId, eq(OnLyLeaveDays.class));
+        verify(employeeRepository, times(1)).findById(eq(employeeId), eq(OnLyLeaveDays.class));
     }
 
     @Test
@@ -107,12 +109,8 @@ class LeaveServiceImplTest {
         OnLyLeaveDays leaveDays = new OnLyLeaveDays((byte) 2);
         long employeeId = 1L;
 
-        // Given
-        when(employeeRepository.findById(employeeId, eq(OnLyLeaveDays.class)))
+        when(employeeRepository.findById(eq(employeeId), eq(OnLyLeaveDays.class)))
                 .thenReturn(Optional.of(leaveDays));
-        when(leaveRepository.exists(any(Specification.class)))
-                .thenReturn(true);
-
         when(leaveRepository.exists(any(Specification.class)))
                 .thenReturn(true);
 
@@ -123,7 +121,7 @@ class LeaveServiceImplTest {
         );
 
         verify(validateService, times(1)).requireExistsEmployee(1L);
-        verify(employeeRepository, times(1)).findById(employeeId, eq(OnLyLeaveDays.class));
+        verify(employeeRepository, times(1)).findById(eq(employeeId), eq(OnLyLeaveDays.class));
         verify(leaveRepository, times(1)).exists(any(Specification.class));
 
     }
@@ -132,7 +130,11 @@ class LeaveServiceImplTest {
     void testGetAllLeaveRequest_AsEmployee() {
         // Given
         long employeeId = 1L;
-        Page<LeaveRequest> page = new PageImpl<>(List.of(new LeaveRequest()));
+        Employee e =  Employee.builder().id(employeeId).build();
+        LeaveRequest leaveRequest = new LeaveRequest();
+        leaveRequest.setEmployee(e);
+
+        Page<LeaveRequest> page = new PageImpl<>(List.of(leaveRequest));
 
         when(leaveRepository.findBy(any(Specification.class), any()))
                 .thenReturn(page);
@@ -151,7 +153,11 @@ class LeaveServiceImplTest {
     void testGetAllLeaveRequest_AsPM() {
         // Given
         long employeeId = 1L;
-        Page<LeaveRequest> page = new PageImpl<>(List.of(new LeaveRequest()));
+        Employee e =  Employee.builder().id(employeeId).build();
+        LeaveRequest leaveRequest = new LeaveRequest();
+        leaveRequest.setEmployee(e);
+
+        Page<LeaveRequest> page = new PageImpl<>(List.of(leaveRequest));
 
         when(leaveRepository.findBy(any(Specification.class), any()))
                 .thenReturn(page);
@@ -171,14 +177,12 @@ class LeaveServiceImplTest {
     void testGetAllLeaveRequest_AsADMIN() {
         // Given
         long employeeId = 1L;
-        Page<LeaveRequest> page = new PageImpl<>(List.of(new LeaveRequest()));
-
-
-        when(leaveRepository.findBy(any(Specification.class), any()))
-                .thenReturn(page);
+        Employee e =  Employee.builder().id(employeeId).build();
+        LeaveRequest leaveRequest = new LeaveRequest();
+        leaveRequest.setEmployee(e);
 
         assertThrows(LeaveRequestException.class,
-                () -> leaveService.getAllLeaveRequest(employeeId, Role.PM, pageable),
+                () -> leaveService.getAllLeaveRequest(employeeId, Role.ADMIN, pageable),
                 "You are not allow to view leave requests"
         );
 
@@ -189,14 +193,16 @@ class LeaveServiceImplTest {
 
     @Test
     void testGetLeaveRequestByDateAndEmployeeId() {
-        // Given
+        long employeeId = 1L;
+        Employee e =  Employee.builder().id(employeeId).build();
+        LeaveRequest leaveRequest = new LeaveRequest();
+        leaveRequest.setEmployee(e);
+
         when(leaveRepository.findBy(any(Specification.class), any()))
-                .thenReturn(Optional.of(new LeaveRequest()));
+                .thenReturn(Optional.of(leaveRequest));
 
-        // When
-        Optional<LeaveResponse> response = leaveService.getLeaveRequestByDateAndEmployeeId(1L, LocalDate.of(2024, 5, 20));
+        Optional<LeaveResponse> response = leaveService.getLeaveRequestByDateAndEmployeeId(employeeId, LocalDate.of(2024, 5, 20));
 
-        // Then
         assertTrue(response.isPresent());
         verify(leaveRepository).findBy(any(Specification.class), any());
     }

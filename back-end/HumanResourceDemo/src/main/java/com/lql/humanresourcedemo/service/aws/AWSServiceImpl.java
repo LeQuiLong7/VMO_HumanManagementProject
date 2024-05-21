@@ -7,7 +7,6 @@ import com.lql.humanresourcedemo.exception.model.employee.EmployeeException;
 import com.lql.humanresourcedemo.exception.model.file.FileException;
 import com.lql.humanresourcedemo.repository.employee.EmployeeRepository;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,17 +21,20 @@ import static com.lql.humanresourcedemo.util.AWSUtil.BUCKET_NAME;
 import static com.lql.humanresourcedemo.util.FileUtil.*;
 
 @Service
-@RequiredArgsConstructor
 public class AWSServiceImpl implements AWSService {
     private final S3Client s3Client;
     private final EmployeeRepository employeeRepository;
 
-
-    @Value("${spring.cloud.aws.region.static}")
-    private String region;
+    private final String REGION;
+    public AWSServiceImpl(S3Client s3Client, EmployeeRepository employeeRepository, @Value("${spring.cloud.aws.region.static}") String region) {
+        this.s3Client = s3Client;
+        this.employeeRepository = employeeRepository;
+        this.REGION = region;
+    }
 
     @Override
     @Transactional
+
     public String uploadAvatar(Long employeeId, MultipartFile file) {
         // only allow some image type for avatar
         String fileExtension = getFileExtension(file.getOriginalFilename()).toLowerCase();
@@ -60,10 +62,10 @@ public class AWSServiceImpl implements AWSService {
     }
 
     @Override
+    @Transactional
     public String uploadReport( File file, String key) {
         return uploadFile(file, BUCKET_NAME, key);
     }
-
 
 
 
@@ -96,8 +98,9 @@ public class AWSServiceImpl implements AWSService {
         } catch (Exception ex) {
             throw new AWSException("Error uploading file");
         }
-        return getUrlForObject(bucketName, region, key);
+        return getUrlForObject(bucketName, REGION, key);
     }
+
 
 
     private String uploadFile(MultipartFile file, String bucketName, String key) {
@@ -110,7 +113,7 @@ public class AWSServiceImpl implements AWSService {
         } catch (Exception ex) {
             throw new AWSException("Error uploading file");
         }
-        return getUrlForObject(bucketName, region, key);
+        return getUrlForObject(bucketName, REGION, key);
     }
 
 
@@ -137,15 +140,3 @@ public class AWSServiceImpl implements AWSService {
 
 
 }
-
-
-//
-//    public Resource downloadFile( String bucketName, String key) throws IOException {
-//        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-//                .bucket(bucketName)
-//                .key(key)
-//                .build();
-//        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(getObjectRequest);
-//
-//        return new ByteArrayResource(object.readAllBytes());
-//    }
